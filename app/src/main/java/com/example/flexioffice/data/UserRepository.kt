@@ -47,7 +47,7 @@ class UserRepository @Inject constructor(private val firestore: FirebaseFirestor
     }
 
     /** Aktualisiert die Team-ID eines Benutzers */
-    suspend fun updateUserTeamId(uid: String, teamId: Int): Result<Unit> {
+    suspend fun updateUserTeamId(uid: String, teamId: String): Result<Unit> {
         return try {
             firestore.collection(USERS_COLLECTION).document(uid).update("teamId", teamId).await()
             Result.success(Unit)
@@ -72,8 +72,8 @@ class UserRepository @Inject constructor(private val firestore: FirebaseFirestor
         return User(
                 name = extractNameFromEmail(email),
                 email = email,
-                role = User.ROLE_USER,
-                teamId = User.TEAM_NOT_INITIALIZED
+                role = User.ROLE_MANAGER, // Alle neuen User als Manager anlegen
+                teamId = User.NO_TEAM // Leerer String als initiale teamId
         )
     }
 }

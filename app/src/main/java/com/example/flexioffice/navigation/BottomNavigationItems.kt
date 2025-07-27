@@ -41,6 +41,14 @@ object BottomNavigationItems {
             requiredRole = User.ROLE_MANAGER, // Nur für Manager/Leads
         )
 
+    val teams =
+        BottomNavigationItem(
+            route = FlexiOfficeRoutes.Teams.route,
+            title = "Teams",
+            selectedIconId = R.drawable.group_24px_filled,
+            unselectedIconId = R.drawable.group_24px,
+        )
+
     val profile =
         BottomNavigationItem(
             route = FlexiOfficeRoutes.Profile.route,
@@ -51,7 +59,7 @@ object BottomNavigationItems {
 
     /** Gibt die für eine Rolle verfügbaren Navigation-Items zurück */
     fun getItemsForRole(userRole: String): List<BottomNavigationItem> {
-        val allItems = listOf(calendar, booking, requests, profile)
+        val allItems = listOf(calendar, booking, requests, teams, profile)
 
         return allItems.filter { item ->
             item.requiredRole == null ||

@@ -5,11 +5,10 @@ data class User(
     val name: String = "",
     val email: String = "",
     val role: String = "user", // Standard-Rolle
-    // -1 = nicht initialisiert
-    val teamId: Int = -1,
+    val teamId: String = "", // Leerer String = kein Team
 ) {
     // Leerer Konstruktor für Firestore
-    constructor() : this("", "", "user", -1)
+    constructor() : this("", "", "user", "")
 
     companion object {
         // Standard-Rollen
@@ -17,7 +16,7 @@ data class User(
         const val ROLE_ADMIN = "admin"
         const val ROLE_MANAGER = "manager"
 
-        // Nicht initialisierte Team-ID
-        const val TEAM_NOT_INITIALIZED = -1
+        // Kein Team
+        const val NO_TEAM = ""
     }
 }
