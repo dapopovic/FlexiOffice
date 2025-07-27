@@ -10,12 +10,13 @@ sealed class FlexiOfficeRoutes(val route: String) {
     object Booking : FlexiOfficeRoutes("booking")
     object Requests : FlexiOfficeRoutes("requests") // Nur für Leads
     object Profile : FlexiOfficeRoutes("profile")
+    object Teams : FlexiOfficeRoutes("teams")
 
     companion object {
         /** Standard-Route für neue Benutzer */
         const val DEFAULT_ROUTE = "calendar"
 
         /** Alle verfügbaren BottomBar-Routen */
-        val bottomBarRoutes = listOf(Calendar, Booking, Requests)
+        val bottomBarRoutes = listOf(Calendar, Booking, Teams, Requests)
     }
 }

@@ -1,7 +1,6 @@
 package com.example.flexioffice.navigation
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -12,6 +11,7 @@ import com.example.flexioffice.presentation.screens.CalendarScreen
 import com.example.flexioffice.presentation.screens.LoginScreen
 import com.example.flexioffice.presentation.screens.ProfileScreen
 import com.example.flexioffice.presentation.screens.RequestsScreen
+import com.example.flexioffice.presentation.screens.TeamsScreen
 
 @Composable
 fun FlexiOfficeNavigation(
@@ -44,7 +44,10 @@ fun FlexiOfficeNavigation(
             RequestsScreen()
         }
 
-        // Profile Screen (für zukünftige Implementierung)
-        composable(FlexiOfficeRoutes.Profile.route) { ProfileScreen() }
+        // Profile Screen
+        composable(FlexiOfficeRoutes.Profile.route) { ProfileScreen(navController = navController) }
+
+        // Teams Screen
+        composable(FlexiOfficeRoutes.Teams.route) { TeamsScreen() }
     }
 }

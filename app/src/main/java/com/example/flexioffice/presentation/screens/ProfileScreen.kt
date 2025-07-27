@@ -24,8 +24,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.navigation.NavHostController
+import com.example.flexioffice.navigation.FlexiOfficeRoutes
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.flexioffice.data.model.User
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -39,9 +42,15 @@ import com.example.flexioffice.presentation.MainViewModel
 fun ProfileScreen(
     authViewModel: AuthViewModel = hiltViewModel(),
     mainViewModel: MainViewModel = hiltViewModel(),
+    navController: NavHostController,
 ) {
     val authUiState by authViewModel.uiState.collectAsState()
     val mainUiState by mainViewModel.uiState.collectAsState()
+
+    // Daten beim Öffnen des Profils aktualisieren
+    LaunchedEffect(Unit) {
+        mainViewModel.refreshUserData()
+    }
 
     Column(
         modifier =
@@ -85,6 +94,36 @@ fun ProfileScreen(
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.padding(bottom = 16.dp),
                     )
+
+                    // Team-Information
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            ImageVector.vectorResource(R.drawable.group_24px),
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 12.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Column {
+                            Text(
+                                text = "Team-Status",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                text = when {
+                                    user.teamId.isEmpty() -> "Kein Team zugewiesen"
+                                    user.role == "manager" -> "Team-Manager"
+                                    else -> "Team-Mitglied"
+                                },
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        }
+                    }
 
                     // Name
                     Row(
@@ -173,29 +212,7 @@ fun ProfileScreen(
                         }
                     }
 
-                    // Team ID
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            ImageVector.vectorResource(R.drawable.group_24px),
-                            contentDescription = null,
-                            modifier = Modifier.padding(end = 12.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Column {
-                            Text(
-                                text = "Team",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            Text(
-                                text = if (user.teamId == -1) "Nicht zugewiesen" else "Team ${user.teamId}",
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                        }
-                    }
+
                 }
             }
         } ?: run {

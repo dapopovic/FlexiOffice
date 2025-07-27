@@ -11,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -37,7 +38,17 @@ class MainViewModel
             observeAuthState()
         }
 
-        private fun observeAuthState() {
+        /** Öffentliche Methode zum Neuladen der Benutzerdaten */
+    fun refreshUserData() {
+        viewModelScope.launch {
+            val currentUser = authRepository.currentUser.first()
+            if (currentUser != null) {
+                loadUserData(currentUser.uid)
+            }
+        }
+    }
+
+    private fun observeAuthState() {
             viewModelScope.launch {
                 authRepository.currentUser.collect { firebaseUser ->
                     if (firebaseUser != null) {
