@@ -29,6 +29,7 @@ fun TeamsScreen(
     var showCreateTeamDialog by remember { mutableStateOf(false) }
     var teamName by remember { mutableStateOf("") }
     var teamDescription by remember { mutableStateOf("") }
+    val currentUserId by viewModel.currentUserId.collectAsState()
 
     // Beobachte shouldRefreshUserData und aktualisiere MainViewModel entsprechend
     LaunchedEffect(uiState.shouldRefreshUserData) {
@@ -86,21 +87,34 @@ fun TeamsScreen(
             onDismissRequest = { viewModel.hideInviteDialog() },
             title = { Text("Teammitglied einladen") },
             text = {
-                OutlinedTextField(
-                    value = inviteEmail,
-                    onValueChange = { inviteEmail = it },
-                    label = { Text("E-Mail-Adresse") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Column {
+                    OutlinedTextField(
+                        value = inviteEmail,
+                        onValueChange = { inviteEmail = it },
+                        label = { Text("E-Mail-Adresse des Benutzers") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    if (uiState.errorMessage != null) {
+                        Text(
+                            text = uiState.errorMessage!!,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                }
             },
             confirmButton = {
                 Button(
                     onClick = {
                         viewModel.inviteUserByEmail(inviteEmail)
-                        inviteEmail = ""
-                    }
+                    },
+                    enabled = inviteEmail.isNotBlank() && !uiState.isLoading
                 ) {
-                    Text("Einladen")
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp))
+                    } else {
+                        Text("Einladen")
+                    }
                 }
             },
             dismissButton = {
@@ -110,6 +124,7 @@ fun TeamsScreen(
             }
         )
     }
+
 
     Scaffold(
         floatingActionButton = {
@@ -141,7 +156,7 @@ fun TeamsScreen(
                     style = MaterialTheme.typography.headlineMedium
                 )
 
-                if (uiState.currentTeam?.managerId == uiState.currentUser?.name) {
+                if (uiState.currentTeam?.managerId == currentUserId) {
                     IconButton(onClick = { viewModel.showInviteDialog() }) {
                         Icon(Icons.Default.Add, contentDescription = "Mitglied hinzufügen")
                     }

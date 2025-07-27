@@ -1,7 +1,9 @@
 package com.example.flexioffice.data
 
 import com.example.flexioffice.data.model.Team
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.QuerySnapshot
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -14,11 +16,13 @@ class TeamRepository @Inject constructor(private val firestore: FirebaseFirestor
     }
 
     /** Erstellt ein neues Team-Dokument in Firestore */
+
     suspend fun createTeam(team: Team): Result<String> {
         return try {
-            val documentRef = firestore.collection(TEAMS_COLLECTION).document()
-            documentRef.set(team).await()
-            Result.success(documentRef.id)
+            val docRef = firestore.collection(TEAMS_COLLECTION).document()
+            val teamWithId = team.copy(id = docRef.id)  // ID setzen
+            docRef.set(teamWithId).await()
+            Result.success(docRef.id)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -59,5 +63,19 @@ class TeamRepository @Inject constructor(private val firestore: FirebaseFirestor
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    suspend fun findUserByEmail(email: String): QuerySnapshot {
+        return firestore.collection("users")
+            .whereEqualTo("email", email)
+            .limit(1)
+            .get()
+            .await()
+    }
+
+    suspend fun addTeamMember(teamId: String, userId: String) {
+        firestore.collection("teams").document(teamId)
+            .update("members", FieldValue.arrayUnion(userId))
+            .await()
     }
 }

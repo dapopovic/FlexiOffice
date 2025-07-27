@@ -8,12 +8,16 @@ import com.example.flexioffice.data.UserRepository
 import com.example.flexioffice.data.model.Team
 import com.example.flexioffice.data.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 
 data class TeamUiState(
     val isLoading: Boolean = false,
@@ -35,7 +39,16 @@ class TeamViewModel
         private val userRepository: UserRepository,
         private val authRepository: AuthRepository,
     ) : ViewModel() {
-        private val _uiState = MutableStateFlow(TeamUiState())
+
+    val currentUserId: StateFlow<String?> = authRepository.currentUser
+        .map { it?.uid }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
+
+    private val _uiState = MutableStateFlow(TeamUiState())
         val uiState: StateFlow<TeamUiState> = _uiState.asStateFlow()
 
         init {
@@ -179,49 +192,55 @@ class TeamViewModel
             _uiState.value = _uiState.value.copy(isInviteDialogVisible = false)
         }
 
-        fun inviteUserByEmail(email: String) {
-            if (email.isBlank()) {
-                _uiState.value =
-                    _uiState.value.copy(
-                        errorMessage = "E-Mail-Adresse darf nicht leer sein",
-                    )
-                return
-            }
+    fun inviteUserByEmail(email: String) {
+        if (email.isBlank()) {
+            _uiState.value = _uiState.value.copy(errorMessage = "E-Mail darf nicht leer sein")
+            return
+        }
 
-            viewModelScope.launch {
-                _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
 
-                // Prüfen ob der aktuelle User der Team-Manager ist
+            try {
+                val currentUserId = authRepository.currentUser.first()?.uid
+                    ?: throw Exception("Nicht angemeldet")
                 val currentTeam = _uiState.value.currentTeam
-                val currentUser = _uiState.value.currentUser
+                    ?: throw Exception("Kein Team ausgewählt")
 
-                if (currentTeam == null || currentUser == null) {
-                    _uiState.value =
-                        _uiState.value.copy(
-                            isLoading = false,
-                            errorMessage = "Team oder Benutzer nicht gefunden",
-                        )
-                    return@launch
+                if (currentTeam.managerId != currentUserId) {
+                    throw Exception("Nur Manager können einladen")
                 }
 
-                if (currentTeam.managerId != authRepository.currentUser.first()?.uid) {
-                    _uiState.value =
-                        _uiState.value.copy(
-                            isLoading = false,
-                            errorMessage = "Nur der Team-Manager kann Mitglieder einladen",
-                        )
-                    return@launch
+                val querySnapshot = teamRepository.findUserByEmail(email)
+                val invitedUserDoc = querySnapshot.documents.firstOrNull()
+                    ?: throw Exception("Benutzer nicht gefunden")
+                val invitedUserId = invitedUserDoc.id
+
+                if (invitedUserDoc.getString("teamId")?.isNotEmpty() == true) {
+                    throw Exception("Benutzer ist bereits in einem Team")
                 }
 
-                // Benutzer anhand der E-Mail suchen
-                // Da wir keine direkte E-Mail-Suche haben, müssen wir das später implementieren
-                // Hier könnte man einen Cloud Function aufrufen, die die Suche durchführt
+                teamRepository.addTeamMember(currentTeam.id, invitedUserId)
 
-                _uiState.value =
-                    _uiState.value.copy(
-                        isLoading = false,
-                        isInviteDialogVisible = false,
-                    )
+                userRepository.updateUserTeamAndRole(
+                    userId = invitedUserId,
+                    teamId = currentTeam.id,
+                    role = User.ROLE_USER
+                )
+
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    isInviteDialogVisible = false,
+                    shouldRefreshUserData = true
+                )
+                loadTeamDetails(currentTeam.id)
+
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = e.message ?: "Einladung fehlgeschlagen"
+                )
             }
         }
+    }
     }
