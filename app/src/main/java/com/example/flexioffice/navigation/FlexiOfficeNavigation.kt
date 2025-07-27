@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import com.example.flexioffice.presentation.screens.BookingScreen
 import com.example.flexioffice.presentation.screens.CalendarScreen
 import com.example.flexioffice.presentation.screens.LoginScreen
+import com.example.flexioffice.presentation.screens.ProfileScreen
 import com.example.flexioffice.presentation.screens.RequestsScreen
 
 @Composable
@@ -46,10 +47,4 @@ fun FlexiOfficeNavigation(
         // Profile Screen (für zukünftige Implementierung)
         composable(FlexiOfficeRoutes.Profile.route) { ProfileScreen() }
     }
-}
-
-@Composable
-private fun ProfileScreen() {
-    // Placeholder für zukünftige Implementierung
-    Text("Profile Screen", modifier = Modifier.fillMaxSize())
 }
