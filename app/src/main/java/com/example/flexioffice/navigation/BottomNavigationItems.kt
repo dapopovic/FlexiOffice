@@ -45,8 +45,8 @@ object BottomNavigationItems {
         BottomNavigationItem(
             route = FlexiOfficeRoutes.Profile.route,
             title = "Profil",
-            selectedIconId = R.drawable.person_24px_filled, // Temporär - wird später durch person_24px ersetzt
-            unselectedIconId = R.drawable.person_24px, // Temporär - wird später durch person_24px ersetzt
+            selectedIconId = R.drawable.person_24px_filled,
+            unselectedIconId = R.drawable.person_24px,
         )
 
     /** Gibt die für eine Rolle verfügbaren Navigation-Items zurück */
