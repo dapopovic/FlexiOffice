@@ -40,13 +40,13 @@ object BottomNavigationItems {
             unselectedIconId = R.drawable.assignment_24px,
             requiredRole = User.ROLE_MANAGER, // Nur für Manager/Leads
         )
-    
+
     val profile =
         BottomNavigationItem(
             route = FlexiOfficeRoutes.Profile.route,
             title = "Profil",
-            selectedIconId = R.drawable.book_24px_filled, // Temporär - wird später durch person_24px ersetzt
-            unselectedIconId = R.drawable.book_24px // Temporär - wird später durch person_24px ersetzt
+            selectedIconId = R.drawable.person_24px_filled, // Temporär - wird später durch person_24px ersetzt
+            unselectedIconId = R.drawable.person_24px, // Temporär - wird später durch person_24px ersetzt
         )
 
     /** Gibt die für eine Rolle verfügbaren Navigation-Items zurück */
