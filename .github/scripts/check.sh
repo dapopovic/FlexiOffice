@@ -4,4 +4,4 @@
 -efm="%f:%l:%c:%t: %m" \
 -level=error \
 -filter-mode=nofilter \
--fail-on-error
+-fail-level=error \
