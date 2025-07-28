@@ -363,7 +363,7 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
             rememberDatePickerState(
                 initialSelectedDateMillis =
                     uiState.selectedDate?.toEpochDay()?.let { it * 24 * 60 * 60 * 1000 }
-                        ?: System.currentTimeMillis(),
+                        ?: (today.toEpochDay() * 24 * 60 * 60 * 1000),
                 yearRange = today.year..(today.year + 1),
                 selectableDates =
                     object : SelectableDates {
