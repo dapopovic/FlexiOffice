@@ -37,3 +37,15 @@ jobs:
 
       - name: ktlintCheck
         run: ./gradlew ktlintCheck
+        
+      - name: Annotate ktlint errors with reviewdog
+        run: |
+          reviewdog \
+            -f=checkstyle \
+            -name="ktlint" \
+            -reporter=github-pr-review \
+            -filter-mode=added \
+            -fail-on-error=false \
+            -input=build/reports/ktlint/ktlintCheckCheckstyleReport.xml
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
