@@ -1,22 +1,27 @@
 name: Code Quality
 on: [pull_request]
 jobs:
-  ktlint:
-    name: Run ktlint
-    runs-on: ubuntu-latest
+    ktlint:
+        name: Run ktlint
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Clone repo
-        uses: actions/checkout@master
-        with:
-          fetch-depth: 1
+        steps:
+            - name: Clone repo
+              uses: actions/checkout@master
+              with:
+                  fetch-depth: 1
+            - name: Make gradlew executable
+              run: chmod +x ./gradlew
 
-      - name: Install Review Dog
-        uses: reviewdog/action-setup@v1
-        with:
-          reviewdog_version: latest
+            - name: Make check.sh executable
+              run: chmod +x .github/scripts/check.sh
 
-      - name: Ktlint
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.github_token }}
-        run: .github/scripts/check.sh
+            - name: Install Review Dog
+              uses: reviewdog/action-setup@v1
+              with:
+                  reviewdog_version: latest
+
+            - name: Ktlint
+              env:
+                  REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.github_token }}
+              run: .github/scripts/check.sh
