@@ -1,43 +1,17 @@
-name: ktlint
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
+name: reviewdog
+on: [pull_request]
 jobs:
   ktlint:
-    name: Run ktlintCheck
+    name: Check Code Quality
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-      
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
-      - uses: actions/setup-java@v3
+      - name: Clone repo
+        uses: actions/checkout@master
         with:
-          distribution: 'temurin'
-          java-version: 21
-          cache: 'gradle'
-
-      - name: Cache Gradle
-        uses: actions/cache@v3
+          fetch-depth: 1
+      - name: ktlint
+        uses: ScaCap/action-ktlint@master
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: >-
-            ${{ runner.os }}-gradle-${{ hashFiles(
-              '**/*.gradle*',
-              '**/gradle-wrapper.properties'
-            ) }}
-            
-      - uses: ScaCap/action-ktlint@v1.8.2
-        with: 
-          github_token: ${{ secrets.GITHUB_TOKEN }} # GITHUB_TOKEN 
+          github_token: ${{ secrets.github_token }}
           reporter: github-pr-review # Change reporter
-          android: true
-          
