@@ -13,14 +13,13 @@ data class Booking(
     @get:PropertyName("date") @set:PropertyName("date")
     var dateString: String = LocalDate.now().toString(), // ISO format: yyyy-MM-dd
     val type: BookingType = BookingType.HOME_OFFICE,
-    val status: BookingStatus = BookingStatus.APPROVED,
+    val status: BookingStatus = BookingStatus.PENDING,
     val comment: String = "",
     val createdAt: String = "",
     val reviewerId: String = "",
 ) {
     // Leerer Konstruktor für Firestore
-    constructor() :
-        this("", "", "", "", "", BookingType.HOME_OFFICE, BookingStatus.APPROVED, "", "", "")
+    constructor() : this("", "", "", "", "", BookingType.HOME_OFFICE, BookingStatus.PENDING, "", "", "")
 
     @get:Exclude @set:Exclude
     var date: LocalDate
@@ -32,9 +31,6 @@ data class Booking(
 
 enum class BookingType {
     HOME_OFFICE,
-    OFFICE_DESK,
-    MEETING_ROOM,
-    PHONE_BOOTH,
 }
 
 enum class BookingStatus {

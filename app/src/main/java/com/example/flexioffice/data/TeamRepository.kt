@@ -2,12 +2,10 @@ package com.example.flexioffice.data
 
 import com.example.flexioffice.data.model.Team
 import com.example.flexioffice.data.model.User
-import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
-import com.google.firebase.firestore.snapshots
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -20,7 +18,20 @@ class TeamRepository
     @Inject
     constructor(
         private val firestore: FirebaseFirestore,
+        private val auth: FirebaseAuth,
     ) {
+        suspend fun getCurrentUserTeam(): Team? {
+            val uid = auth.currentUser?.uid ?: return null
+            val userDoc =
+                firestore
+                    .collection("users")
+                    .document(uid)
+                    .get()
+                    .await()
+            val teamId = userDoc.getString("teamId") ?: return null
+            return getTeam(teamId).getOrNull()
+        }
+
         companion object {
             const val TEAMS_COLLECTION = "teams"
         }
@@ -36,6 +47,19 @@ class TeamRepository
                         .await()
                         .toObject(Team::class.java)
                 Result.success(team)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+
+        /** Aktualisiert ein bestehendes Team */
+        suspend fun updateTeam(team: Team): Result<Unit> =
+            try {
+                firestore
+                    .collection(TEAMS_COLLECTION)
+                    .document(team.id)
+                    .set(team)
+                    .await()
+                Result.success(Unit)
             } catch (e: Exception) {
                 Result.failure(e)
             }

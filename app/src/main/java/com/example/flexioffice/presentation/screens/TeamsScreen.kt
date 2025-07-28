@@ -14,15 +14,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -44,30 +45,125 @@ import com.example.flexioffice.data.model.User
 import com.example.flexioffice.presentation.TeamEvent
 import com.example.flexioffice.presentation.TeamViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TeamMemberItem(
+    member: User,
+    isManager: Boolean,
+    canRemoveMember: Boolean = false,
+    onRemoveClick: () -> Unit = {},
+) {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                if (isManager || member.role == User.ROLE_MANAGER) {
+                    Icons.Default.Star
+                } else {
+                    Icons.Default.Person
+                },
+                contentDescription = null,
+                modifier = Modifier.padding(end = 8.dp),
+                tint =
+                    if (isManager || member.role == User.ROLE_MANAGER) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+            )
+            Column {
+                Text(
+                    text = member.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                Text(
+                    text =
+                        when {
+                            isManager || member.role == User.ROLE_MANAGER -> "Manager"
+                            else -> "Mitglied"
+                        },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
+        if (canRemoveMember && member.role != User.ROLE_MANAGER) {
+            IconButton(
+                onClick = onRemoveClick,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Mitglied entfernen",
+                    tint = MaterialTheme.colorScheme.error,
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
+
     var inviteEmail by remember { mutableStateOf("") }
     var showCreateTeamDialog by remember { mutableStateOf(false) }
     var teamName by remember { mutableStateOf("") }
     var teamDescription by remember { mutableStateOf("") }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var userToDelete by remember { mutableStateOf<User?>(null) }
 
-    // Beobachte shouldRefreshUserData und aktualisiere MainViewModel entsprechend
+    // Event-Handling
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
                 is TeamEvent.TeamCreationSuccess -> {
-                    // Team created successfully. The UI will update automatically.
-                    // You can optionally show a confirmation message (e.g., a Snackbar).
                     showCreateTeamDialog = false
                     teamName = ""
                     teamDescription = ""
                 }
                 is TeamEvent.InviteSuccess -> {
-                    // Invite was successful. The dialog is already hidden by the ViewModel.
-                    // The team members list will update automatically.
-                    inviteEmail = "" // Clear the input field
+                    inviteEmail = ""
+                }
+                is TeamEvent.MemberRemoved -> {
+                    Log.d("TeamsScreen", "Mitglied erfolgreich entfernt")
+                    // Die UI wird automatisch durch den Flow aktualisiert
+                }
+                is TeamEvent.Error -> {
+                    Log.e("TeamsScreen", "Fehler: ${event.message}")
+                    // Hier könnte man einen Toast oder Snackbar anzeigen
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is TeamEvent.TeamCreationSuccess -> {
+                    showCreateTeamDialog = false
+                    teamName = ""
+                    teamDescription = ""
+                    // Feedback anzeigen
+                    Log.d("TeamsScreen", "Team erfolgreich erstellt")
+                }
+                is TeamEvent.InviteSuccess -> {
+                    inviteEmail = ""
+                    Log.d("TeamsScreen", "Benutzer erfolgreich eingeladen")
+                }
+                is TeamEvent.MemberRemoved -> {
+                    Log.d("TeamsScreen", "Mitglied erfolgreich entfernt")
+                }
+                is TeamEvent.Error -> {
+                    // Hier würde man normalerweise einen Snackbar oder Toast anzeigen
+                    Log.e("TeamsScreen", event.message)
                 }
             }
         }
@@ -116,6 +212,40 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
     }
 
     // Einladungsdialog
+    if (showDeleteConfirmation && userToDelete != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteConfirmation = false
+                userToDelete = null
+            },
+            title = { Text("Teammitglied entfernen") },
+            text = {
+                Text("Möchten Sie ${userToDelete!!.name} wirklich aus dem Team entfernen?")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        userToDelete?.let { viewModel.removeMember(it.id) }
+                        showDeleteConfirmation = false
+                        userToDelete = null
+                    },
+                ) {
+                    Text("Entfernen")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirmation = false
+                        userToDelete = null
+                    },
+                ) {
+                    Text("Abbrechen")
+                }
+            },
+        )
+    }
+
     if (uiState.isInviteDialogVisible) {
         AlertDialog(
             onDismissRequest = { viewModel.hideInviteDialog() },
@@ -166,21 +296,6 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
         )
     }
 
-    if (uiState.isLoading) {
-        // Ladeanzeige anzeigen, wenn Daten geladen werden
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-        ) { padding ->
-            Column(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                CircularProgressIndicator()
-            }
-        }
-        return
-    }
     Scaffold(
         floatingActionButton = {
             // FAB nur anzeigen, wenn der Benutzer kein Team hat und eines erstellen darf
@@ -223,7 +338,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                 )
             }
 
-            if (uiState.currentTeam == null) {
+            if (uiState.currentTeam == null && !uiState.isLoading) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -294,55 +409,18 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                             items(uiState.teamMembers) { member ->
                                 TeamMemberItem(
                                     member = member,
-                                    isManager = member.name == uiState.currentTeam?.managerId,
+                                    isManager = member.id == uiState.currentTeam?.managerId,
+                                    canRemoveMember = uiState.isTeamManager,
+                                    onRemoveClick = {
+                                        userToDelete = member
+                                        showDeleteConfirmation = true
+                                    },
                                 )
                             }
                         }
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun TeamMemberItem(
-    member: User,
-    isManager: Boolean,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            if (isManager || member.role == "manager") {
-                Icons.Default.Star
-            } else {
-                Icons.Default.Person
-            },
-            contentDescription = null,
-            modifier = Modifier.padding(end = 8.dp),
-            tint =
-                if (isManager || member.role == "manager") {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-        )
-        Column {
-            Text(
-                text = member.name,
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            Text(
-                text =
-                    when {
-                        isManager || member.role == "manager" -> "Manager"
-                        else -> "Mitglied"
-                    },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }

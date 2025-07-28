@@ -1,6 +1,7 @@
 package com.example.flexioffice.data
 
 import com.example.flexioffice.data.model.User
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -15,6 +16,7 @@ class UserRepository
     @Inject
     constructor(
         private val firestore: FirebaseFirestore,
+        private val auth: FirebaseAuth,
     ) {
         companion object {
             private const val USERS_COLLECTION = "users"
@@ -37,6 +39,11 @@ class UserRepository
             }
 
         /** Lädt Benutzer-Daten aus Firestore */
+        suspend fun getCurrentUser(): User? {
+            val uid = auth.currentUser?.uid ?: return null
+            return getUser(uid).getOrNull()
+        }
+
         suspend fun getUser(uid: String): Result<User?> =
             try {
                 val document =
@@ -87,8 +94,6 @@ class UserRepository
                                     trySend(Result.failure(Exception("Failed to parse user data.")))
                                 }
                             } else {
-                                // You might want to treat "not found" as a specific state,
-                                // but for now, we can signal it as a failure or a null success.
                                 trySend(Result.failure(Exception("User not found.")))
                             }
                         }
@@ -108,11 +113,27 @@ class UserRepository
                                 return@addSnapshotListener
                             }
                             if (snapshot != null) {
-                                val users = snapshot.toObjects(User::class.java)
+                                val users =
+                                    snapshot.documents.mapNotNull { doc ->
+                                        doc.toObject(User::class.java)?.copy(id = doc.id)
+                                    }
                                 trySend(Result.success(users))
                             }
                         }
                 awaitClose { listenerRegistration.remove() }
+            }
+
+        /** Entfernt ein Mitglied aus einem Team durch Zurücksetzen der TeamId */
+        suspend fun removeUserFromTeam(userId: String): Result<Unit> =
+            try {
+                firestore
+                    .collection(USERS_COLLECTION)
+                    .document(userId)
+                    .update("teamId", "")
+                    .await()
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
             }
 
         /** Aktualisiert Benutzer-Daten in Firestore */
