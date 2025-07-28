@@ -4,7 +4,7 @@
   sed 's/\([^:]*\.kt:[0-9]*:[0-9]*\) \(.*\)/\1 E: \2/' | \
   reviewdog \
     -name="ktlint" \
-    -reporter=github-pr-check \
+    -reporter=github-pr-review \
     -efm="%f:%l:%c %t: %m" \
     -level=error \
     -filter-mode=nofilter \
