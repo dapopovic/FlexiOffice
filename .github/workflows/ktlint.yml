@@ -34,9 +34,10 @@ jobs:
               '**/*.gradle*',
               '**/gradle-wrapper.properties'
             ) }}
-
-      - name: Run ktlint-action
-        uses: ktlint/ktlint-action@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          reporters: github-pr-review
+            
+      - uses: ScaCap/action-ktlint@v1.8.2
+        with: 
+          github_token: ${{ secrets.GITHUB_TOKEN }} # GITHUB_TOKEN 
+          reporter: github-pr-review # Change reporter
+          android: true
+          
