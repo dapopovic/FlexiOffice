@@ -1,7 +1,5 @@
 package com.example.flexioffice.presentation.screens
 
-import android.app.DatePickerDialog
-import android.widget.DatePicker
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +16,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -26,13 +26,15 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -47,7 +49,6 @@ import java.time.format.FormatStyle
 @Composable
 fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
 
     Scaffold(
         floatingActionButton = {
@@ -131,26 +132,13 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
                 ) {
                     Button(
                         onClick = {
-                            val today = LocalDate.now()
-                            val datePickerDialog = DatePickerDialog(
-                                context,
-                                { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
-                                    viewModel.updateSelectedDate(
-                                        LocalDate.of(year, month + 1, dayOfMonth),
-                                    )
-                                },
-                                today.year,
-                                today.monthValue - 1,
-                                today.dayOfMonth,
-                            )
-                            // Setze das minimale Datum auf heute
-                            datePickerDialog.datePicker.minDate = System.currentTimeMillis()
-                            datePickerDialog.show()
+                            viewModel.showDatePicker()
                         },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(
-                            uiState.selectedDate?.toString() ?: "Datum auswählen",
+                            uiState.selectedDate?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
+                                ?: "Datum auswählen",
                         )
                     }
 
@@ -198,7 +186,41 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
         )
     }
 
-    // Entfernt doppelte Layouts
+    // Material 3 DatePicker Dialog
+    if (uiState.showDatePicker) {
+        val datePickerState =
+            rememberDatePickerState(
+                initialSelectedDateMillis =
+                    uiState.selectedDate?.toEpochDay()?.let { it * 24 * 60 * 60 * 1000 }
+                        ?: System.currentTimeMillis(),
+            )
+
+        DatePickerDialog(
+            onDismissRequest = { viewModel.hideDatePicker() },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val selectedDate = LocalDate.ofEpochDay(millis / (24 * 60 * 60 * 1000))
+                            viewModel.updateSelectedDate(selectedDate)
+                        }
+                    },
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.hideDatePicker() }) {
+                    Text("Abbrechen")
+                }
+            },
+        ) {
+            DatePicker(
+                state = datePickerState,
+                modifier = Modifier.padding(16.dp),
+            )
+        }
+    }
 }
 
 @Composable

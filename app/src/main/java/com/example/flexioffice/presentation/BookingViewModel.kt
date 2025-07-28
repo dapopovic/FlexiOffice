@@ -21,6 +21,7 @@ data class BookingUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val showBookingDialog: Boolean = false,
+    val showDatePicker: Boolean = false,
     val selectedDate: LocalDate? = null,
     val comment: String = "",
     val userBookings: List<Booking> = emptyList(),
@@ -62,11 +63,19 @@ class BookingViewModel
         }
 
         fun hideBookingDialog() {
-            _uiState.update { it.copy(showBookingDialog = false, selectedDate = null, comment = "") }
+            _uiState.update { it.copy(showBookingDialog = false, showDatePicker = false, selectedDate = null, comment = "") }
+        }
+
+        fun showDatePicker() {
+            _uiState.update { it.copy(showDatePicker = true) }
+        }
+
+        fun hideDatePicker() {
+            _uiState.update { it.copy(showDatePicker = false) }
         }
 
         fun updateSelectedDate(date: LocalDate) {
-            _uiState.update { it.copy(selectedDate = date) }
+            _uiState.update { it.copy(selectedDate = date, showDatePicker = false) }
         }
 
         fun updateComment(comment: String) {
