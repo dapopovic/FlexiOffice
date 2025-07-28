@@ -17,14 +17,13 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -54,14 +53,15 @@ fun TeamMemberItem(
     onRemoveClick: () -> Unit = {},
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 if (isManager || member.role == User.ROLE_MANAGER) {
@@ -94,15 +94,15 @@ fun TeamMemberItem(
                 )
             }
         }
-        
+
         if (canRemoveMember && member.role != User.ROLE_MANAGER) {
             IconButton(
-                onClick = onRemoveClick
+                onClick = onRemoveClick,
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Mitglied entfernen",
-                    tint = MaterialTheme.colorScheme.error
+                    tint = MaterialTheme.colorScheme.error,
                 )
             }
         }
@@ -112,12 +112,12 @@ fun TeamMemberItem(
 @Composable
 fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
-    
+
     var inviteEmail by remember { mutableStateOf("") }
     var showCreateTeamDialog by remember { mutableStateOf(false) }
     var teamName by remember { mutableStateOf("") }
     var teamDescription by remember { mutableStateOf("") }
-    
+
     // Event-Handling
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -392,7 +392,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                                     canRemoveMember = uiState.isTeamManager,
                                     onRemoveClick = {
                                         viewModel.removeMember(member.id)
-                                    }
+                                    },
                                 )
                             }
                         }

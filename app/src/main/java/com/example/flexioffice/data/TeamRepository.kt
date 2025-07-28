@@ -2,12 +2,9 @@ package com.example.flexioffice.data
 
 import com.example.flexioffice.data.model.Team
 import com.example.flexioffice.data.model.User
-import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
-import com.google.firebase.firestore.snapshots
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -39,7 +36,6 @@ class TeamRepository
             } catch (e: Exception) {
                 Result.failure(e)
             }
-
 
         /** Aktualisiert ein bestehendes Team */
         suspend fun updateTeam(team: Team): Result<Unit> =

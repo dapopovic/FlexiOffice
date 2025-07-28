@@ -106,9 +106,10 @@ class UserRepository
                                 return@addSnapshotListener
                             }
                             if (snapshot != null) {
-                                val users = snapshot.documents.mapNotNull { doc ->
-                                    doc.toObject(User::class.java)?.copy(id = doc.id)
-                                }
+                                val users =
+                                    snapshot.documents.mapNotNull { doc ->
+                                        doc.toObject(User::class.java)?.copy(id = doc.id)
+                                    }
                                 trySend(Result.success(users))
                             }
                         }
