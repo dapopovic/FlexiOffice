@@ -260,21 +260,21 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
         )
     }
 
-    if (uiState.isLoading) {
-        // Ladeanzeige anzeigen, wenn Daten geladen werden
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-        ) { padding ->
-            Column(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                CircularProgressIndicator()
-            }
-        }
-        return
-    }
+//    if (uiState.isLoading) {
+//        // Ladeanzeige anzeigen, wenn Daten geladen werden
+//        Scaffold(
+//            modifier = Modifier.fillMaxSize(),
+//        ) { padding ->
+//            Column(
+//                modifier = Modifier.fillMaxSize().padding(padding),
+//                verticalArrangement = Arrangement.Center,
+//                horizontalAlignment = Alignment.CenterHorizontally,
+//            ) {
+//                CircularProgressIndicator()
+//            }
+//        }
+//        return
+//    }
     Scaffold(
         floatingActionButton = {
             // FAB nur anzeigen, wenn der Benutzer kein Team hat und eines erstellen darf
@@ -317,7 +317,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                 )
             }
 
-            if (uiState.currentTeam == null) {
+            if (uiState.currentTeam == null && !uiState.isLoading) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
