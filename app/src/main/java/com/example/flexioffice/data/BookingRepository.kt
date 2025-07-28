@@ -56,6 +56,18 @@ class BookingRepository
                 }.sortedByDescending { it.date }
         }
 
+        suspend fun updateBookingStatus(bookingId: String, newStatus: BookingStatus) {
+            try {
+                firestore.collection("bookings")
+                    .document(bookingId)
+                    .update("status", newStatus.name)
+                    .await()
+            } catch (e: Exception) {
+                android.util.Log.e("BookingRepository", "Fehler beim Aktualisieren des Buchungsstatus", e)
+                throw e
+            }
+        }
+
         suspend fun createBooking(booking: Booking) {
             android.util.Log.d("BookingRepository", "Erstelle neue Buchung für Datum: ${booking.date}")
             val bookingMap =

@@ -37,4 +37,5 @@ enum class BookingStatus {
     PENDING,
     APPROVED,
     DECLINED,
+    CANCELLED,
 }

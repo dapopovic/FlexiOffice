@@ -23,9 +23,11 @@ data class BookingUiState(
     val showBookingDialog: Boolean = false,
     val showDatePicker: Boolean = false,
     val showDetailsSheet: Boolean = false,
+    val showCancelDialog: Boolean = false,
     val selectedBooking: Booking? = null,
     val selectedDate: LocalDate? = null,
     val comment: String = "",
+    val showCancelledBookings: Boolean = false,
     val userBookings: List<Booking> = emptyList(),
     val approverName: String? = null,
 )
@@ -133,14 +135,14 @@ class BookingViewModel
                         return@launch
                     }
 
-                    // Prüfe, ob bereits eine Buchung für dieses Datum existiert
+                    // Prüfe, ob bereits eine aktive Buchung für dieses Datum existiert
                     val existingBooking =
                         currentState.userBookings.find {
-                            it.date == currentState.selectedDate
+                            it.date == currentState.selectedDate && it.status != BookingStatus.CANCELLED
                         }
 
                     if (existingBooking != null) {
-                        _uiState.update { it.copy(error = "Sie haben bereits eine Buchung für diesen Tag erstellt") }
+                        _uiState.update { it.copy(error = "Sie haben bereits eine aktive Buchung für diesen Tag") }
                         return@launch
                     }
 
@@ -217,5 +219,44 @@ class BookingViewModel
                     )
                 }
             }
+        }
+
+        fun showCancelDialog(booking: Booking) {
+            _uiState.update {
+                it.copy(
+                    showCancelDialog = true,
+                    selectedBooking = booking,
+                )
+            }
+        }
+
+        fun hideCancelDialog() {
+            _uiState.update {
+                it.copy(
+                    showCancelDialog = false,
+                    selectedBooking = null,
+                )
+            }
+        }
+
+        fun cancelBooking() {
+            val booking = _uiState.value.selectedBooking ?: return
+
+            viewModelScope.launch {
+                try {
+                    _uiState.update { it.copy(isLoading = true) }
+                    bookingRepository.updateBookingStatus(booking.id, BookingStatus.CANCELLED)
+                    loadUserBookings() // Aktualisiere die Liste der Buchungen
+                    hideCancelDialog()
+                } catch (e: Exception) {
+                    _uiState.update { it.copy(error = e.message) }
+                } finally {
+                    _uiState.update { it.copy(isLoading = false) }
+                }
+            }
+        }
+
+        fun toggleCancelledBookings() {
+            _uiState.update { it.copy(showCancelledBookings = !it.showCancelledBookings) }
         }
     }
