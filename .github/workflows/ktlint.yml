@@ -1,5 +1,13 @@
 name: Code Quality
-on: [pull_request]
+
+on:
+    pull_request:
+        types: [opened, synchronize, reopened]
+
+permissions:
+    contents: read # default for checkout
+    pull-requests: write # needed to post PR review comments
+
 jobs:
     ktlint:
         name: Run ktlint

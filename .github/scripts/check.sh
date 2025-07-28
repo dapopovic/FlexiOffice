@@ -8,4 +8,7 @@
     -efm="%f:%l:%c %t: %m" \
     -level=error \
     -filter-mode=nofilter \
-    -fail-level=error
+    -fail-level=error \
+    -repo="${{ github.repository }}" \
+    -sha="${{ github.event.pull_request.head.sha }}" \
+    -verbose
