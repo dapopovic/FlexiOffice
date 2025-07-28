@@ -132,7 +132,7 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
                     Button(
                         onClick = {
                             val today = LocalDate.now()
-                            DatePickerDialog(
+                            val datePickerDialog = DatePickerDialog(
                                 context,
                                 { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
                                     viewModel.updateSelectedDate(
@@ -142,7 +142,10 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
                                 today.year,
                                 today.monthValue - 1,
                                 today.dayOfMonth,
-                            ).show()
+                            )
+                            // Setze das minimale Datum auf heute
+                            datePickerDialog.datePicker.minDate = System.currentTimeMillis()
+                            datePickerDialog.show()
                         },
                         modifier = Modifier.fillMaxWidth(),
                     ) {

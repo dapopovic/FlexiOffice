@@ -91,6 +91,12 @@ class BookingViewModel
                         return@launch
                     }
 
+                    // Prüfe, ob das ausgewählte Datum in der Vergangenheit liegt
+                    if (currentState.selectedDate.isBefore(LocalDate.now())) {
+                        _uiState.update { it.copy(error = "Buchungen für vergangene Tage sind nicht möglich") }
+                        return@launch
+                    }
+
                     // Prüfe, ob bereits eine Buchung für dieses Datum existiert
                     val existingBooking =
                         currentState.userBookings.find {
