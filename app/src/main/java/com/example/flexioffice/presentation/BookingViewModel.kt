@@ -52,7 +52,7 @@ class BookingViewModel
                     val bookings =
                         bookingRepository
                             .getUserBookings(userId)
-                            .filter { booking -> !booking.date.isBefore(today) } // Nur aktuelle und zukünftige Buchungen anzeigen
+                            .filter { booking -> !booking.date.isBefore(today) } // aktuelle und zukünftige Buchungen
                     _uiState.update { it.copy(userBookings = bookings) }
                 } catch (e: Exception) {
                     _uiState.update { it.copy(error = e.message) }
