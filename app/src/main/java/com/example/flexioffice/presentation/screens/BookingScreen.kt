@@ -21,14 +21,14 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -111,7 +111,7 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
                 items(uiState.userBookings.sortedByDescending { it.date }) { booking ->
                     BookingItem(
                         booking = booking,
-                        onClick = { viewModel.showDetailsSheet(it) }
+                        onClick = { viewModel.showDetailsSheet(it) },
                     )
                 }
             }
@@ -193,18 +193,19 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
             val bottomSheetState = rememberModalBottomSheetState()
             ModalBottomSheet(
                 onDismissRequest = { viewModel.hideDetailsSheet() },
-                sheetState = bottomSheetState
+                sheetState = bottomSheetState,
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     Text(
                         text = "Home Office Details",
                         style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier.padding(bottom = 8.dp),
                     )
 
                     // Datum
@@ -212,13 +213,14 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
                         Text(
                             text = "Datum",
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
-                            text = booking.date.format(
-                                DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)
-                            ),
-                            style = MaterialTheme.typography.bodyLarge
+                            text =
+                                booking.date.format(
+                                    DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG),
+                                ),
+                            style = MaterialTheme.typography.bodyLarge,
                         )
                     }
 
@@ -227,20 +229,22 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
                         Text(
                             text = "Status",
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
-                            text = when(booking.status) {
-                                BookingStatus.APPROVED -> "✓ Genehmigt"
-                                BookingStatus.PENDING -> "⏳ Ausstehend"
-                                BookingStatus.DECLINED -> "✗ Abgelehnt"
-                            },
+                            text =
+                                when (booking.status) {
+                                    BookingStatus.APPROVED -> "✓ Genehmigt"
+                                    BookingStatus.PENDING -> "⏳ Ausstehend"
+                                    BookingStatus.DECLINED -> "✗ Abgelehnt"
+                                },
                             style = MaterialTheme.typography.bodyLarge,
-                            color = when(booking.status) {
-                                BookingStatus.APPROVED -> MaterialTheme.colorScheme.primary
-                                BookingStatus.PENDING -> MaterialTheme.colorScheme.secondary
-                                BookingStatus.DECLINED -> MaterialTheme.colorScheme.error
-                            }
+                            color =
+                                when (booking.status) {
+                                    BookingStatus.APPROVED -> MaterialTheme.colorScheme.primary
+                                    BookingStatus.PENDING -> MaterialTheme.colorScheme.secondary
+                                    BookingStatus.DECLINED -> MaterialTheme.colorScheme.error
+                                },
                         )
                     }
 
@@ -249,11 +253,24 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
                         Text(
                             text = "Antragsteller",
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
                             text = booking.userName,
-                            style = MaterialTheme.typography.bodyLarge
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    }
+
+                    // Approver
+                    Column {
+                        Text(
+                            text = "Genehmigt durch",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = uiState.approverName ?: "Wird geladen...",
+                            style = MaterialTheme.typography.bodyLarge,
                         )
                     }
 
@@ -263,11 +280,11 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
                             Text(
                                 text = "Kommentar",
                                 style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             Text(
                                 text = booking.comment,
-                                style = MaterialTheme.typography.bodyLarge
+                                style = MaterialTheme.typography.bodyLarge,
                             )
                         }
                     }
@@ -317,10 +334,13 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BookingItem(booking: Booking, onClick: (Booking) -> Unit = {}) {
+private fun BookingItem(
+    booking: Booking,
+    onClick: (Booking) -> Unit = {},
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        onClick = { onClick(booking) }
+        onClick = { onClick(booking) },
     ) {
         Column(
             modifier = Modifier.padding(16.dp),

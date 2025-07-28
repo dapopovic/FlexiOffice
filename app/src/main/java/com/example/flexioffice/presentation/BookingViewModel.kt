@@ -27,6 +27,7 @@ data class BookingUiState(
     val selectedDate: LocalDate? = null,
     val comment: String = "",
     val userBookings: List<Booking> = emptyList(),
+    val approverName: String? = null,
 )
 
 @HiltViewModel
@@ -183,21 +184,38 @@ class BookingViewModel
             }
         }
 
+        private suspend fun loadApproverName(userId: String?): String {
+            return try {
+                if (userId == null) return "Nicht zugewiesen"
+                val user = userRepository.getUserById(userId)
+                user?.name ?: "Unbekannt"
+            } catch (e: Exception) {
+                "Fehler beim Laden"
+            }
+        }
+
         fun showDetailsSheet(booking: Booking) {
-            _uiState.update { currentState ->
-                currentState.copy(
-                    showDetailsSheet = true,
-                    selectedBooking = booking
-                )
+            viewModelScope.launch {
+                val approverName = loadApproverName(booking.reviewerId)
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        showDetailsSheet = true,
+                        selectedBooking = booking,
+                        approverName = approverName,
+                    )
+                }
             }
         }
 
         fun hideDetailsSheet() {
-            _uiState.update { currentState ->
-                currentState.copy(
-                    showDetailsSheet = false,
-                    selectedBooking = null
-                )
+            viewModelScope.launch {
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        showDetailsSheet = false,
+                        selectedBooking = null,
+                        approverName = null,
+                    )
+                }
             }
         }
     }

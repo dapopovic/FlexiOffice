@@ -53,10 +53,32 @@ class UserRepository
                         .get()
                         .await()
 
-                val user = document.toObject(User::class.java)
-                Result.success(user)
+                if (document.exists()) {
+                    Result.success(document.toObject(User::class.java)?.copy(id = document.id))
+                } else {
+                    Result.success(null)
+                }
             } catch (e: Exception) {
                 Result.failure(e)
+            }
+
+        /** Lädt einen Benutzer anhand seiner ID */
+        suspend fun getUserById(uid: String): User? =
+            try {
+                val document =
+                    firestore
+                        .collection(USERS_COLLECTION)
+                        .document(uid)
+                        .get()
+                        .await()
+
+                if (document.exists()) {
+                    document.toObject(User::class.java)?.copy(id = document.id)
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                null
             }
 
         suspend fun getUsersByTeamId(teamId: String): Result<List<User>> =
@@ -187,22 +209,6 @@ class UserRepository
                 role = User.ROLE_MANAGER, // Alle neuen User als Manager anlegen
                 teamId = User.NO_TEAM, // Leerer String als initiale teamId
             )
-
-        suspend fun getUserByEmail(email: String): Result<User?> =
-            try {
-                val querySnapshot =
-                    firestore
-                        .collection(USERS_COLLECTION)
-                        .whereEqualTo("email", email)
-                        .limit(1)
-                        .get()
-                        .await()
-
-                val user = querySnapshot.documents.firstOrNull()?.toObject(User::class.java)
-                Result.success(user)
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
 
         suspend fun updateUserTeamAndRole(
             userId: String,
