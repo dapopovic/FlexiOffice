@@ -1,0 +1,182 @@
+package com.example.flexioffice.data
+
+import com.example.flexioffice.data.model.BookingStatus
+import com.example.flexioffice.data.model.BookingType
+import com.example.flexioffice.data.model.HomeOfficeBooking
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import javax.inject.Inject
+import javax.inject.Singleton
+
+/** Repository für Buchungs-Datenoperationen in Firestore */
+@Singleton
+class BookingRepository
+    @Inject
+    constructor(
+        private val firestore: FirebaseFirestore,
+    ) {
+        companion object {
+            private const val BOOKINGS_COLLECTION = "bookings"
+        }
+
+        /** Erstellt eine neue Buchung */
+        suspend fun createBooking(booking: HomeOfficeBooking): Result<String> =
+            try {
+                val docRef = firestore.collection(BOOKINGS_COLLECTION).document()
+                val bookingWithId = booking.copy(id = docRef.id)
+                docRef.set(bookingWithId).await()
+                Result.success(docRef.id)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+
+        /** Lädt alle Buchungen für ein Team in einem bestimmten Zeitraum */
+        suspend fun getTeamBookingsInRange(
+            teamId: String,
+            startDate: LocalDate,
+            endDate: LocalDate,
+        ): Result<List<HomeOfficeBooking>> =
+            try {
+                val startDateStr = startDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                val endDateStr = endDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
+
+                val querySnapshot =
+                    firestore
+                        .collection(BOOKINGS_COLLECTION)
+                        .whereEqualTo("teamId", teamId)
+                        .whereGreaterThanOrEqualTo("date", startDateStr)
+                        .whereLessThanOrEqualTo("date", endDateStr)
+                        .get()
+                        .await()
+
+                val bookings = querySnapshot.toObjects(HomeOfficeBooking::class.java)
+                Result.success(bookings)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+
+        /** Stream für Team-Buchungen eines bestimmten Monats */
+        fun getTeamBookingsStream(
+            teamId: String,
+            year: Int,
+            month: Int,
+        ): Flow<Result<List<HomeOfficeBooking>>> =
+            callbackFlow {
+                val startDate = LocalDate.of(year, month, 1)
+                val endDate = startDate.withDayOfMonth(startDate.lengthOfMonth())
+                val startDateStr = startDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                val endDateStr = endDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
+
+                val listenerRegistration =
+                    firestore
+                        .collection(BOOKINGS_COLLECTION)
+                        .whereEqualTo("teamId", teamId)
+                        .whereGreaterThanOrEqualTo("date", startDateStr)
+                        .whereLessThanOrEqualTo("date", endDateStr)
+                        .addSnapshotListener { snapshot, error ->
+                            if (error != null) {
+                                trySend(Result.failure(error))
+                                return@addSnapshotListener
+                            }
+                            if (snapshot != null) {
+                                val bookings = snapshot.toObjects(HomeOfficeBooking::class.java)
+                                trySend(Result.success(bookings))
+                            }
+                        }
+                awaitClose { listenerRegistration.remove() }
+            }
+
+        /** Lädt Buchungen für einen Benutzer */
+        suspend fun getUserBookings(userId: String): Result<List<HomeOfficeBooking>> =
+            try {
+                val querySnapshot =
+                    firestore
+                        .collection(BOOKINGS_COLLECTION)
+                        .whereEqualTo("userId", userId)
+                        .orderBy("date")
+                        .get()
+                        .await()
+
+                val bookings = querySnapshot.toObjects(HomeOfficeBooking::class.java)
+                Result.success(bookings)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+
+        /** Aktualisiert den Status einer Buchung */
+        suspend fun updateBookingStatus(
+            bookingId: String,
+            status: BookingStatus,
+            reviewerId: String,
+        ): Result<Unit> =
+            try {
+                firestore
+                    .collection(BOOKINGS_COLLECTION)
+                    .document(bookingId)
+                    .update(
+                        mapOf(
+                            "status" to status,
+                            "reviewerId" to reviewerId,
+                        ),
+                    ).await()
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+
+        /** Erstellt Demo-Buchungen für Testing */
+        suspend fun createDemoBookings(teamId: String): Result<Unit> =
+            try {
+                val currentDate = LocalDate.now()
+                val demoBookings =
+                    listOf(
+                        HomeOfficeBooking(
+                            userId = "demo_user_1",
+                            userName = "Max Mustermann",
+                            teamId = teamId,
+                            date = currentDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                            type = BookingType.HOME_OFFICE,
+                            status = BookingStatus.APPROVED,
+                            comment = "Home Office Tag",
+                            createdAt = currentDate.toString(),
+                        ),
+                        HomeOfficeBooking(
+                            userId = "demo_user_2",
+                            userName = "Anna Schmidt",
+                            teamId = teamId,
+                            date =
+                                currentDate
+                                    .plusDays(1)
+                                    .format(DateTimeFormatter.ISO_LOCAL_DATE),
+                            type = BookingType.HOME_OFFICE,
+                            status = BookingStatus.APPROVED,
+                            comment = "Remote Work",
+                            createdAt = currentDate.toString(),
+                        ),
+                        HomeOfficeBooking(
+                            userId = "demo_user_3",
+                            userName = "Tom Weber",
+                            teamId = teamId,
+                            date =
+                                currentDate
+                                    .plusDays(2)
+                                    .format(DateTimeFormatter.ISO_LOCAL_DATE),
+                            type = BookingType.HOME_OFFICE,
+                            status = BookingStatus.APPROVED,
+                            comment = "Home Office",
+                            createdAt = currentDate.toString(),
+                        ),
+                    )
+
+                demoBookings.forEach { booking -> createBooking(booking) }
+
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+    }
