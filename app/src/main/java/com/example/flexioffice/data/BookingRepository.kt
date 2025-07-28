@@ -139,7 +139,7 @@ class BookingRepository
                             userId = "demo_user_1",
                             userName = "Max Mustermann",
                             teamId = teamId,
-                            date = currentDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                            dateString = currentDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
                             type = BookingType.HOME_OFFICE,
                             status = BookingStatus.APPROVED,
                             comment = "Home Office Tag",
@@ -149,7 +149,7 @@ class BookingRepository
                             userId = "demo_user_2",
                             userName = "Anna Schmidt",
                             teamId = teamId,
-                            date =
+                            dateString =
                                 currentDate
                                     .plusDays(1)
                                     .format(DateTimeFormatter.ISO_LOCAL_DATE),
@@ -162,7 +162,7 @@ class BookingRepository
                             userId = "demo_user_3",
                             userName = "Tom Weber",
                             teamId = teamId,
-                            date =
+                            dateString =
                                 currentDate
                                     .plusDays(2)
                                     .format(DateTimeFormatter.ISO_LOCAL_DATE),

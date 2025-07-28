@@ -1,5 +1,7 @@
 package com.example.flexioffice.data.model
 
+import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.PropertyName
 import java.time.LocalDate
 
 /** Datenmodell für Home-Office-Buchungen in Firestore */
@@ -8,7 +10,8 @@ data class HomeOfficeBooking(
     val userId: String = "",
     val userName: String = "",
     val teamId: String = "",
-    val date: String = "", // ISO format: yyyy-MM-dd
+    @get:PropertyName("date") @set:PropertyName("date")
+    var dateString: String = LocalDate.now().toString(), // ISO format: yyyy-MM-dd
     val type: BookingType = BookingType.HOME_OFFICE,
     val status: BookingStatus = BookingStatus.APPROVED,
     val comment: String = "",
@@ -19,12 +22,11 @@ data class HomeOfficeBooking(
     constructor() :
         this("", "", "", "", "", BookingType.HOME_OFFICE, BookingStatus.APPROVED, "", "", "")
 
-    /** Konvertiert das String-Datum zu LocalDate */
-    fun getLocalDate(): LocalDate? =
-        try {
-            LocalDate.parse(date)
-        } catch (e: Exception) {
-            null
+    @get:Exclude @set:Exclude
+    var date: LocalDate
+        get() = LocalDate.parse(this.dateString)
+        set(value) {
+            this.dateString = value.toString()
         }
 }
 

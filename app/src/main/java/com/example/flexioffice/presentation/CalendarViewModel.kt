@@ -151,20 +151,16 @@ class CalendarViewModel
         /** Konvertiert Buchungen zu Kalender-Events */
         private fun mapBookingsToEvents(bookings: List<HomeOfficeBooking>): List<CalendarEvent> =
             bookings
-                .mapNotNull { booking ->
-                    val date = booking.getLocalDate()
-                    if (date != null) {
-                        CalendarEvent(
-                            id = booking.id,
-                            title = "${booking.userName} - Home Office",
-                            date = date,
-                            type = EventType.HOME_OFFICE,
-                            participantNames = listOf(booking.userName),
-                            color = 0xFF4CAF50, // Green for home office
-                        )
-                    } else {
-                        null
-                    }
+                .map { booking ->
+                    val date = booking.date
+                    CalendarEvent(
+                        id = booking.id,
+                        title = "${booking.userName} - Home Office",
+                        date = date,
+                        type = EventType.HOME_OFFICE,
+                        participantNames = listOf(booking.userName),
+                        color = 0xFF4CAF50, // Green for home office
+                    )
                 }.groupBy { it.date }
                 .map { (date, eventsOnDate) ->
                     if (eventsOnDate.size == 1) {
