@@ -21,9 +21,6 @@ jobs:
             - name: Make gradlew executable
               run: chmod +x ./gradlew
 
-            - name: Make check.sh executable
-              run: chmod +x .github/scripts/check.sh
-
             - name: Install Review Dog
               uses: reviewdog/action-setup@v1
               with:
