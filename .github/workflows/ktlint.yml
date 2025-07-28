@@ -42,5 +42,4 @@ jobs:
                         -efm="%f:%l:%c %t: %m" \
                         -level=error \
                         -filter-mode=nofilter \
-                        -fail-level=error \
-                        -verbose
+                        -fail-level=error
