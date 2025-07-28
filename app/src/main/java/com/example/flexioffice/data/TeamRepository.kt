@@ -39,6 +39,19 @@ class TeamRepository
             } catch (e: Exception) {
                 Result.failure(e)
             }
+            
+        /** Aktualisiert ein bestehendes Team */
+        suspend fun updateTeam(team: Team): Result<Unit> =
+            try {
+                firestore
+                    .collection(TEAMS_COLLECTION)
+                    .document(team.id)
+                    .set(team)
+                    .await()
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
 
         fun getTeamStream(teamId: String): Flow<Result<Team>> =
             callbackFlow {

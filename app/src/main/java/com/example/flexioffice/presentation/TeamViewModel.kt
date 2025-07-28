@@ -35,6 +35,9 @@ data class TeamUiState(
     val canCreateTeam: Boolean =
         currentUser?.teamId == User.NO_TEAM &&
             currentUser.role == User.ROLE_MANAGER
+            
+    val isTeamManager: Boolean =
+        currentTeam?.managerId == currentUser?.id
 }
 
 @HiltViewModel
@@ -50,6 +53,49 @@ class TeamViewModel
 
         private val _events = Channel<TeamEvent>()
         val events = _events.receiveAsFlow()
+
+        /** Entfernt ein Mitglied aus dem Team */
+        fun removeMember(userId: String) {
+            viewModelScope.launch {
+                try {
+                    _uiState.update { it.copy(isLoading = true) }
+                    
+                    val currentTeam = _uiState.value.currentTeam
+                    if (currentTeam == null) {
+                        _events.send(TeamEvent.Error("Kein aktives Team gefunden"))
+                        return@launch
+                    }
+
+                    if (_uiState.value.currentUser?.id != currentTeam.managerId) {
+                        _events.send(TeamEvent.Error("Keine Berechtigung zum Entfernen von Mitgliedern"))
+                        return@launch
+                    }
+
+                    // Erst User aus Team Members entfernen
+                    val updatedMembers = currentTeam.members.filter { it != userId }
+                    val updatedTeam = currentTeam.copy(members = updatedMembers)
+                    
+                    teamRepository.updateTeam(updatedTeam)
+                        .onSuccess {
+                            // Dann TeamId im User zurücksetzen
+                            userRepository.removeUserFromTeam(userId)
+                                .onSuccess {
+                                    _events.send(TeamEvent.MemberRemoved)
+                                }
+                                .onFailure { e ->
+                                    _events.send(TeamEvent.Error("Fehler beim Aktualisieren des Users: ${e.message}"))
+                                }
+                        }
+                        .onFailure { e ->
+                            _events.send(TeamEvent.Error("Fehler beim Aktualisieren des Teams: ${e.message}"))
+                        }
+                } catch (e: Exception) {
+                    _events.send(TeamEvent.Error("Fehler beim Entfernen des Mitglieds: ${e.message}"))
+                } finally {
+                    _uiState.update { it.copy(isLoading = false) }
+                }
+            }
+        }
 
         init {
             observeUserAndTeamData()
@@ -243,6 +289,7 @@ class TeamViewModel
 
 sealed class TeamEvent {
     object TeamCreationSuccess : TeamEvent()
-
     object InviteSuccess : TeamEvent()
+    object MemberRemoved : TeamEvent()
+    data class Error(val message: String) : TeamEvent()
 }

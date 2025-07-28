@@ -14,8 +14,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -46,28 +48,104 @@ import com.example.flexioffice.presentation.TeamViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+fun TeamMemberCard(
+    user: User,
+    isManager: Boolean,
+    onRemoveClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = user.name)
+            }
+            
+            if (isManager && user.role != User.ROLE_MANAGER) {
+                androidx.compose.material3.IconButton(
+                    onClick = onRemoveClick
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Mitglied entfernen",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
+    
     var inviteEmail by remember { mutableStateOf("") }
     var showCreateTeamDialog by remember { mutableStateOf(false) }
     var teamName by remember { mutableStateOf("") }
     var teamDescription by remember { mutableStateOf("") }
-
-    // Beobachte shouldRefreshUserData und aktualisiere MainViewModel entsprechend
+    
+    // Event-Handling
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
                 is TeamEvent.TeamCreationSuccess -> {
-                    // Team created successfully. The UI will update automatically.
-                    // You can optionally show a confirmation message (e.g., a Snackbar).
                     showCreateTeamDialog = false
                     teamName = ""
                     teamDescription = ""
                 }
                 is TeamEvent.InviteSuccess -> {
-                    // Invite was successful. The dialog is already hidden by the ViewModel.
-                    // The team members list will update automatically.
-                    inviteEmail = "" // Clear the input field
+                    inviteEmail = ""
+                }
+                is TeamEvent.MemberRemoved -> {
+                    Log.d("TeamsScreen", "Mitglied erfolgreich entfernt")
+                    // Die UI wird automatisch durch den Flow aktualisiert
+                }
+                is TeamEvent.Error -> {
+                    Log.e("TeamsScreen", "Fehler: ${event.message}")
+                    // Hier könnte man einen Toast oder Snackbar anzeigen
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is TeamEvent.TeamCreationSuccess -> {
+                    showCreateTeamDialog = false
+                    teamName = ""
+                    teamDescription = ""
+                    // Feedback anzeigen
+                    Log.d("TeamsScreen", "Team erfolgreich erstellt")
+                }
+                is TeamEvent.InviteSuccess -> {
+                    inviteEmail = ""
+                    Log.d("TeamsScreen", "Benutzer erfolgreich eingeladen")
+                }
+                is TeamEvent.MemberRemoved -> {
+                    Log.d("TeamsScreen", "Mitglied erfolgreich entfernt")
+                }
+                is TeamEvent.Error -> {
+                    // Hier würde man normalerweise einen Snackbar oder Toast anzeigen
+                    Log.e("TeamsScreen", event.message)
                 }
             }
         }
@@ -292,9 +370,12 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
 
                         LazyColumn {
                             items(uiState.teamMembers) { member ->
-                                TeamMemberItem(
-                                    member = member,
-                                    isManager = member.name == uiState.currentTeam?.managerId,
+                                TeamMemberCard(
+                                    user = member,
+                                    isManager = uiState.isTeamManager,
+                                    onRemoveClick = {
+                                        viewModel.removeMember(member.id)
+                                    }
                                 )
                             }
                         }

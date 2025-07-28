@@ -87,8 +87,6 @@ class UserRepository
                                     trySend(Result.failure(Exception("Failed to parse user data.")))
                                 }
                             } else {
-                                // You might want to treat "not found" as a specific state,
-                                // but for now, we can signal it as a failure or a null success.
                                 trySend(Result.failure(Exception("User not found.")))
                             }
                         }
@@ -108,11 +106,26 @@ class UserRepository
                                 return@addSnapshotListener
                             }
                             if (snapshot != null) {
-                                val users = snapshot.toObjects(User::class.java)
+                                val users = snapshot.documents.mapNotNull { doc ->
+                                    doc.toObject(User::class.java)?.copy(id = doc.id)
+                                }
                                 trySend(Result.success(users))
                             }
                         }
                 awaitClose { listenerRegistration.remove() }
+            }
+
+        /** Entfernt ein Mitglied aus einem Team durch Zurücksetzen der TeamId */
+        suspend fun removeUserFromTeam(userId: String): Result<Unit> =
+            try {
+                firestore
+                    .collection(USERS_COLLECTION)
+                    .document(userId)
+                    .update("teamId", "")
+                    .await()
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
             }
 
         /** Aktualisiert Benutzer-Daten in Firestore */
