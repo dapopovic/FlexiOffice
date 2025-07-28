@@ -26,6 +26,8 @@ import javax.inject.Inject
 
 data class CalendarUiState(
     val isLoading: Boolean = true,
+    val isLoadingMonthData: Boolean = false,
+    val isLoadingDemoData: Boolean = false,
     val errorMessage: String? = null,
     val currentUser: User? = null,
     val currentMonth: YearMonth = YearMonth.now(),
@@ -73,7 +75,7 @@ class CalendarViewModel
                                     val currentMonth = YearMonth.now()
                                     bookingRepository
                                         .getTeamBookingsStream(
-                                            user!!.teamId,
+                                            user.teamId,
                                             currentMonth.year,
                                             currentMonth.monthValue,
                                         ).map { bookingsResult ->
@@ -133,13 +135,13 @@ class CalendarViewModel
             if (teamId.isNullOrEmpty() || teamId == User.NO_TEAM) return
 
             viewModelScope.launch {
-                _uiState.value = _uiState.value.copy(isLoading = true)
+                _uiState.value = _uiState.value.copy(isLoadingMonthData = true)
 
                 bookingRepository.getTeamBookingsStream(teamId, month.year, month.monthValue).collect { result ->
                     val bookings = result.getOrNull() ?: emptyList()
                     _uiState.value =
                         _uiState.value.copy(
-                            isLoading = false,
+                            isLoadingMonthData = false,
                             bookings = bookings,
                             events = mapBookingsToEvents(bookings),
                             errorMessage = result.exceptionOrNull()?.message,
@@ -185,16 +187,17 @@ class CalendarViewModel
             if (teamId.isNullOrEmpty() || teamId == User.NO_TEAM) return
 
             viewModelScope.launch {
-                _uiState.value = _uiState.value.copy(isLoading = true)
+                _uiState.value = _uiState.value.copy(isLoadingDemoData = true)
                 bookingRepository
                     .createDemoBookings(teamId)
                     .onSuccess {
-                        // Demo data created, reload current month
+                        // Demo data created, clear demo loading and reload current month
+                        _uiState.value = _uiState.value.copy(isLoadingDemoData = false)
                         loadBookingsForMonth(_uiState.value.currentMonth)
-                    }.onFailure { e ->
+                    }.onFailure { e: Throwable ->
                         _uiState.value =
                             _uiState.value.copy(
-                                isLoading = false,
+                                isLoadingDemoData = false,
                                 errorMessage =
                                     "Fehler beim Laden der Demo-Daten: ${e.message}",
                             )
