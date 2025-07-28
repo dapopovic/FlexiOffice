@@ -55,5 +55,3 @@ fun MainFlexiOfficeApp(authViewModel: AuthViewModel = hiltViewModel()) {
     }
     MainAppScreen(hiltViewModel(), navController)
 }
- 
- 
