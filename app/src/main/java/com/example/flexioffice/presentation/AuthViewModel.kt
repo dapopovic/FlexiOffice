@@ -1,11 +1,9 @@
 package com.example.flexioffice.presentation
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.UserRepository
-import com.google.firebase.BuildConfig
 import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
