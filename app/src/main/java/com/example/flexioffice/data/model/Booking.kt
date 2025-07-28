@@ -5,7 +5,7 @@ import com.google.firebase.firestore.PropertyName
 import java.time.LocalDate
 
 /** Datenmodell für Home-Office-Buchungen in Firestore */
-data class HomeOfficeBooking(
+data class Booking(
     val id: String = "",
     val userId: String = "",
     val userName: String = "",

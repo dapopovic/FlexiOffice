@@ -1,8 +1,8 @@
 package com.example.flexioffice.data
 
+import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.data.model.BookingType
-import com.example.flexioffice.data.model.HomeOfficeBooking
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -25,7 +25,7 @@ class BookingRepository
         }
 
         /** Erstellt eine neue Buchung */
-        suspend fun createBooking(booking: HomeOfficeBooking): Result<String> =
+        suspend fun createBooking(booking: Booking): Result<String> =
             try {
                 val docRef = firestore.collection(BOOKINGS_COLLECTION).document()
                 val bookingWithId = booking.copy(id = docRef.id)
@@ -40,7 +40,7 @@ class BookingRepository
             teamId: String,
             startDate: LocalDate,
             endDate: LocalDate,
-        ): Result<List<HomeOfficeBooking>> =
+        ): Result<List<Booking>> =
             try {
                 val startDateStr = startDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
                 val endDateStr = endDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
@@ -54,7 +54,7 @@ class BookingRepository
                         .get()
                         .await()
 
-                val bookings = querySnapshot.toObjects(HomeOfficeBooking::class.java)
+                val bookings = querySnapshot.toObjects(Booking::class.java)
                 Result.success(bookings)
             } catch (e: Exception) {
                 Result.failure(e)
@@ -65,7 +65,7 @@ class BookingRepository
             teamId: String,
             year: Int,
             month: Int,
-        ): Flow<Result<List<HomeOfficeBooking>>> =
+        ): Flow<Result<List<Booking>>> =
             callbackFlow {
                 val startDate = LocalDate.of(year, month, 1)
                 val endDate = startDate.withDayOfMonth(startDate.lengthOfMonth())
@@ -84,7 +84,7 @@ class BookingRepository
                                 return@addSnapshotListener
                             }
                             if (snapshot != null) {
-                                val bookings = snapshot.toObjects(HomeOfficeBooking::class.java)
+                                val bookings = snapshot.toObjects(Booking::class.java)
                                 trySend(Result.success(bookings))
                             }
                         }
@@ -92,7 +92,7 @@ class BookingRepository
             }
 
         /** Lädt Buchungen für einen Benutzer */
-        suspend fun getUserBookings(userId: String): Result<List<HomeOfficeBooking>> =
+        suspend fun getUserBookings(userId: String): Result<List<Booking>> =
             try {
                 val querySnapshot =
                     firestore
@@ -102,7 +102,7 @@ class BookingRepository
                         .get()
                         .await()
 
-                val bookings = querySnapshot.toObjects(HomeOfficeBooking::class.java)
+                val bookings = querySnapshot.toObjects(Booking::class.java)
                 Result.success(bookings)
             } catch (e: Exception) {
                 Result.failure(e)
@@ -135,7 +135,7 @@ class BookingRepository
                 val currentDate = LocalDate.now()
                 val demoBookings =
                     listOf(
-                        HomeOfficeBooking(
+                        Booking(
                             userId = "demo_user_1",
                             userName = "Max Mustermann",
                             teamId = teamId,
@@ -145,7 +145,7 @@ class BookingRepository
                             comment = "Home Office Tag",
                             createdAt = currentDate.toString(),
                         ),
-                        HomeOfficeBooking(
+                        Booking(
                             userId = "demo_user_2",
                             userName = "Anna Schmidt",
                             teamId = teamId,
@@ -158,7 +158,7 @@ class BookingRepository
                             comment = "Remote Work",
                             createdAt = currentDate.toString(),
                         ),
-                        HomeOfficeBooking(
+                        Booking(
                             userId = "demo_user_3",
                             userName = "Tom Weber",
                             teamId = teamId,

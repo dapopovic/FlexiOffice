@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.BookingRepository
 import com.example.flexioffice.data.UserRepository
+import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.data.model.CalendarEvent
 import com.example.flexioffice.data.model.EventType
-import com.example.flexioffice.data.model.HomeOfficeBooking
 import com.example.flexioffice.data.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,7 +32,7 @@ data class CalendarUiState(
     val selectedDate: LocalDate? = null,
     val isWeekView: Boolean = false,
     val events: List<CalendarEvent> = emptyList(),
-    val homeOfficeBookings: List<HomeOfficeBooking> = emptyList(),
+    val bookings: List<Booking> = emptyList(),
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -83,7 +83,7 @@ class CalendarViewModel
                                                 isLoading = false,
                                                 currentUser = user,
                                                 currentMonth = currentMonth,
-                                                homeOfficeBookings = bookings,
+                                                bookings = bookings,
                                                 events = mapBookingsToEvents(bookings),
                                                 errorMessage =
                                                     bookingsResult
@@ -140,7 +140,7 @@ class CalendarViewModel
                     _uiState.value =
                         _uiState.value.copy(
                             isLoading = false,
-                            homeOfficeBookings = bookings,
+                            bookings = bookings,
                             events = mapBookingsToEvents(bookings),
                             errorMessage = result.exceptionOrNull()?.message,
                         )
@@ -149,7 +149,7 @@ class CalendarViewModel
         }
 
         /** Konvertiert Buchungen zu Kalender-Events */
-        private fun mapBookingsToEvents(bookings: List<HomeOfficeBooking>): List<CalendarEvent> =
+        private fun mapBookingsToEvents(bookings: List<Booking>): List<CalendarEvent> =
             bookings
                 .map { booking ->
                     val date = booking.date
