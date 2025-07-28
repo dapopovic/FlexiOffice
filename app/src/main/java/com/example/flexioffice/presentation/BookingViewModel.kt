@@ -22,6 +22,8 @@ data class BookingUiState(
     val error: String? = null,
     val showBookingDialog: Boolean = false,
     val showDatePicker: Boolean = false,
+    val showDetailsSheet: Boolean = false,
+    val selectedBooking: Booking? = null,
     val selectedDate: LocalDate? = null,
     val comment: String = "",
     val userBookings: List<Booking> = emptyList(),
@@ -36,7 +38,20 @@ class BookingViewModel
         private val userRepository: UserRepository,
         private val auth: FirebaseAuth,
     ) : ViewModel() {
-        private val _uiState = MutableStateFlow(BookingUiState())
+        private val _uiState =
+            MutableStateFlow(
+                BookingUiState(
+                    isLoading = false,
+                    error = null,
+                    showBookingDialog = false,
+                    showDatePicker = false,
+                    showDetailsSheet = false,
+                    selectedDate = null,
+                    comment = "",
+                    userBookings = emptyList(),
+                    selectedBooking = null,
+                ),
+            )
         val uiState: StateFlow<BookingUiState> = _uiState
 
         init {
@@ -165,6 +180,24 @@ class BookingViewModel
                 } finally {
                     _uiState.update { it.copy(isLoading = false) }
                 }
+            }
+        }
+
+        fun showDetailsSheet(booking: Booking) {
+            _uiState.update { currentState ->
+                currentState.copy(
+                    showDetailsSheet = true,
+                    selectedBooking = booking
+                )
+            }
+        }
+
+        fun hideDetailsSheet() {
+            _uiState.update { currentState ->
+                currentState.copy(
+                    showDetailsSheet = false,
+                    selectedBooking = null
+                )
             }
         }
     }

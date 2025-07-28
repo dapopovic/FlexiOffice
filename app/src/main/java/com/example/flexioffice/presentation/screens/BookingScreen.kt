@@ -21,6 +21,8 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -107,7 +109,10 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
                 }
             } else {
                 items(uiState.userBookings.sortedByDescending { it.date }) { booking ->
-                    BookingItem(booking = booking)
+                    BookingItem(
+                        booking = booking,
+                        onClick = { viewModel.showDetailsSheet(it) }
+                    )
                 }
             }
         }
@@ -183,6 +188,96 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
         )
     }
 
+    if (uiState.showDetailsSheet) {
+        uiState.selectedBooking?.let { booking ->
+            val bottomSheetState = rememberModalBottomSheetState()
+            ModalBottomSheet(
+                onDismissRequest = { viewModel.hideDetailsSheet() },
+                sheetState = bottomSheetState
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "Home Office Details",
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    // Datum
+                    Column {
+                        Text(
+                            text = "Datum",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = booking.date.format(
+                                DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)
+                            ),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+
+                    // Status
+                    Column {
+                        Text(
+                            text = "Status",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = when(booking.status) {
+                                BookingStatus.APPROVED -> "✓ Genehmigt"
+                                BookingStatus.PENDING -> "⏳ Ausstehend"
+                                BookingStatus.DECLINED -> "✗ Abgelehnt"
+                            },
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = when(booking.status) {
+                                BookingStatus.APPROVED -> MaterialTheme.colorScheme.primary
+                                BookingStatus.PENDING -> MaterialTheme.colorScheme.secondary
+                                BookingStatus.DECLINED -> MaterialTheme.colorScheme.error
+                            }
+                        )
+                    }
+
+                    // Antragsteller
+                    Column {
+                        Text(
+                            text = "Antragsteller",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = booking.userName,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+
+                    // Kommentar (wenn vorhanden)
+                    if (booking.comment.isNotEmpty()) {
+                        Column {
+                            Text(
+                                text = "Kommentar",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = booking.comment,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
+            }
+        }
+    }
+
     // Material 3 DatePicker Dialog
     if (uiState.showDatePicker) {
         val datePickerState =
@@ -220,10 +315,12 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BookingItem(booking: Booking) {
+private fun BookingItem(booking: Booking, onClick: (Booking) -> Unit = {}) {
     Card(
         modifier = Modifier.fillMaxWidth(),
+        onClick = { onClick(booking) }
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
