@@ -76,7 +76,7 @@ class BookingRepository
                 android.util.Log.d("BookingRepository", "Sende Daten an Firestore...")
                 val documentRef = firestore.collection("bookings").document()
                 val bookingWithId = bookingMap + ("id" to documentRef.id)
-                
+
                 documentRef.set(bookingWithId).await()
                 android.util.Log.d("BookingRepository", "Buchung erfolgreich erstellt mit ID: ${documentRef.id}")
             } catch (e: Exception) {

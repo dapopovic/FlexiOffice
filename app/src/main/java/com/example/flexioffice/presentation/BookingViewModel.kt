@@ -49,8 +49,10 @@ class BookingViewModel
             viewModelScope.launch {
                 try {
                     val today = LocalDate.now()
-                    val bookings = bookingRepository.getUserBookings(userId)
-                        .filter { booking -> !booking.date.isBefore(today) } // Nur aktuelle und zukünftige Buchungen anzeigen
+                    val bookings =
+                        bookingRepository
+                            .getUserBookings(userId)
+                            .filter { booking -> !booking.date.isBefore(today) } // Nur aktuelle und zukünftige Buchungen anzeigen
                     _uiState.update { it.copy(userBookings = bookings) }
                 } catch (e: Exception) {
                     _uiState.update { it.copy(error = e.message) }
@@ -63,7 +65,14 @@ class BookingViewModel
         }
 
         fun hideBookingDialog() {
-            _uiState.update { it.copy(showBookingDialog = false, showDatePicker = false, selectedDate = null, comment = "") }
+            _uiState.update {
+                it.copy(
+                    showBookingDialog = false,
+                    showDatePicker = false,
+                    selectedDate = null,
+                    comment = "",
+                )
+            }
         }
 
         fun showDatePicker() {

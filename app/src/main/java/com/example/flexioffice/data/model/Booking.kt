@@ -30,7 +30,7 @@ data class Booking(
 }
 
 enum class BookingType {
-    HOME_OFFICE
+    HOME_OFFICE,
 }
 
 enum class BookingStatus {
