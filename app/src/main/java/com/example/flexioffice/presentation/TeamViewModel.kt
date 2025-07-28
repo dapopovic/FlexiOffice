@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class TeamUiState(
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = true,
     val errorMessage: String? = null,
     val currentUser: User? = null,
     val currentTeam: Team? = null,
@@ -80,7 +80,7 @@ class TeamViewModel
 
                                 if (teamId.isNullOrEmpty() || teamId == User.NO_TEAM) {
                                     // User is not in a team
-                                    flowOf(TeamUiState(currentUser = user))
+                                    flowOf(TeamUiState(currentUser = user, isLoading = false))
                                 } else {
                                     // User is in a team, combine team and member streams
                                     combine(
@@ -94,6 +94,7 @@ class TeamViewModel
                                             errorMessage =
                                                 teamResult.exceptionOrNull()?.message
                                                     ?: membersResult.exceptionOrNull()?.message,
+                                            isLoading = false,
                                         )
                                     }
                                 }

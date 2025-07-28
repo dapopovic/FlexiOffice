@@ -1,5 +1,6 @@
 package com.example.flexioffice.presentation.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -165,6 +166,23 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
         )
     }
 
+    if (uiState.isLoading) {
+        // Ladeanzeige anzeigen, wenn Daten geladen werden
+        Log.d("TeamsScreen", "Loading team data...")
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+        ) { padding ->
+            Column(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+        return
+    }
+    Log.d("TeamsScreen", "UI State: $uiState")
     Scaffold(
         floatingActionButton = {
             // FAB nur anzeigen, wenn der Benutzer kein Team hat und eines erstellen darf
@@ -176,11 +194,18 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Team erstellen")
                 }
+            } else if (uiState.currentTeam?.managerId == uiState.currentUser?.id) {
+                ExtendedFloatingActionButton(
+                    onClick = { viewModel.showInviteDialog() },
+                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                    text = { Text("Mitglied einladen") },
+                    expanded = true,
+                )
             }
         },
     ) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
         ) {
             // Header
             Row(
@@ -198,16 +223,6 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.weight(1f),
                 )
-
-                if (uiState.currentTeam?.managerId == uiState.currentUser?.id) {
-                    Button(
-                        onClick = { viewModel.showInviteDialog() },
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Einladen")
-                    }
-                }
             }
 
             if (uiState.currentTeam == null) {
