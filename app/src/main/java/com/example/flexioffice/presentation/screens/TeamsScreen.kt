@@ -46,48 +46,64 @@ import com.example.flexioffice.data.model.User
 import com.example.flexioffice.presentation.TeamEvent
 import com.example.flexioffice.presentation.TeamViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TeamMemberCard(
-    user: User,
+fun TeamMemberItem(
+    member: User,
     isManager: Boolean,
-    onRemoveClick: () -> Unit,
-    modifier: Modifier = Modifier
+    canRemoveMember: Boolean = false,
+    onRemoveClick: () -> Unit = {},
 ) {
-    Card(
-        modifier = modifier
+    Row(
+        modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
+            Icon(
+                if (isManager || member.role == User.ROLE_MANAGER) {
+                    Icons.Default.Star
+                } else {
+                    Icons.Default.Person
+                },
+                contentDescription = null,
+                modifier = Modifier.padding(end = 8.dp),
+                tint =
+                    if (isManager || member.role == User.ROLE_MANAGER) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+            )
+            Column {
+                Text(
+                    text = member.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                Text(
+                    text =
+                        when {
+                            isManager || member.role == User.ROLE_MANAGER -> "Manager"
+                            else -> "Mitglied"
+                        },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        
+        if (canRemoveMember && member.role != User.ROLE_MANAGER) {
+            IconButton(
+                onClick = onRemoveClick
             ) {
                 Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp)
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Mitglied entfernen",
+                    tint = MaterialTheme.colorScheme.error
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = user.name)
-            }
-            
-            if (isManager && user.role != User.ROLE_MANAGER) {
-                androidx.compose.material3.IconButton(
-                    onClick = onRemoveClick
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Mitglied entfernen",
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
             }
         }
     }
@@ -370,9 +386,10 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
 
                         LazyColumn {
                             items(uiState.teamMembers) { member ->
-                                TeamMemberCard(
-                                    user = member,
-                                    isManager = uiState.isTeamManager,
+                                TeamMemberItem(
+                                    member = member,
+                                    isManager = member.id == uiState.currentTeam?.managerId,
+                                    canRemoveMember = uiState.isTeamManager,
                                     onRemoveClick = {
                                         viewModel.removeMember(member.id)
                                     }
