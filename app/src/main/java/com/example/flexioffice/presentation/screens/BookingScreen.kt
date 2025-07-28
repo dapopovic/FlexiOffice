@@ -1,5 +1,6 @@
 package com.example.flexioffice.presentation.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,12 +25,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -46,6 +50,17 @@ import java.time.format.FormatStyle
 @Composable
 fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Show error messages
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let { message ->
+            Log.e("CalendarScreen", "Error: $message")
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearError()
+        }
+    }
 
     Scaffold(
         floatingActionButton = {

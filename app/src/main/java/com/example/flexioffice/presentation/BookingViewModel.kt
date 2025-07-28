@@ -1,5 +1,6 @@
 package com.example.flexioffice.presentation
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.data.BookingRepository
@@ -9,6 +10,7 @@ import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.data.model.BookingType
 import com.google.firebase.auth.FirebaseAuth
+import com.google.protobuf.LazyStringArrayList.emptyList
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +26,7 @@ data class BookingUiState(
     val showDatePicker: Boolean = false,
     val selectedDate: LocalDate? = null,
     val comment: String = "",
-    val userBookings: List<Booking> = emptyList(),
+    val userBookings: List<Booking> = emptyList<Booking>(),
 )
 
 @HiltViewModel
@@ -52,8 +54,20 @@ class BookingViewModel
                     val bookings =
                         bookingRepository
                             .getUserBookings(userId)
-                            .filter { booking -> !booking.date.isBefore(today) } // aktuelle und zukünftige Buchungen
-                    _uiState.update { it.copy(userBookings = bookings) }
+                            .getOrElse {
+                                _uiState.update { it.copy(error = it.error) }
+                                return@launch
+                            }
+                    Log.d("BookingViewModel", "Lade Buchungen für User: $userId")
+                    // aktuelle und zukünftige Buchungen
+                    _uiState.update {
+                        it.copy(
+                            userBookings =
+                                bookings.filter { booking ->
+                                    !booking.date.isBefore(today)
+                                },
+                        )
+                    }
                 } catch (e: Exception) {
                     _uiState.update { it.copy(error = e.message) }
                 }
@@ -89,6 +103,10 @@ class BookingViewModel
 
         fun updateComment(comment: String) {
             _uiState.update { it.copy(comment = comment) }
+        }
+
+        fun clearError() {
+            _uiState.update { it.copy(error = null) }
         }
 
         fun createBooking() {
