@@ -6,6 +6,7 @@ data class User(
     val email: String = "",
     val role: String = "user", // Standard-Rolle
     val teamId: String = "", // Leerer String = kein Team
+    val id: String = "", // Firestore-Dokument-ID, optional
 ) {
     // Leerer Konstruktor für Firestore
     constructor() : this("", "", "user", "")

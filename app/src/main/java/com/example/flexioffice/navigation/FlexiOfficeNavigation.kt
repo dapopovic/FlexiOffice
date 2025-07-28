@@ -1,6 +1,8 @@
 package com.example.flexioffice.navigation
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -27,7 +29,6 @@ fun FlexiOfficeNavigation(
         composable(FlexiOfficeRoutes.Login.route) {
             LoginScreen(
                 onLoginSuccess = {
-                    // Navigation wird durch MainViewModel in MainActivity behandelt
                 },
             )
         }
@@ -44,8 +45,17 @@ fun FlexiOfficeNavigation(
             RequestsScreen()
         }
 
+        composable(FlexiOfficeRoutes.Loading.route) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = androidx.compose.ui.Alignment.Center,
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+
         // Profile Screen
-        composable(FlexiOfficeRoutes.Profile.route) { ProfileScreen(navController = navController) }
+        composable(FlexiOfficeRoutes.Profile.route) { ProfileScreen() }
 
         // Teams Screen
         composable(FlexiOfficeRoutes.Teams.route) { TeamsScreen() }

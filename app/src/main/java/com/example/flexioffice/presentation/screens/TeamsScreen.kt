@@ -40,163 +40,168 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.flexioffice.data.model.User
-import com.example.flexioffice.presentation.MainViewModel
+import com.example.flexioffice.presentation.TeamEvent
 import com.example.flexioffice.presentation.TeamViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TeamsScreen(
-        viewModel: TeamViewModel = hiltViewModel(),
-        mainViewModel: MainViewModel = hiltViewModel(),
-) {
+fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     var inviteEmail by remember { mutableStateOf("") }
     var showCreateTeamDialog by remember { mutableStateOf(false) }
     var teamName by remember { mutableStateOf("") }
     var teamDescription by remember { mutableStateOf("") }
-    val currentUserId by viewModel.currentUserId.collectAsState()
 
     // Beobachte shouldRefreshUserData und aktualisiere MainViewModel entsprechend
-    LaunchedEffect(uiState.shouldRefreshUserData) {
-        if (uiState.shouldRefreshUserData) {
-            mainViewModel.refreshUserData()
-            viewModel.userDataRefreshed()
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is TeamEvent.TeamCreationSuccess -> {
+                    // Team created successfully. The UI will update automatically.
+                    // You can optionally show a confirmation message (e.g., a Snackbar).
+                    showCreateTeamDialog = false
+                    teamName = ""
+                    teamDescription = ""
+                }
+                is TeamEvent.InviteSuccess -> {
+                    // Invite was successful. The dialog is already hidden by the ViewModel.
+                    // The team members list will update automatically.
+                    inviteEmail = "" // Clear the input field
+                }
+            }
         }
     }
 
     // Team-Erstellungsdialog
     if (showCreateTeamDialog) {
         AlertDialog(
-                onDismissRequest = { showCreateTeamDialog = false },
-                title = { Text("Neues Team erstellen") },
-                text = {
-                    Column(
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        OutlinedTextField(
-                                value = teamName,
-                                onValueChange = { teamName = it },
-                                label = { Text("Teamname") },
-                                placeholder = { Text("z.B. Marketing Team") },
-                                modifier = Modifier.fillMaxWidth(),
-                        )
-                        OutlinedTextField(
-                                value = teamDescription,
-                                onValueChange = { teamDescription = it },
-                                label = { Text("Beschreibung") },
-                                placeholder = { Text("Kurze Beschreibung des Teams") },
-                                modifier = Modifier.fillMaxWidth(),
-                                minLines = 2,
-                                maxLines = 3,
-                        )
-                    }
-                },
-                confirmButton = {
-                    Button(
-                            onClick = {
-                                viewModel.createTeam(teamName, teamDescription)
-                                showCreateTeamDialog = false
-                                teamName = ""
-                                teamDescription = ""
-                            },
-                    ) { Text("Erstellen") }
-                },
-                dismissButton = {
-                    TextButton(
-                            onClick = { showCreateTeamDialog = false },
-                    ) { Text("Abbrechen") }
-                },
+            onDismissRequest = { showCreateTeamDialog = false },
+            title = { Text("Neues Team erstellen") },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    OutlinedTextField(
+                        value = teamName,
+                        onValueChange = { teamName = it },
+                        label = { Text("Teamname") },
+                        placeholder = { Text("z.B. Marketing Team") },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        value = teamDescription,
+                        onValueChange = { teamDescription = it },
+                        label = { Text("Beschreibung") },
+                        placeholder = { Text("Kurze Beschreibung des Teams") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 2,
+                        maxLines = 3,
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.createTeam(teamName, teamDescription)
+                    },
+                ) { Text("Erstellen") }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showCreateTeamDialog = false },
+                ) { Text("Abbrechen") }
+            },
         )
     }
 
     // Einladungsdialog
     if (uiState.isInviteDialogVisible) {
         AlertDialog(
-                onDismissRequest = { viewModel.hideInviteDialog() },
-                title = { Text("Teammitglied einladen") },
-                text = {
-                    Column(
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        OutlinedTextField(
-                                value = inviteEmail,
-                                onValueChange = { inviteEmail = it },
-                                label = { Text("E-Mail-Adresse") },
-                                placeholder = { Text("beispiel@email.com") },
-                                modifier = Modifier.fillMaxWidth(),
-                                leadingIcon = {
-                                    Icon(Icons.Default.Person, contentDescription = null)
-                                },
+            onDismissRequest = { viewModel.hideInviteDialog() },
+            title = { Text("Teammitglied einladen") },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    OutlinedTextField(
+                        value = inviteEmail,
+                        onValueChange = { inviteEmail = it },
+                        label = { Text("E-Mail-Adresse") },
+                        placeholder = { Text("beispiel@email.com") },
+                        modifier = Modifier.fillMaxWidth(),
+                        leadingIcon = {
+                            Icon(Icons.Default.Person, contentDescription = null)
+                        },
+                    )
+                    if (uiState.errorMessage != null) {
+                        Text(
+                            text = uiState.errorMessage!!,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
                         )
-                        if (uiState.errorMessage != null) {
-                            Text(
-                                    text = uiState.errorMessage!!,
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.bodySmall,
-                            )
-                        }
                     }
-                },
-                confirmButton = {
-                    Button(
-                            onClick = { viewModel.inviteUserByEmail(inviteEmail) },
-                            enabled = inviteEmail.isNotBlank() && !uiState.isLoading,
-                    ) {
-                        if (uiState.isLoading) {
-                            CircularProgressIndicator(
-                                    modifier = Modifier.size(16.dp),
-                                    strokeWidth = 2.dp,
-                            )
-                        } else {
-                            Text("Einladen")
-                        }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.inviteUserByEmail(inviteEmail) },
+                    enabled = inviteEmail.isNotBlank() && !uiState.isLoading,
+                ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    } else {
+                        Text("Einladen")
                     }
-                },
-                dismissButton = {
-                    TextButton(
-                            onClick = { viewModel.hideInviteDialog() },
-                    ) { Text("Abbrechen") }
-                },
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { viewModel.hideInviteDialog() },
+                ) { Text("Abbrechen") }
+            },
         )
     }
 
     Scaffold(
-            floatingActionButton = {
-                // FAB nur anzeigen, wenn der Benutzer kein Team hat und eines erstellen darf
-                if (uiState.canCreateTeam && uiState.currentTeam == null) {
-                    ExtendedFloatingActionButton(
-                            onClick = { showCreateTeamDialog = true },
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Team erstellen")
-                    }
+        floatingActionButton = {
+            // FAB nur anzeigen, wenn der Benutzer kein Team hat und eines erstellen darf
+            if (uiState.canCreateTeam && uiState.currentTeam == null) {
+                ExtendedFloatingActionButton(
+                    onClick = { showCreateTeamDialog = true },
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Team erstellen")
                 }
-            },
+            }
+        },
     ) { padding ->
         Column(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
         ) {
             // Header
             Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
-                        Icons.Default.Person,
-                        contentDescription = null,
-                        modifier = Modifier.padding(end = 8.dp),
-                        tint = MaterialTheme.colorScheme.primary,
+                    Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = 8.dp),
+                    tint = MaterialTheme.colorScheme.primary,
                 )
                 Text(
-                        text = "Teams",
-                        style = MaterialTheme.typography.headlineMedium,
-                        modifier = Modifier.weight(1f),
+                    text = "Teams",
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.weight(1f),
                 )
 
-                if (uiState.currentTeam?.managerId == currentUserId) {
+                if (uiState.currentTeam?.managerId == uiState.currentUser?.id) {
                     Button(
-                            onClick = { viewModel.showInviteDialog() },
+                        onClick = { viewModel.showInviteDialog() },
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
@@ -207,84 +212,76 @@ fun TeamsScreen(
 
             if (uiState.currentTeam == null) {
                 Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
-                            text = "👥",
-                            style = MaterialTheme.typography.displayLarge,
-                            modifier = Modifier.padding(bottom = 16.dp),
+                        text = "👥",
+                        style = MaterialTheme.typography.displayLarge,
+                        modifier = Modifier.padding(bottom = 16.dp),
                     )
 
                     Text(
-                            text =
-                                    if (!uiState.canCreateTeam) "Kein Team zugeordnet"
-                                    else "Bereit für ein neues Team?",
-                            style = MaterialTheme.typography.headlineMedium,
-                            modifier = Modifier.padding(bottom = 8.dp),
+                        text =
+                            if (!uiState.canCreateTeam) {
+                                "Kein Team zugeordnet"
+                            } else {
+                                "Bereit für ein neues Team?"
+                            },
+                        style = MaterialTheme.typography.headlineMedium,
+                        modifier = Modifier.padding(bottom = 8.dp),
                     )
 
                     Text(
-                            text =
-                                    if (!uiState.canCreateTeam) {
-                                        "Sie sind derzeit keinem Team zugeordnet und haben nicht die Berechtigung, ein Team zu erstellen."
-                                    } else {
-                                        "Sie sind derzeit keinem Team zugeordnet. Erstellen Sie ein neues Team und laden Sie Mitglieder ein."
-                                    },
-                            style = MaterialTheme.typography.bodyLarge,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(bottom = 32.dp),
+                        text =
+                            if (!uiState.canCreateTeam) {
+                                "Sie sind derzeit keinem Team zugeordnet und haben nicht die Berechtigung, ein Team zu erstellen."
+                            } else {
+                                "Sie sind derzeit keinem Team zugeordnet. Erstellen Sie ein neues Team und laden Sie Mitglieder ein."
+                            },
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 32.dp),
                     )
-
-                    if (uiState.canCreateTeam) {
-                        Button(
-                                onClick = { showCreateTeamDialog = true },
-                                modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Icon(Icons.Default.Add, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Team erstellen")
-                        }
-                    }
                 }
             } else {
                 // Teamdetails anzeigen
                 Text(
-                        text = "Verwalten Sie Ihr Team und laden Sie Mitglieder ein",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 24.dp),
+                    text = "Verwalten Sie Ihr Team und laden Sie Mitglieder ein",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 24.dp),
                 )
 
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                                text = uiState.currentTeam?.name ?: "Mein Team",
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.padding(bottom = 8.dp),
+                            text = uiState.currentTeam?.name ?: "Mein Team",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(bottom = 8.dp),
                         )
 
                         val currentTeamDescription = uiState.currentTeam?.description
                         if (currentTeamDescription?.isNotBlank() == true) {
                             Text(
-                                    text = currentTeamDescription,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.padding(bottom = 16.dp),
+                                text = currentTeamDescription,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(bottom = 16.dp),
                             )
                         }
 
                         Text(
-                                text = "Teammitglieder (${uiState.teamMembers.size})",
-                                style = MaterialTheme.typography.titleSmall,
-                                modifier = Modifier.padding(bottom = 8.dp),
+                            text = "Teammitglieder (${uiState.teamMembers.size})",
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(bottom = 8.dp),
                         )
 
                         LazyColumn {
                             items(uiState.teamMembers) { member ->
                                 TeamMemberItem(
-                                        member = member,
-                                        isManager = member.name == uiState.currentTeam?.managerId,
+                                    member = member,
+                                    isManager = member.name == uiState.currentTeam?.managerId,
                                 )
                             }
                         }
@@ -297,38 +294,41 @@ fun TeamsScreen(
 
 @Composable
 fun TeamMemberItem(
-        member: User,
-        isManager: Boolean,
+    member: User,
+    isManager: Boolean,
 ) {
     Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
-                if (isManager || member.role == "manager") Icons.Default.Star
-                else Icons.Default.Person,
-                contentDescription = null,
-                modifier = Modifier.padding(end = 8.dp),
-                tint =
-                        if (isManager || member.role == "manager") {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
+            if (isManager || member.role == "manager") {
+                Icons.Default.Star
+            } else {
+                Icons.Default.Person
+            },
+            contentDescription = null,
+            modifier = Modifier.padding(end = 8.dp),
+            tint =
+                if (isManager || member.role == "manager") {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
         )
         Column {
             Text(
-                    text = member.name,
-                    style = MaterialTheme.typography.bodyLarge,
+                text = member.name,
+                style = MaterialTheme.typography.bodyLarge,
             )
             Text(
-                    text =
-                            when {
-                                isManager || member.role == "manager" -> "Manager"
-                                else -> "Mitglied"
-                            },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text =
+                    when {
+                        isManager || member.role == "manager" -> "Manager"
+                        else -> "Mitglied"
+                    },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
