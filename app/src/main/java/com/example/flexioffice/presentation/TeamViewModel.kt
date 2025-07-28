@@ -8,24 +8,34 @@ import com.example.flexioffice.data.UserRepository
 import com.example.flexioffice.data.model.Team
 import com.example.flexioffice.data.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class TeamUiState(
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = true,
     val errorMessage: String? = null,
-    val isTeamCreated: Boolean = false,
-    val canCreateTeam: Boolean = false,
     val currentUser: User? = null,
     val currentTeam: Team? = null,
     val teamMembers: List<User> = emptyList(),
     val isInviteDialogVisible: Boolean = false,
-    val shouldRefreshUserData: Boolean = false,
-)
+) {
+    val canCreateTeam: Boolean =
+        currentUser?.teamId == User.NO_TEAM &&
+            currentUser.role == User.ROLE_MANAGER
+}
 
 @HiltViewModel
 class TeamViewModel
@@ -38,41 +48,65 @@ class TeamViewModel
         private val _uiState = MutableStateFlow(TeamUiState())
         val uiState: StateFlow<TeamUiState> = _uiState.asStateFlow()
 
+        private val _events = Channel<TeamEvent>()
+        val events = _events.receiveAsFlow()
+
         init {
-            checkUserStatus()
+            observeUserAndTeamData()
         }
 
-        fun userDataRefreshed() {
-            _uiState.value = _uiState.value.copy(shouldRefreshUserData = false)
-        }
-
-        private fun checkUserStatus() {
+        @OptIn(ExperimentalCoroutinesApi::class)
+        private fun observeUserAndTeamData() {
             viewModelScope.launch {
-                authRepository.currentUser.collect { firebaseUser ->
-                    if (firebaseUser != null) {
-                        userRepository
-                            .getUser(firebaseUser.uid)
-                            .onSuccess { user ->
-                                _uiState.value =
-                                    _uiState.value.copy(
-                                        currentUser = user,
-                                        canCreateTeam =
-                                            user?.teamId == User.NO_TEAM &&
-                                                user?.role == User.ROLE_MANAGER,
-                                    )
+                // Reactively listen for the authenticated user's ID
+                authRepository.currentUser
+                    .map { it?.uid }
+                    .distinctUntilChanged()
+                    .flatMapLatest { userId ->
+                        if (userId == null) {
+                            // If user logs out, reset state
+                            flowOf(
+                                TeamUiState(
+                                    currentUser = null,
+                                    currentTeam = null,
+                                    teamMembers = emptyList(),
+                                ),
+                            )
+                        } else {
+                            // When we have a user ID, get their data stream
+                            userRepository.getUserStream(userId).flatMapLatest { userResult ->
+                                val user = userResult.getOrNull()
+                                val teamId = user?.teamId
 
-                                // Wenn der User in einem Team ist, lade die Team-Details
-                                if (user?.teamId?.isNotEmpty() == true) {
-                                    loadTeamDetails(user.teamId)
+                                if (teamId.isNullOrEmpty() || teamId == User.NO_TEAM) {
+                                    // User is not in a team
+                                    flowOf(TeamUiState(currentUser = user, isLoading = false))
+                                } else {
+                                    // User is in a team, combine team and member streams
+                                    combine(
+                                        teamRepository.getTeamStream(teamId),
+                                        userRepository.getTeamMembersStream(teamId),
+                                    ) { teamResult, membersResult ->
+                                        TeamUiState(
+                                            currentUser = user,
+                                            currentTeam = teamResult.getOrNull(),
+                                            teamMembers = membersResult.getOrNull() ?: emptyList(),
+                                            errorMessage =
+                                                teamResult.exceptionOrNull()?.message
+                                                    ?: membersResult.exceptionOrNull()?.message,
+                                            isLoading = false,
+                                        )
+                                    }
                                 }
-                            }.onFailure { exception ->
-                                _uiState.value =
-                                    _uiState.value.copy(
-                                        errorMessage = exception.message,
-                                    )
                             }
+                        }
+                    }.catch { e ->
+                        // Handle errors from the upstream flows
+                        _uiState.update { it.copy(errorMessage = e.message) }
+                    }.collect { state ->
+                        // Update the main UI state
+                        _uiState.value = state
                     }
-                }
             }
         }
 
@@ -116,59 +150,49 @@ class TeamViewModel
             description: String = "",
         ) {
             if (name.isBlank()) {
-                _uiState.value =
-                    _uiState.value.copy(
-                        errorMessage = "Der Teamname darf nicht leer sein",
-                    )
+                _uiState.update { it.copy(errorMessage = "Der Teamname darf nicht leer sein.") }
                 return
             }
 
             viewModelScope.launch {
-                _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+                _uiState.update { it.copy(isLoading = true) }
+                val currentUser =
+                    _uiState.value.currentUser
+                        ?: run {
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    errorMessage = "Kein aktueller Benutzer gefunden. Bitte anmelden.",
+                                )
+                            }
+                            return@launch
+                        }
 
-                try {
-                    val currentUserId =
-                        authRepository.currentUser.first()?.uid
-                            ?: throw Exception("Benutzer nicht angemeldet")
+                val newTeam =
+                    Team(
+                        name = name,
+                        description = description,
+                        members = listOf(currentUser.id),
+                        managerId = currentUser.id,
+                    )
 
-                    val team =
-                        Team(
-                            name = name,
-                            description = description,
-                            members = listOf(currentUserId),
-                            managerId = currentUserId,
-                        )
-                    val teamId = teamRepository.createTeam(team).getOrThrow()
+                // Use the atomic repository function
+                teamRepository
+                    .createTeamAtomically(newTeam)
+                    .onSuccess {
+                        _events.send(TeamEvent.TeamCreationSuccess)
+                    }.onFailure { e ->
+                        _uiState.update {
+                            it.copy(errorMessage = "Team-Erstellung fehlgeschlagen: ${e.message}")
+                        }
+                    }
 
-                    userRepository.updateUserTeamId(currentUserId, teamId).getOrThrow()
-
-                    val updatedUser = _uiState.value.currentUser?.copy(teamId = teamId)
-
-                    _uiState.value =
-                        _uiState.value.copy(
-                            currentUser = updatedUser,
-                            canCreateTeam = false,
-                            isLoading = false,
-                            isTeamCreated = true,
-                            errorMessage = null,
-                        )
-                    loadTeamDetails(teamId)
-                } catch (e: Exception) {
-                    _uiState.value =
-                        _uiState.value.copy(
-                            isLoading = false,
-                            errorMessage = "Fehler beim Erstellen des Teams: ${e.message}",
-                        )
-                }
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
 
         fun clearError() {
             _uiState.value = _uiState.value.copy(errorMessage = null)
-        }
-
-        fun resetCreatedState() {
-            _uiState.value = _uiState.value.copy(isTeamCreated = false)
         }
 
         fun showInviteDialog() {
@@ -181,47 +205,44 @@ class TeamViewModel
 
         fun inviteUserByEmail(email: String) {
             if (email.isBlank()) {
-                _uiState.value =
-                    _uiState.value.copy(
-                        errorMessage = "E-Mail-Adresse darf nicht leer sein",
-                    )
+                _uiState.update { it.copy(errorMessage = "E-Mail darf nicht leer sein.") }
                 return
             }
 
             viewModelScope.launch {
-                _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+                _uiState.update { it.copy(isLoading = true) }
+                val teamId = _uiState.value.currentTeam?.id
+                val managerId = _uiState.value.currentUser?.id
 
-                // Prüfen ob der aktuelle User der Team-Manager ist
-                val currentTeam = _uiState.value.currentTeam
-                val currentUser = _uiState.value.currentUser
-
-                if (currentTeam == null || currentUser == null) {
-                    _uiState.value =
-                        _uiState.value.copy(
+                if (teamId == null || managerId == null) {
+                    _uiState.update {
+                        it.copy(
                             isLoading = false,
-                            errorMessage = "Team oder Benutzer nicht gefunden",
+                            errorMessage = "Team oder Manager nicht gefunden. Bitte anmelden.",
                         )
+                    }
                     return@launch
                 }
 
-                if (currentTeam.managerId != authRepository.currentUser.first()?.uid) {
-                    _uiState.value =
-                        _uiState.value.copy(
-                            isLoading = false,
-                            errorMessage = "Nur der Team-Manager kann Mitglieder einladen",
-                        )
-                    return@launch
-                }
+                // Use the atomic repository function which handles all logic
+                teamRepository
+                    .inviteUserToTeamAtomically(teamId, managerId, email)
+                    .onSuccess {
+                        _events.send(TeamEvent.InviteSuccess)
+                        hideInviteDialog()
+                    }.onFailure { e ->
+                        _uiState.update {
+                            it.copy(errorMessage = "Einladung fehlgeschlagen: ${e.message}")
+                        }
+                    }
 
-                // Benutzer anhand der E-Mail suchen
-                // Da wir keine direkte E-Mail-Suche haben, müssen wir das später implementieren
-                // Hier könnte man einen Cloud Function aufrufen, die die Suche durchführt
-
-                _uiState.value =
-                    _uiState.value.copy(
-                        isLoading = false,
-                        isInviteDialogVisible = false,
-                    )
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }
+
+sealed class TeamEvent {
+    object TeamCreationSuccess : TeamEvent()
+
+    object InviteSuccess : TeamEvent()
+}

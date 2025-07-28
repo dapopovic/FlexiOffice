@@ -24,16 +24,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.navigation.NavHostController
-import com.example.flexioffice.navigation.FlexiOfficeRoutes
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.example.flexioffice.data.model.User
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import com.example.flexioffice.R
+import com.example.flexioffice.data.model.User
+import com.example.flexioffice.navigation.FlexiOfficeRoutes
 import com.example.flexioffice.presentation.AuthViewModel
 import com.example.flexioffice.presentation.MainViewModel
 
@@ -42,15 +42,9 @@ import com.example.flexioffice.presentation.MainViewModel
 fun ProfileScreen(
     authViewModel: AuthViewModel = hiltViewModel(),
     mainViewModel: MainViewModel = hiltViewModel(),
-    navController: NavHostController,
 ) {
     val authUiState by authViewModel.uiState.collectAsState()
     val mainUiState by mainViewModel.uiState.collectAsState()
-
-    // Daten beim Öffnen des Profils aktualisieren
-    LaunchedEffect(Unit) {
-        mainViewModel.refreshUserData()
-    }
 
     Column(
         modifier =
@@ -97,9 +91,10 @@ fun ProfileScreen(
 
                     // Team-Information
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 12.dp),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
@@ -115,11 +110,12 @@ fun ProfileScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             Text(
-                                text = when {
-                                    user.teamId.isEmpty() -> "Kein Team zugewiesen"
-                                    user.role == "manager" -> "Team-Manager"
-                                    else -> "Team-Mitglied"
-                                },
+                                text =
+                                    when {
+                                        user.teamId.isEmpty() -> "Kein Team zugewiesen"
+                                        user.role == "manager" -> "Team-Manager"
+                                        else -> "Team-Mitglied"
+                                    },
                                 style = MaterialTheme.typography.bodyLarge,
                             )
                         }
@@ -211,8 +207,6 @@ fun ProfileScreen(
                             )
                         }
                     }
-
-
                 }
             }
         } ?: run {

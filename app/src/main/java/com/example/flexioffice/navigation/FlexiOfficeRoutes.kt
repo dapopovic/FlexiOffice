@@ -1,15 +1,23 @@
 package com.example.flexioffice.navigation
 
 /** Navigation-Routen für FlexiOffice */
-sealed class FlexiOfficeRoutes(val route: String) {
+sealed class FlexiOfficeRoutes(
+    val route: String,
+) {
     // Auth Routes
     object Login : FlexiOfficeRoutes("login")
 
+    object Loading : FlexiOfficeRoutes("loading")
+
     // Main App Routes
     object Calendar : FlexiOfficeRoutes("calendar")
+
     object Booking : FlexiOfficeRoutes("booking")
+
     object Requests : FlexiOfficeRoutes("requests") // Nur für Leads
+
     object Profile : FlexiOfficeRoutes("profile")
+
     object Teams : FlexiOfficeRoutes("teams")
 
     companion object {

@@ -1,9 +1,11 @@
 package com.example.flexioffice.presentation
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.UserRepository
+import com.google.firebase.BuildConfig
 import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +15,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class AuthUiState(
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = true,
     val user: FirebaseUser? = null,
     val errorMessage: String? = null,
     val isLoggedIn: Boolean = false,
@@ -33,7 +35,12 @@ class AuthViewModel
             // Überwachung des Authentifizierungsstatus
             viewModelScope.launch {
                 authRepository.currentUser.collect { user ->
-                    _uiState.value = _uiState.value.copy(user = user, isLoggedIn = user != null)
+                    _uiState.value =
+                        _uiState.value.copy(
+                            user = user,
+                            isLoggedIn = user != null,
+                            isLoading = false,
+                        )
                 }
             }
         }
