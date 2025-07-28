@@ -117,6 +117,8 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
     var showCreateTeamDialog by remember { mutableStateOf(false) }
     var teamName by remember { mutableStateOf("") }
     var teamDescription by remember { mutableStateOf("") }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var userToDelete by remember { mutableStateOf<User?>(null) }
 
     // Event-Handling
     LaunchedEffect(Unit) {
@@ -210,6 +212,40 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
     }
 
     // Einladungsdialog
+    if (showDeleteConfirmation && userToDelete != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteConfirmation = false
+                userToDelete = null
+            },
+            title = { Text("Teammitglied entfernen") },
+            text = {
+                Text("Möchten Sie ${userToDelete!!.name} wirklich aus dem Team entfernen?")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        userToDelete?.let { viewModel.removeMember(it.id) }
+                        showDeleteConfirmation = false
+                        userToDelete = null
+                    },
+                ) {
+                    Text("Entfernen")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirmation = false
+                        userToDelete = null
+                    },
+                ) {
+                    Text("Abbrechen")
+                }
+            },
+        )
+    }
+
     if (uiState.isInviteDialogVisible) {
         AlertDialog(
             onDismissRequest = { viewModel.hideInviteDialog() },
@@ -376,7 +412,8 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                                     isManager = member.id == uiState.currentTeam?.managerId,
                                     canRemoveMember = uiState.isTeamManager,
                                     onRemoveClick = {
-                                        viewModel.removeMember(member.id)
+                                        userToDelete = member
+                                        showDeleteConfirmation = true
                                     },
                                 )
                             }
