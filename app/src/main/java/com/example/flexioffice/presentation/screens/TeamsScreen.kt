@@ -168,7 +168,6 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
 
     if (uiState.isLoading) {
         // Ladeanzeige anzeigen, wenn Daten geladen werden
-        Log.d("TeamsScreen", "Loading team data...")
         Scaffold(
             modifier = Modifier.fillMaxSize(),
         ) { padding ->
@@ -182,7 +181,6 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
         }
         return
     }
-    Log.d("TeamsScreen", "UI State: $uiState")
     Scaffold(
         floatingActionButton = {
             // FAB nur anzeigen, wenn der Benutzer kein Team hat und eines erstellen darf

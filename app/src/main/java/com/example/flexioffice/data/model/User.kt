@@ -9,7 +9,7 @@ data class User(
     val id: String = "", // Firestore-Dokument-ID, optional
 ) {
     // Leerer Konstruktor für Firestore
-    constructor() : this("", "", "user", "")
+    constructor() : this("", "", "user", "", "")
 
     companion object {
         // Standard-Rollen

@@ -150,7 +150,7 @@ class TeamViewModel
             description: String = "",
         ) {
             if (name.isBlank()) {
-                _uiState.update { it.copy(errorMessage = "Team name cannot be empty.") }
+                _uiState.update { it.copy(errorMessage = "Der Teamname darf nicht leer sein.") }
                 return
             }
 
@@ -162,7 +162,7 @@ class TeamViewModel
                             _uiState.update {
                                 it.copy(
                                     isLoading = false,
-                                    errorMessage = "Error: User not logged in.",
+                                    errorMessage = "Kein aktueller Benutzer gefunden. Bitte anmelden.",
                                 )
                             }
                             return@launch
@@ -183,7 +183,7 @@ class TeamViewModel
                         _events.send(TeamEvent.TeamCreationSuccess)
                     }.onFailure { e ->
                         _uiState.update {
-                            it.copy(errorMessage = "Failed to create team: ${e.message}")
+                            it.copy(errorMessage = "Team-Erstellung fehlgeschlagen: ${e.message}")
                         }
                     }
 
@@ -205,7 +205,7 @@ class TeamViewModel
 
         fun inviteUserByEmail(email: String) {
             if (email.isBlank()) {
-                _uiState.update { it.copy(errorMessage = "Email cannot be empty.") }
+                _uiState.update { it.copy(errorMessage = "E-Mail darf nicht leer sein.") }
                 return
             }
 
@@ -218,7 +218,7 @@ class TeamViewModel
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = "Cannot invite user: missing team or user data.",
+                            errorMessage = "Team oder Manager nicht gefunden. Bitte anmelden.",
                         )
                     }
                     return@launch
@@ -232,7 +232,7 @@ class TeamViewModel
                         hideInviteDialog()
                     }.onFailure { e ->
                         _uiState.update {
-                            it.copy(errorMessage = "Invitation failed: ${e.message}")
+                            it.copy(errorMessage = "Einladung fehlgeschlagen: ${e.message}")
                         }
                     }
 
