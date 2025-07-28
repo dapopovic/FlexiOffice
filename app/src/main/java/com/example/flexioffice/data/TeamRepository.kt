@@ -2,6 +2,7 @@ package com.example.flexioffice.data
 
 import com.example.flexioffice.data.model.Team
 import com.example.flexioffice.data.model.User
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
@@ -17,7 +18,20 @@ class TeamRepository
     @Inject
     constructor(
         private val firestore: FirebaseFirestore,
+        private val auth: FirebaseAuth,
     ) {
+        suspend fun getCurrentUserTeam(): Team? {
+            val uid = auth.currentUser?.uid ?: return null
+            val userDoc =
+                firestore
+                    .collection("users")
+                    .document(uid)
+                    .get()
+                    .await()
+            val teamId = userDoc.getString("teamId") ?: return null
+            return getTeam(teamId).getOrNull()
+        }
+
         companion object {
             const val TEAMS_COLLECTION = "teams"
         }

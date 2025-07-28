@@ -1,6 +1,7 @@
 package com.example.flexioffice.data
 
 import com.example.flexioffice.data.model.User
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -15,6 +16,7 @@ class UserRepository
     @Inject
     constructor(
         private val firestore: FirebaseFirestore,
+        private val auth: FirebaseAuth,
     ) {
         companion object {
             private const val USERS_COLLECTION = "users"
@@ -37,6 +39,11 @@ class UserRepository
             }
 
         /** Lädt Benutzer-Daten aus Firestore */
+        suspend fun getCurrentUser(): User? {
+            val uid = auth.currentUser?.uid ?: return null
+            return getUser(uid).getOrNull()
+        }
+
         suspend fun getUser(uid: String): Result<User?> =
             try {
                 val document =
