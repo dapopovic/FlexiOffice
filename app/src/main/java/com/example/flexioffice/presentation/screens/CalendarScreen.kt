@@ -222,7 +222,6 @@ private fun CalendarHeader(
             Text(
                 text = "Kalender",
                 style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
             )
         }
 
