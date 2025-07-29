@@ -104,6 +104,27 @@ class BookingRepository
                 Result.failure(e)
             }
 
+        /** Stream für Buchungen eines Benutzers */
+        fun getUserBookingsStream(userId: String): Flow<Result<List<Booking>>> =
+            callbackFlow {
+                val listenerRegistration =
+                    firestore
+                        .collection(Booking.COLLECTION_NAME)
+                        .whereEqualTo(Booking.USER_ID_FIELD, userId)
+                        .orderBy(Booking.DATE_FIELD)
+                        .addSnapshotListener { snapshot, error ->
+                            if (error != null) {
+                                trySend(Result.failure(error))
+                                return@addSnapshotListener
+                            }
+                            if (snapshot != null) {
+                                val bookings = snapshot.toObjects(Booking::class.java)
+                                trySend(Result.success(bookings))
+                            }
+                        }
+                awaitClose { listenerRegistration.remove() }
+            }
+
         /** Aktualisiert den Status einer Buchung */
         suspend fun updateBookingStatus(
             bookingId: String,
