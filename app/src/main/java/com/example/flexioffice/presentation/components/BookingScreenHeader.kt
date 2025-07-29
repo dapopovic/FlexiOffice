@@ -20,55 +20,47 @@ import com.example.flexioffice.R
 
 @Composable
 fun BookingScreenHeader(
-    showCancelledBookings: Boolean,
-    onToggleCancelledBookings: () -> Unit,
+        showCancelledBookings: Boolean,
+        onToggleCancelledBookings: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                painter =
-                    painterResource(
-                        R.drawable.schedule_24px,
-                    ),
-                contentDescription = "Anträge Icon",
-                modifier = Modifier.padding(end = 8.dp),
-                tint = MaterialTheme.colorScheme.primary,
+                    painter =
+                            painterResource(
+                                    R.drawable.schedule_24px,
+                            ),
+                    contentDescription = "Anträge Icon",
+                    modifier = Modifier.padding(end = 8.dp),
+                    tint = MaterialTheme.colorScheme.primary,
             )
             Text(
-                text = "Home Office Anträge",
-                style =
-                    MaterialTheme.typography
-                        .headlineMedium,
+                    text = "Home Office Anträge",
+                    style = MaterialTheme.typography.headlineMedium,
             )
         }
         Text(
-            text =
-                "Hier können Sie Ihre Home Office Anträge verwalten.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 8.dp),
+                text = "Hier können Sie Ihre Home Office Anträge verwalten.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 8.dp),
         )
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
-                text = "Stornierte Anträge anzeigen",
-                style = MaterialTheme.typography.bodyMedium,
-                color =
-                    MaterialTheme.colorScheme
-                        .onSurfaceVariant,
+                    text = "Stornierte Anträge anzeigen",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Switch(
-                checked = showCancelledBookings,
-                onCheckedChange = { onToggleCancelledBookings() },
+                    checked = showCancelledBookings,
+                    onCheckedChange = { onToggleCancelledBookings() },
             )
         }
         Spacer(modifier = Modifier.height(8.dp))

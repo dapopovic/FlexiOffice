@@ -17,36 +17,23 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun EmptyBookingsCard() {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
     ) {
         Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-            horizontalAlignment =
-                Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = "Keine Anträge vorhanden",
-                style =
-                    MaterialTheme.typography
-                        .bodyLarge,
-                color =
-                    MaterialTheme.colorScheme
-                        .onSurfaceVariant,
+                    text = "Keine Anträge vorhanden",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text =
-                    "Erstellen Sie einen neuen Home Office Antrag mit dem + Button",
-                style =
-                    MaterialTheme.typography
-                        .bodyMedium,
-                color =
-                    MaterialTheme.colorScheme
-                        .onSurfaceVariant,
-                textAlign = TextAlign.Center,
+                    text = "Erstellen Sie einen neuen Home Office Antrag mit dem + Button",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
             )
         }
     }

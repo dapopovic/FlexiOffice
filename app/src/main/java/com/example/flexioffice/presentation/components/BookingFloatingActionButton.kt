@@ -1,7 +1,5 @@
 package com.example.flexioffice.presentation.components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -16,9 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun BookingFloatingActionButton(
-    onCreateBookingClick: () -> Unit,
-) {
+fun BookingFloatingActionButton(onCreateBookingClick: () -> Unit) {
     ExtendedFloatingActionButton(
         onClick = onCreateBookingClick,
         containerColor = MaterialTheme.colorScheme.primaryContainer,

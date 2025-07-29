@@ -13,37 +13,33 @@ import com.example.flexioffice.data.model.Booking
 
 @Composable
 fun CancelBookingDialog(
-    showDialog: Boolean,
-    selectedBooking: Booking?,
-    isLoading: Boolean,
-    onDismiss: () -> Unit,
-    onConfirmCancel: () -> Unit,
+        showDialog: Boolean,
+        selectedBooking: Booking?,
+        isLoading: Boolean,
+        onDismiss: () -> Unit,
+        onConfirmCancel: () -> Unit,
 ) {
     if (showDialog && selectedBooking != null) {
         AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text("Buchung stornieren") },
-            text = { Text("Möchten Sie diese Buchung wirklich stornieren?") },
-            confirmButton = {
-                Button(
-                    onClick = onConfirmCancel,
-                    enabled = !isLoading,
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp,
-                        )
-                    } else {
-                        Text("Stornieren")
+                onDismissRequest = onDismiss,
+                title = { Text("Buchung stornieren") },
+                text = { Text("Möchten Sie diese Buchung wirklich stornieren?") },
+                confirmButton = {
+                    Button(
+                            onClick = onConfirmCancel,
+                            enabled = !isLoading,
+                    ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    strokeWidth = 2.dp,
+                            )
+                        } else {
+                            Text("Stornieren")
+                        }
                     }
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = onDismiss) {
-                    Text("Abbrechen")
-                }
-            },
+                },
+                dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
         )
     }
 }

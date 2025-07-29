@@ -38,7 +38,7 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
         selectedBooking = uiState.selectedBooking,
         isLoading = uiState.isLoading,
         onDismiss = { viewModel.hideCancelDialog() },
-        onConfirmCancel = { viewModel.cancelBooking() }
+        onConfirmCancel = { viewModel.cancelBooking() },
     )
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -56,7 +56,7 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             BookingFloatingActionButton(
-                onCreateBookingClick = { viewModel.showBookingDialog() }
+                onCreateBookingClick = { viewModel.showBookingDialog() },
             )
         },
     ) { _ ->
@@ -67,21 +67,18 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
             item {
                 BookingScreenHeader(
                     showCancelledBookings = uiState.showCancelledBookings,
-                    onToggleCancelledBookings = { viewModel.toggleCancelledBookings() }
+                    onToggleCancelledBookings = { viewModel.toggleCancelledBookings() },
                 )
             }
 
             if (uiState.userBookings.isEmpty()) {
-                item {
-                    EmptyBookingsCard()
-                }
+                item { EmptyBookingsCard() }
             } else {
                 items(
                     uiState.userBookings
                         .filter { booking ->
                             uiState.showCancelledBookings ||
-                                booking.status !=
-                                BookingStatus.CANCELLED
+                                booking.status != BookingStatus.CANCELLED
                         }.sortedByDescending { it.date },
                 ) { booking ->
                     BookingItem(
@@ -104,7 +101,7 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
         onDismiss = { viewModel.hideBookingDialog() },
         onDateClick = { viewModel.showDatePicker() },
         onCommentChange = { viewModel.updateComment(it) },
-        onCreateBooking = { viewModel.createBooking() }
+        onCreateBooking = { viewModel.createBooking() },
     )
 
     // Booking details bottom sheet
@@ -112,7 +109,7 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
         showSheet = uiState.showDetailsSheet,
         booking = uiState.selectedBooking,
         approverName = uiState.approverName,
-        onDismiss = { viewModel.hideDetailsSheet() }
+        onDismiss = { viewModel.hideDetailsSheet() },
     )
 
     // Date picker dialog
@@ -120,8 +117,6 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
         showDatePicker = uiState.showDatePicker,
         selectedDate = uiState.selectedDate,
         onDismiss = { viewModel.hideDatePicker() },
-        onDateSelected = { selectedDate ->
-            viewModel.updateSelectedDate(selectedDate)
-        }
+        onDateSelected = { selectedDate -> viewModel.updateSelectedDate(selectedDate) },
     )
 }
