@@ -56,8 +56,24 @@ class BookingRepository
             userName: String,
             teamId: String,
             type: BookingType = BookingType.HOME_OFFICE,
-        ): Result<String> =
-            try {
+        ): Result<String> {
+            return try {
+                // Validiere das Datum
+                if (date.isBefore(LocalDate.now())) {
+                    return Result.failure(IllegalArgumentException("Buchungen für vergangene Tage sind nicht möglich"))
+                }
+
+                // Prüfe auf existierende Buchungen
+                val existingBooking =
+                    getUserBookingsForDate(userId, date).getOrNull()?.firstOrNull {
+                        it.status != BookingStatus.CANCELLED
+                    }
+                if (existingBooking != null) {
+                    return Result.failure(
+                        IllegalArgumentException("Sie haben bereits eine aktive Buchung für diesen Tag"),
+                    )
+                }
+
                 val booking =
                     Booking(
                         dateString = date.format(DateTimeFormatter.ISO_LOCAL_DATE),
@@ -67,8 +83,31 @@ class BookingRepository
                         type = type,
                         comment = comment,
                         status = BookingStatus.PENDING,
+                        createdAt = LocalDate.now().toString(),
+                        reviewerId = "", // Wird erst beim Review gesetzt
                     )
                 createBooking(booking)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
+        /** Lädt Buchungen eines Benutzers für ein bestimmtes Datum */
+        private suspend fun getUserBookingsForDate(
+            userId: String,
+            date: LocalDate,
+        ): Result<List<Booking>> =
+            try {
+                val dateStr = date.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                val querySnapshot =
+                    firestore
+                        .collection(Booking.COLLECTION_NAME)
+                        .whereEqualTo(Booking.USER_ID_FIELD, userId)
+                        .whereEqualTo(Booking.DATE_FIELD, dateStr)
+                        .get()
+                        .await()
+
+                Result.success(querySnapshot.toObjects(Booking::class.java))
             } catch (e: Exception) {
                 Result.failure(e)
             }
