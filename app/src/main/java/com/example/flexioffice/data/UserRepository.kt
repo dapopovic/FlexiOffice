@@ -18,10 +18,6 @@ class UserRepository
         private val firestore: FirebaseFirestore,
         private val auth: FirebaseAuth,
     ) {
-        companion object {
-            private const val USERS_COLLECTION = "users"
-        }
-
         /** Erstellt einen neuen Benutzer in Firestore */
         suspend fun createUser(
             uid: String,
@@ -29,7 +25,7 @@ class UserRepository
         ): Result<Unit> =
             try {
                 firestore
-                    .collection(USERS_COLLECTION)
+                    .collection(User.COLLECTION_NAME)
                     .document(uid)
                     .set(user)
                     .await()
@@ -48,7 +44,7 @@ class UserRepository
             try {
                 val document =
                     firestore
-                        .collection(USERS_COLLECTION)
+                        .collection(User.COLLECTION_NAME)
                         .document(uid)
                         .get()
                         .await()
@@ -57,6 +53,25 @@ class UserRepository
                     Result.success(document.toObject(User::class.java)?.copy(id = document.id))
                 } else {
                     Result.success(null)
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+
+        /** Lädt einen Benutzer anhand seiner ID */
+        suspend fun getUserById(uid: String): Result<User?> =
+            try {
+                val document =
+                    firestore
+                        .collection(User.COLLECTION_NAME)
+                        .document(uid)
+                        .get()
+                        .await()
+
+                if (document.exists()) {
+                    Result.success(document.toObject(User::class.java)?.copy(id = document.id))
+                } else {
+                    Result.failure(Exception("Benutzer nicht gefunden."))
                 }
             } catch (e: Exception) {
                 Result.failure(e)
@@ -85,8 +100,8 @@ class UserRepository
             try {
                 val querySnapshot =
                     firestore
-                        .collection(USERS_COLLECTION)
-                        .whereEqualTo("teamId", teamId)
+                        .collection(User.COLLECTION_NAME)
+                        .whereEqualTo(User.TEAM_ID_FIELD, teamId)
                         .get()
                         .await()
 
@@ -100,7 +115,7 @@ class UserRepository
             callbackFlow {
                 val listenerRegistration =
                     firestore
-                        .collection(USERS_COLLECTION)
+                        .collection(User.COLLECTION_NAME)
                         .document(userId)
                         .addSnapshotListener { snapshot, error ->
                             if (error != null) {
@@ -127,8 +142,8 @@ class UserRepository
             callbackFlow {
                 val listenerRegistration =
                     firestore
-                        .collection(USERS_COLLECTION)
-                        .whereEqualTo("teamId", teamId)
+                        .collection(User.COLLECTION_NAME)
+                        .whereEqualTo(User.TEAM_ID_FIELD, teamId)
                         .addSnapshotListener { snapshot, error ->
                             if (error != null) {
                                 trySend(Result.failure(error))
@@ -149,9 +164,9 @@ class UserRepository
         suspend fun removeUserFromTeam(userId: String): Result<Unit> =
             try {
                 firestore
-                    .collection(USERS_COLLECTION)
+                    .collection(User.COLLECTION_NAME)
                     .document(userId)
-                    .update("teamId", "")
+                    .update(User.TEAM_ID_FIELD, "")
                     .await()
                 Result.success(Unit)
             } catch (e: Exception) {
@@ -165,7 +180,7 @@ class UserRepository
         ): Result<Unit> =
             try {
                 firestore
-                    .collection(USERS_COLLECTION)
+                    .collection(User.COLLECTION_NAME)
                     .document(uid)
                     .set(user)
                     .await()
@@ -181,9 +196,9 @@ class UserRepository
         ): Result<Unit> =
             try {
                 firestore
-                    .collection(USERS_COLLECTION)
+                    .collection(User.COLLECTION_NAME)
                     .document(uid)
-                    .update("teamId", teamId)
+                    .update(User.TEAM_ID_FIELD, teamId)
                     .await()
                 Result.success(Unit)
             } catch (e: Exception) {
@@ -218,11 +233,11 @@ class UserRepository
             try {
                 val updates =
                     mapOf(
-                        "teamId" to teamId,
-                        "role" to role,
+                        User.TEAM_ID_FIELD to teamId,
+                        User.ROLE_FIELD to role,
                     )
                 firestore
-                    .collection(USERS_COLLECTION)
+                    .collection(User.COLLECTION_NAME)
                     .document(userId)
                     .update(updates)
                     .await()
