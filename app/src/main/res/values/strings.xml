@@ -3,4 +3,14 @@
     <string name="no_team_allowed_notificiation">Sie sind derzeit keinem Team zugeordnet und haben nicht die Berechtigung, ein Team zu erstellen.</string>
     <string name="no_team_notificiation">Sie sind derzeit keinem Team zugeordnet. Erstellen Sie ein neues Team und laden Sie Mitglieder ein.</string>
     <string name="TeamAccessRequired_Team_Beitreten">Treten Sie einem bestehenden Team bei oder erstellen Sie ein neues Team, um auf diese Funktion zugreifen zu können.</string>
+    <string name="EventComponents_ereignisse">Ereignisse</string>
+    <string name="EventComponents_keine_ereignisse_tag">Keine Ereignisse an diesem Tag</string>
+    <string name="EventComponents_Datum_wählen">Wählen Sie ein Datum aus, um Ereignisse anzuzeigen</string>
+    <string name="EventComponents_team_home_office">Team Home Office Übersicht</string>
+    <string name="EventComponents_heute">Heute</string>
+    <string name="EventComponents_morgen">Morgen</string>
+    <string name="EventComponents_keine_home_office_zwei_tagen_geplant">Keine Home Office Tage in den nächsten zwei Tagen geplant.</string>
+    <string name="TeamAccessRequired_team_mitgliedschaft_erforderlich">Team-Mitgliedschaft erforderlich</string>
+    <string name="TeamAccessRequired_team_mitgliedschaft_erforderlich_beschreibung">Um Home Office Anträge zu erstellen und zu verwalten, müssen Sie Mitglied eines Teams sein.</string>
+    <string name="TeamAccessRequired_zu_den_teams">Zu den Teams</string>
 </resources>

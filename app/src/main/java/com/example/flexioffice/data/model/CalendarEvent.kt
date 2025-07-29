@@ -1,5 +1,6 @@
 package com.example.flexioffice.data.model
 
+import androidx.compose.ui.graphics.Color
 import java.time.LocalDate
 
 /** Kalender-Event für die UI-Darstellung */
@@ -9,7 +10,7 @@ data class CalendarEvent(
     val date: LocalDate,
     val type: EventType,
     val participantNames: List<String> = emptyList(),
-    val color: Long = 0xFF2196F3, // Default blue color
+    val color: Color = Color(0xFF2196F3), // Default blue color
 )
 
 enum class EventType {

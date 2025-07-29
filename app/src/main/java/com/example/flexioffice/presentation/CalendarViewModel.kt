@@ -1,6 +1,6 @@
 package com.example.flexioffice.presentation
 
-import android.util.Log
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.data.AuthRepository
@@ -51,6 +51,10 @@ class CalendarViewModel
         private val _uiState = MutableStateFlow(CalendarUiState())
         val uiState: StateFlow<CalendarUiState> = _uiState.asStateFlow()
 
+        companion object {
+            private const val HOME_OFFICE_COLOR = 0xFF4CAF50L // Green
+        }
+
         init {
             viewModelScope.launch {
                 authRepository
@@ -85,7 +89,6 @@ class CalendarViewModel
                                                 (bookingsResult.getOrNull() ?: emptyList()).filter {
                                                     it.status != BookingStatus.CANCELLED
                                                 }
-                                            Log.d("CalendarViewModel", "Loaded bookings: $bookings")
                                             CalendarUiState(
                                                 isLoading = false,
                                                 currentUser = user,
@@ -169,7 +172,7 @@ class CalendarViewModel
                         date = date,
                         type = EventType.HOME_OFFICE,
                         participantNames = listOf(booking.userName),
-                        color = 0xFF4CAF50, // Green for home office
+                        color = Color(HOME_OFFICE_COLOR), // Green for home office
                     )
                 }
 

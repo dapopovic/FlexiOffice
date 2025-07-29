@@ -1,6 +1,5 @@
 package com.example.flexioffice.presentation.screens
 
-import android.graphics.drawable.Icon
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -98,7 +98,7 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
     // Show error messages
     LaunchedEffect(uiState.error) {
         uiState.error?.let { message ->
-            Log.e("CalendarScreen", "Error: $message")
+            Log.e("BookingScreen", "Error: $message")
             snackbarHostState.showSnackbar(message)
             viewModel.clearError()
         }
@@ -574,11 +574,7 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
                             }
                             Spacer(modifier = Modifier.weight(1f))
                             Icon(
-                                painter =
-                                    painterResource(
-                                        R.drawable
-                                            .check_circle_24px,
-                                    ),
+                                Icons.Default.CheckCircle,
                                 contentDescription = "Ausgewählt",
                                 tint =
                                     MaterialTheme.colorScheme

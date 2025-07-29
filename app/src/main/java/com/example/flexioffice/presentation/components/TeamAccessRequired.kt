@@ -12,7 +12,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -57,7 +56,7 @@ fun TeamAccessRequired(
 
             // Title
             Text(
-                text = "Team-Mitgliedschaft erforderlich",
+                text = stringResource(R.string.TeamAccessRequired_team_mitgliedschaft_erforderlich),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -68,7 +67,7 @@ fun TeamAccessRequired(
 
             // Description
             Text(
-                text = "Um Home Office Anträge zu erstellen und zu verwalten, müssen Sie Mitglied eines Teams sein.",
+                text = stringResource(R.string.TeamAccessRequired_team_mitgliedschaft_erforderlich_beschreibung),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -96,7 +95,7 @@ fun TeamAccessRequired(
                     modifier = Modifier.size(18.dp),
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                Text("Zu den Teams")
+                Text(stringResource(R.string.TeamAccessRequired_zu_den_teams))
             }
         }
     }

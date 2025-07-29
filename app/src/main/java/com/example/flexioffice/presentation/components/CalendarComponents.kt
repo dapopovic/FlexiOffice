@@ -1,6 +1,5 @@
 package com.example.flexioffice.presentation.components
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -208,7 +207,7 @@ private fun CalendarDay(
                                 Modifier
                                     .size(4.dp)
                                     .background(
-                                        Color(event.color),
+                                        event.color,
                                         CircleShape,
                                     ),
                         )
@@ -504,12 +503,9 @@ private fun WeekDayRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Log.d("WeekDayRow", "Events for $date: ${events.size}")
                     events.take(4).forEach { event ->
                         TableEventCell(
                             event = event,
-                            isSelected = isSelected,
-                            isToday = isToday,
                         )
                     }
                     if (events.size > 4) {
@@ -555,16 +551,12 @@ private fun WeekDayRow(
 }
 
 @Composable
-private fun TableEventCell(
-    event: CalendarEvent,
-    isSelected: Boolean,
-    isToday: Boolean,
-) {
+private fun TableEventCell(event: CalendarEvent) {
     Card(
         modifier = Modifier.height(40.dp).wrapContentWidth(),
         colors =
             CardDefaults.cardColors(
-                containerColor = Color(event.color),
+                containerColor = event.color,
             ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         shape = RoundedCornerShape(6.dp),

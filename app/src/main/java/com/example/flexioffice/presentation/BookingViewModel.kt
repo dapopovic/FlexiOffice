@@ -14,6 +14,8 @@ import com.example.flexioffice.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -24,6 +26,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 data class BookingUiState(
@@ -109,31 +112,6 @@ class BookingViewModel
             }
         }
 
-        private fun loadUserBookings() {
-            val userId = auth.currentUser?.uid ?: return
-
-            viewModelScope.launch {
-                try {
-                    val today = LocalDate.now()
-                    val bookings =
-                        bookingRepository.getUserBookings(userId).getOrElse {
-                            _uiState.update { it.copy(error = it.error) }
-                            return@launch
-                        }
-                    Log.d("BookingViewModel", "Lade Buchungen für User: $userId")
-                    // aktuelle und zukünftige Buchungen
-                    _uiState.update {
-                        it.copy(
-                            userBookings =
-                                bookings.filter { booking -> !booking.date.isBefore(today) },
-                        )
-                    }
-                } catch (e: Exception) {
-                    _uiState.update { it.copy(error = e.message) }
-                }
-            }
-        }
-
         fun showBookingDialog() {
             _uiState.update { it.copy(showBookingDialog = true) }
         }
@@ -170,47 +148,51 @@ class BookingViewModel
         }
 
         fun createBooking() {
-            val currentState = _uiState.value
             val userId =
                 auth.currentUser?.uid
                     ?: run {
                         _uiState.update { it.copy(error = "Benutzer nicht eingeloggt") }
                         return
                     }
+            val currentState = _uiState.value
+            val selectedDate = currentState.selectedDate
+
+            if (selectedDate == null) {
+                _uiState.update { it.copy(error = "Bitte wählen Sie ein Datum aus") }
+                return
+            }
+
+            // Prüfe, ob das ausgewählte Datum in der Vergangenheit liegt
+            if (currentState.selectedDate.isBefore(LocalDate.now())) {
+                _uiState.update {
+                    it.copy(error = "Buchungen für vergangene Tage sind nicht möglich")
+                }
+                return
+            }
+            // Prüfe, ob bereits eine aktive Buchung für dieses Datum existiert
+            val existingBooking =
+                currentState.userBookings.find {
+                    it.date == currentState.selectedDate &&
+                        it.status != BookingStatus.CANCELLED
+                }
+            if (existingBooking != null) {
+                _uiState.update {
+                    it.copy(error = "Sie haben bereits eine aktive Buchung für diesen Tag")
+                }
+                return
+            }
 
             viewModelScope.launch {
                 _uiState.update { it.copy(isLoading = true, error = null) }
 
                 try {
-                    val user = userRepository.getCurrentUser()
-                    val team = teamRepository.getCurrentUserTeam()
-
-                    if (currentState.selectedDate == null) {
-                        _uiState.update { it.copy(error = "Bitte wählen Sie ein Datum aus") }
-                        return@launch
-                    }
-
-                    // Prüfe, ob das ausgewählte Datum in der Vergangenheit liegt
-                    if (currentState.selectedDate.isBefore(LocalDate.now())) {
-                        _uiState.update {
-                            it.copy(error = "Buchungen für vergangene Tage sind nicht möglich")
+                    val (user, team) =
+                        coroutineScope {
+                            val userDeferred = async { userRepository.getCurrentUser() }
+                            val teamDeferred = async { teamRepository.getCurrentUserTeam() }
+                            // await() will suspend until the results are ready
+                            userDeferred.await() to teamDeferred.await()
                         }
-                        return@launch
-                    }
-
-                    // Prüfe, ob bereits eine aktive Buchung für dieses Datum existiert
-                    val existingBooking =
-                        currentState.userBookings.find {
-                            it.date == currentState.selectedDate &&
-                                it.status != BookingStatus.CANCELLED
-                        }
-
-                    if (existingBooking != null) {
-                        _uiState.update {
-                            it.copy(error = "Sie haben bereits eine aktive Buchung für diesen Tag")
-                        }
-                        return@launch
-                    }
 
                     if (user == null) {
                         _uiState.update { it.copy(error = "Benutzer konnte nicht geladen werden") }
@@ -241,15 +223,14 @@ class BookingViewModel
                             reviewerId = team.managerId,
                         )
 
-                    Log.d("BookingViewModel", "Speichere Buchung in Firestore...")
                     bookingRepository.createBooking(booking)
-                    Log.d("BookingViewModel", "Buchung erfolgreich gespeichert")
                     hideBookingDialog()
-                    loadUserBookings() // Aktualisiere die Liste der Buchungen
                 } catch (e: Exception) {
                     Log.e("BookingViewModel", "Fehler beim Erstellen der Buchung", e)
                     _uiState.update {
-                        it.copy(error = "Fehler beim Erstellen der Buchung: ${e.message}")
+                        it.copy(
+                            error = "Die Buchung konnte nicht erstellt werden. Bitte versuchen Sie es später erneut.",
+                        )
                     }
                 } finally {
                     _uiState.update { it.copy(isLoading = false) }
@@ -317,12 +298,14 @@ class BookingViewModel
             viewModelScope.launch {
                 try {
                     _uiState.update { it.copy(isLoading = true) }
+                    val currentUserId =
+                        auth.currentUser?.uid
+                            ?: throw Exception("Benutzer nicht eingeloggt")
                     bookingRepository.updateBookingStatus(
                         booking.id,
                         BookingStatus.CANCELLED,
-                        auth.currentUser?.uid ?: "",
+                        currentUserId,
                     )
-                    loadUserBookings() // Aktualisiere die Liste der Buchungen
                     hideCancelDialog()
                 } catch (e: Exception) {
                     _uiState.update { it.copy(error = e.message) }

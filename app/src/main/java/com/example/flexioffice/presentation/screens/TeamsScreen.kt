@@ -143,31 +143,6 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
         }
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.events.collect { event ->
-            when (event) {
-                is TeamEvent.TeamCreationSuccess -> {
-                    showCreateTeamDialog = false
-                    teamName = ""
-                    teamDescription = ""
-                    // Feedback anzeigen
-                    Log.d("TeamsScreen", "Team erfolgreich erstellt")
-                }
-                is TeamEvent.InviteSuccess -> {
-                    inviteEmail = ""
-                    Log.d("TeamsScreen", "Benutzer erfolgreich eingeladen")
-                }
-                is TeamEvent.MemberRemoved -> {
-                    Log.d("TeamsScreen", "Mitglied erfolgreich entfernt")
-                }
-                is TeamEvent.Error -> {
-                    // Hier würde man normalerweise einen Snackbar oder Toast anzeigen
-                    Log.e("TeamsScreen", event.message)
-                }
-            }
-        }
-    }
-
     // Team-Erstellungsdialog
     if (showCreateTeamDialog) {
         AlertDialog(
