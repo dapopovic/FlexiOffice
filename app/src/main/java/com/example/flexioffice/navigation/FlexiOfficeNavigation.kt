@@ -57,19 +57,20 @@ fun FlexiOfficeNavigation(
                         navController.navigate(FlexiOfficeRoutes.Teams.route) {
                             popUpTo(FlexiOfficeRoutes.Booking.route) { inclusive = true }
                         }
-                    }
+                    },
                 )
             }
         }
 
         composable(
             route = FlexiOfficeRoutes.Booking.fullRoute,
-            arguments = listOf(
-                androidx.navigation.navArgument("date") {
-                    type = androidx.navigation.NavType.StringType
-                    nullable = true
-                }
-            )
+            arguments =
+                listOf(
+                    androidx.navigation.navArgument("date") {
+                        type = androidx.navigation.NavType.StringType
+                        nullable = true
+                    },
+                ),
         ) { backStackEntry ->
             if (mainViewModel.hasAccessToRoute(FlexiOfficeRoutes.Booking.route)) {
                 val date = backStackEntry.arguments?.getString("date")

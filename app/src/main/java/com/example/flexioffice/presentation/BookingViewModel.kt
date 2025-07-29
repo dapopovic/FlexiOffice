@@ -120,29 +120,31 @@ class BookingViewModel
             }
         }
 
-    fun showBookingDialogForDate(date: LocalDate) {
-        viewModelScope.launch {
-            _uiState.update { currentState ->
-                currentState.copy(
-                    showBookingDialog = true,
-                    selectedDate = date,
-                    comment = ""
-                )
+        fun showBookingDialogForDate(date: LocalDate) {
+            viewModelScope.launch {
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        showBookingDialog = true,
+                        selectedDate = date,
+                        comment = "",
+                    )
+                }
             }
         }
-    }
 
-    fun showBookingDialog(preselectedDate: LocalDate? = null) {
-        viewModelScope.launch {
-            _uiState.update { currentState ->
-                currentState.copy(
-                    showBookingDialog = true,
-                    selectedDate = preselectedDate,
-                    comment = ""
-                )
+        fun showBookingDialog(preselectedDate: LocalDate? = null) {
+            viewModelScope.launch {
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        showBookingDialog = true,
+                        selectedDate = preselectedDate,
+                        comment = "",
+                    )
+                }
             }
         }
-    }        fun hideBookingDialog() {
+
+        fun hideBookingDialog() {
             _uiState.update {
                 it.copy(
                     showBookingDialog = false,

@@ -31,7 +31,7 @@ import com.example.flexioffice.presentation.components.EmptyBookingsCard
 @Composable
 fun BookingScreen(
     viewModel: BookingViewModel = hiltViewModel(),
-    selectedDate: String? = null
+    selectedDate: String? = null,
 ) {
     // Wenn ein Datum übergeben wurde, zeige den Dialog
     LaunchedEffect(selectedDate) {
