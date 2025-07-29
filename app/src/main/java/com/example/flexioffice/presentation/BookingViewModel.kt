@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 data class BookingUiState(
@@ -61,11 +60,11 @@ class BookingViewModel
         val uiState: StateFlow<BookingUiState> = _uiState
 
         init {
-            observerUserBookings()
+            observeUserBookings()
         }
 
         @OptIn(ExperimentalCoroutinesApi::class)
-        private fun observerUserBookings() {
+        private fun observeUserBookings() {
             viewModelScope.launch {
                 authRepository
                     .currentUser

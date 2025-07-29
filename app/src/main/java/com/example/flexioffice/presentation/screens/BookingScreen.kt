@@ -33,6 +33,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -58,6 +59,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
+
+private const val MILLIS_PER_DAY = 24L * 60 * 60 * 1000
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -105,6 +108,7 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { viewModel.showBookingDialog() },
@@ -889,22 +893,16 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
             rememberDatePickerState(
                 initialSelectedDateMillis =
                     uiState.selectedDate?.toEpochDay()?.let {
-                        it * 24 * 60 * 60 * 1000
+                        it * MILLIS_PER_DAY
                     }
-                        ?: (today.toEpochDay() * 24 * 60 * 60 * 1000),
+                        ?: (today.toEpochDay() * MILLIS_PER_DAY),
                 yearRange = today.year..(today.year + 1),
                 selectableDates =
                     object : SelectableDates {
                         override fun isSelectableDate(utcTimeMillis: Long): Boolean {
                             val date =
                                 LocalDate.ofEpochDay(
-                                    utcTimeMillis /
-                                        (
-                                            24 *
-                                                60 *
-                                                60 *
-                                                1000
-                                        ),
+                                    utcTimeMillis / MILLIS_PER_DAY,
                                 )
                             return !date.isBefore(today)
                         }

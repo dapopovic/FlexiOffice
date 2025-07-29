@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -236,8 +237,17 @@ fun WeekCalendar(
 ) {
     val today = LocalDate.now()
     val startOfWeek =
-        selectedDate?.let { date -> date.minusDays(date.dayOfWeek.value.toLong() - 1) }
-            ?: today.minusDays(today.dayOfWeek.value.toLong() - 1)
+        selectedDate?.let { date ->
+            val firstDayOfWeek = firstDayOfWeekFromLocale()
+            val daysFromFirstDayOfWeek = (date.dayOfWeek.value - firstDayOfWeek.value + 7) % 7
+            date.minusDays(daysFromFirstDayOfWeek.toLong())
+        }
+            ?: {
+                val firstDayOfWeek = firstDayOfWeekFromLocale()
+                val daysFromFirstDayOfWeek =
+                    (today.dayOfWeek.value - firstDayOfWeek.value + 7) % 7
+                today.minusDays(daysFromFirstDayOfWeek.toLong())
+            }()
     val weekDays = (0..6).map { startOfWeek.plusDays(it.toLong()) }
 
     Card(
@@ -390,6 +400,17 @@ private fun WeekDayRows(
     }
 }
 
+private fun getRowBackgroundColor(
+    isSelected: Boolean,
+    isToday: Boolean,
+    colorScheme: ColorScheme,
+): Color =
+    when {
+        isSelected -> colorScheme.primary.copy(alpha = 0.7f)
+        isToday -> colorScheme.secondary.copy(alpha = 0.5f)
+        else -> colorScheme.surfaceVariant
+    }
+
 @Composable
 private fun WeekDayRow(
     date: LocalDate,
@@ -406,23 +427,7 @@ private fun WeekDayRow(
                 Modifier
                     .fillMaxWidth()
                     .background(
-                        when {
-                            isSelected ->
-                                MaterialTheme.colorScheme
-                                    .surfaceBright
-                                    .copy(
-                                        alpha = 0.7f,
-                                    )
-                            isToday ->
-                                MaterialTheme.colorScheme
-                                    .surfaceBright
-                                    .copy(
-                                        alpha = 0.5f,
-                                    )
-                            else ->
-                                MaterialTheme.colorScheme
-                                    .surfaceVariant
-                        },
+                        getRowBackgroundColor(isSelected, isToday, MaterialTheme.colorScheme),
                     ).clickable { onDateSelected(date) }
                     .padding(
                         start = 12.dp,
