@@ -51,14 +51,19 @@ class BookingRepository
                             createdAt = doc.getString("createdAt") ?: "",
                         )
                     } catch (e: Exception) {
+                        android.util.Log.e("BookingRepository", "Fehler beim Parsen der Buchung: ${doc.id}", e)
                         null
                     }
                 }.sortedByDescending { it.date }
         }
 
-        suspend fun updateBookingStatus(bookingId: String, newStatus: BookingStatus) {
+        suspend fun updateBookingStatus(
+            bookingId: String,
+            newStatus: BookingStatus,
+        ) {
             try {
-                firestore.collection("bookings")
+                firestore
+                    .collection("bookings")
                     .document(bookingId)
                     .update("status", newStatus.name)
                     .await()

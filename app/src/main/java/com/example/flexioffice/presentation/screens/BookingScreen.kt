@@ -396,7 +396,6 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
         ) {
             DatePicker(
                 state = datePickerState,
-                modifier = Modifier.padding(16.dp),
             )
         }
     }
