@@ -19,5 +19,15 @@ data class User(
 
         // Kein Team
         const val NO_TEAM = ""
+
+        // const fields
+        const val NAME_FIELD = "name"
+        const val EMAIL_FIELD = "email"
+        const val ROLE_FIELD = "role"
+        const val TEAM_ID_FIELD = "teamId"
+        const val ID_FIELD = "id"
+
+        // collection name in Firestore
+        const val COLLECTION_NAME = "users"
     }
 }

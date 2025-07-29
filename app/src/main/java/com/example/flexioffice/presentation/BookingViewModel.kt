@@ -1,5 +1,6 @@
 package com.example.flexioffice.presentation
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.data.BookingRepository
@@ -22,9 +23,14 @@ data class BookingUiState(
     val error: String? = null,
     val showBookingDialog: Boolean = false,
     val showDatePicker: Boolean = false,
+    val showDetailsSheet: Boolean = false,
+    val showCancelDialog: Boolean = false,
+    val selectedBooking: Booking? = null,
     val selectedDate: LocalDate? = null,
     val comment: String = "",
+    val showCancelledBookings: Boolean = false,
     val userBookings: List<Booking> = emptyList(),
+    val approverName: String? = null,
 )
 
 @HiltViewModel
@@ -36,7 +42,10 @@ class BookingViewModel
         private val userRepository: UserRepository,
         private val auth: FirebaseAuth,
     ) : ViewModel() {
-        private val _uiState = MutableStateFlow(BookingUiState())
+        private val _uiState =
+            MutableStateFlow(
+                BookingUiState(),
+            )
         val uiState: StateFlow<BookingUiState> = _uiState
 
         init {
@@ -117,14 +126,14 @@ class BookingViewModel
                         return@launch
                     }
 
-                    // Prüfe, ob bereits eine Buchung für dieses Datum existiert
+                    // Prüfe, ob bereits eine aktive Buchung für dieses Datum existiert
                     val existingBooking =
                         currentState.userBookings.find {
-                            it.date == currentState.selectedDate
+                            it.date == currentState.selectedDate && it.status != BookingStatus.CANCELLED
                         }
 
                     if (existingBooking != null) {
-                        _uiState.update { it.copy(error = "Sie haben bereits eine Buchung für diesen Tag erstellt") }
+                        _uiState.update { it.copy(error = "Sie haben bereits eine aktive Buchung für diesen Tag") }
                         return@launch
                     }
 
@@ -138,7 +147,7 @@ class BookingViewModel
                         return@launch
                     }
 
-                    android.util.Log.d("BookingViewModel", "Erstelle Buchung für User: ${user.name}, Team: ${team.id}")
+                    Log.d("BookingViewModel", "Erstelle Buchung für User: ${user.name}, Team: ${team.id}")
 
                     val booking =
                         Booking(
@@ -154,17 +163,92 @@ class BookingViewModel
                             reviewerId = team.managerId,
                         )
 
-                    android.util.Log.d("BookingViewModel", "Speichere Buchung in Firestore...")
+                    Log.d("BookingViewModel", "Speichere Buchung in Firestore...")
                     bookingRepository.createBooking(booking)
-                    android.util.Log.d("BookingViewModel", "Buchung erfolgreich gespeichert")
+                    Log.d("BookingViewModel", "Buchung erfolgreich gespeichert")
                     hideBookingDialog()
                     loadUserBookings() // Aktualisiere die Liste der Buchungen
                 } catch (e: Exception) {
-                    android.util.Log.e("BookingViewModel", "Fehler beim Erstellen der Buchung", e)
+                    Log.e("BookingViewModel", "Fehler beim Erstellen der Buchung", e)
                     _uiState.update { it.copy(error = "Fehler beim Erstellen der Buchung: ${e.message}") }
                 } finally {
                     _uiState.update { it.copy(isLoading = false) }
                 }
             }
+        }
+
+        private suspend fun loadApproverName(userId: String?): String {
+            return try {
+                if (userId == null) return "Nicht zugewiesen"
+                val user = userRepository.getUserById(userId).getOrNull()
+                user?.name ?: "Unbekannt"
+            } catch (e: Exception) {
+                Log.e("BookingViewModel", "Error loading approver name for userId: $userId", e)
+                "Fehler beim Laden"
+            }
+        }
+
+        fun showDetailsSheet(booking: Booking) {
+            viewModelScope.launch {
+                val approverName = loadApproverName(booking.reviewerId)
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        showDetailsSheet = true,
+                        selectedBooking = booking,
+                        approverName = approverName,
+                    )
+                }
+            }
+        }
+
+        fun hideDetailsSheet() {
+            viewModelScope.launch {
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        showDetailsSheet = false,
+                        selectedBooking = null,
+                        approverName = null,
+                    )
+                }
+            }
+        }
+
+        fun showCancelDialog(booking: Booking) {
+            _uiState.update {
+                it.copy(
+                    showCancelDialog = true,
+                    selectedBooking = booking,
+                )
+            }
+        }
+
+        fun hideCancelDialog() {
+            _uiState.update {
+                it.copy(
+                    showCancelDialog = false,
+                    selectedBooking = null,
+                )
+            }
+        }
+
+        fun cancelBooking() {
+            val booking = _uiState.value.selectedBooking ?: return
+
+            viewModelScope.launch {
+                try {
+                    _uiState.update { it.copy(isLoading = true) }
+                    bookingRepository.updateBookingStatus(booking.id, BookingStatus.CANCELLED)
+                    loadUserBookings() // Aktualisiere die Liste der Buchungen
+                    hideCancelDialog()
+                } catch (e: Exception) {
+                    _uiState.update { it.copy(error = e.message) }
+                } finally {
+                    _uiState.update { it.copy(isLoading = false) }
+                }
+            }
+        }
+
+        fun toggleCancelledBookings() {
+            _uiState.update { it.copy(showCancelledBookings = !it.showCancelledBookings) }
         }
     }

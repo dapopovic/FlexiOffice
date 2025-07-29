@@ -24,7 +24,7 @@ class TeamRepository
             val uid = auth.currentUser?.uid ?: return null
             val userDoc =
                 firestore
-                    .collection("users")
+                    .collection(User.COLLECTION_NAME)
                     .document(uid)
                     .get()
                     .await()
@@ -32,16 +32,12 @@ class TeamRepository
             return getTeam(teamId).getOrNull()
         }
 
-        companion object {
-            const val TEAMS_COLLECTION = "teams"
-        }
-
         /** Lädt ein Team anhand seiner ID */
         suspend fun getTeam(teamId: String): Result<Team?> =
             try {
                 val team =
                     firestore
-                        .collection(TEAMS_COLLECTION)
+                        .collection(Team.COLLECTION_NAME)
                         .document(teamId)
                         .get()
                         .await()
@@ -55,7 +51,7 @@ class TeamRepository
         suspend fun updateTeam(team: Team): Result<Unit> =
             try {
                 firestore
-                    .collection(TEAMS_COLLECTION)
+                    .collection(Team.COLLECTION_NAME)
                     .document(team.id)
                     .set(team)
                     .await()
@@ -68,7 +64,7 @@ class TeamRepository
             callbackFlow {
                 val listenerRegistration =
                     firestore
-                        .collection(TEAMS_COLLECTION)
+                        .collection(Team.COLLECTION_NAME)
                         .document(teamId)
                         .addSnapshotListener { snapshot, error ->
                             if (error != null) {
@@ -91,8 +87,8 @@ class TeamRepository
 
         suspend fun createTeamAtomically(team: Team): Result<String> =
             try {
-                val teamDocRef = firestore.collection(TEAMS_COLLECTION).document()
-                val userDocRef = firestore.collection("users").document(team.managerId)
+                val teamDocRef = firestore.collection(Team.COLLECTION_NAME).document()
+                val userDocRef = firestore.collection(User.COLLECTION_NAME).document(team.managerId)
 
                 // The team needs its own ID before being written
                 val finalTeam = team.copy(id = teamDocRef.id)
@@ -102,7 +98,7 @@ class TeamRepository
                         // 1. Create the new team document
                         batch.set(teamDocRef, finalTeam)
                         // 2. Update the manager's user document with the new teamId
-                        batch.update(userDocRef, "teamId", teamDocRef.id)
+                        batch.update(userDocRef, User.TEAM_ID_FIELD, teamDocRef.id)
                     }.await()
 
                 Result.success(teamDocRef.id)
@@ -126,7 +122,7 @@ class TeamRepository
                 val invitedUserRef = invitedUserDoc.reference
                 firestore
                     .runTransaction { transaction ->
-                        val teamDocRef = firestore.collection(TEAMS_COLLECTION).document(teamId)
+                        val teamDocRef = firestore.collection(Team.COLLECTION_NAME).document(teamId)
                         val teamSnapshot = transaction.get(teamDocRef)
                         val team =
                             teamSnapshot.toObject(Team::class.java)
@@ -147,8 +143,8 @@ class TeamRepository
                         }
 
                         // All checks passed, perform the atomic updates
-                        transaction.update(invitedUserRef, "teamId", teamId, "role", User.ROLE_USER)
-                        transaction.update(teamDocRef, "members", FieldValue.arrayUnion(invitedUserId))
+                        transaction.update(invitedUserRef, User.TEAM_ID_FIELD, teamId, User.ROLE_FIELD, User.ROLE_USER)
+                        transaction.update(teamDocRef, Team.MEMBERS_FIELD, FieldValue.arrayUnion(invitedUserId))
 
                         // The transaction will automatically commit. A return value is not needed.
                     }.await()
@@ -164,9 +160,9 @@ class TeamRepository
         ): Result<Unit> =
             try {
                 firestore
-                    .collection(TEAMS_COLLECTION)
+                    .collection(Team.COLLECTION_NAME)
                     .document(teamId)
-                    .update("members", members)
+                    .update(Team.MEMBERS_FIELD, members)
                     .await()
                 Result.success(Unit)
             } catch (e: Exception) {
@@ -187,8 +183,8 @@ class TeamRepository
 
         suspend fun findUserByEmail(email: String): QuerySnapshot =
             firestore
-                .collection("users")
-                .whereEqualTo("email", email)
+                .collection(User.COLLECTION_NAME)
+                .whereEqualTo(User.EMAIL_FIELD, email)
                 .limit(1)
                 .get()
                 .await()
