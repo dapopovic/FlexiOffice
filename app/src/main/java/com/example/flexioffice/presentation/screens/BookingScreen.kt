@@ -917,13 +917,7 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
                         datePickerState.selectedDateMillis?.let { millis ->
                             val selectedDate =
                                 LocalDate.ofEpochDay(
-                                    millis /
-                                        (
-                                            24 *
-                                                60 *
-                                                60 *
-                                                1000
-                                        ),
+                                    millis / MILLIS_PER_DAY,
                                 )
                             viewModel.updateSelectedDate(selectedDate)
                         }

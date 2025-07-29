@@ -107,7 +107,7 @@ class BookingViewModel
                     }.catch { e ->
                         _uiState.value =
                             _uiState.value.copy(error = e.message, isLoading = false)
-                    }.collect { state -> _uiState.value = state }
+                    }.collect { state -> _uiState.update { state } }
             }
         }
 
