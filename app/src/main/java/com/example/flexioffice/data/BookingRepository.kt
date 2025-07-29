@@ -20,14 +20,10 @@ class BookingRepository
 constructor(
         private val firestore: FirebaseFirestore,
 ) {
-    companion object {
-        private const val BOOKINGS_COLLECTION = "bookings"
-    }
-
     /** Erstellt eine neue Buchung */
     suspend fun createBooking(booking: Booking): Result<String> =
             try {
-                val docRef = firestore.collection(BOOKINGS_COLLECTION).document()
+                val docRef = firestore.collection(Booking.COLLECTION_NAME).document()
                 val bookingWithId = booking.copy(id = docRef.id)
                 docRef.set(bookingWithId).await()
                 Result.success(docRef.id)
@@ -47,7 +43,7 @@ constructor(
 
                 val querySnapshot =
                         firestore
-                                .collection(BOOKINGS_COLLECTION)
+                                .collection(Booking.COLLECTION_NAME)
                                 .whereEqualTo("teamId", teamId)
                                 .whereGreaterThanOrEqualTo("date", startDateStr)
                                 .whereLessThanOrEqualTo("date", endDateStr)
@@ -73,7 +69,7 @@ constructor(
 
         val listenerRegistration =
                 firestore
-                        .collection(BOOKINGS_COLLECTION)
+                        .collection(Booking.COLLECTION_NAME)
                         .whereEqualTo("teamId", teamId)
                         .whereGreaterThanOrEqualTo("date", startDateStr)
                         .whereLessThanOrEqualTo("date", endDateStr)
@@ -95,7 +91,7 @@ constructor(
             try {
                 val querySnapshot =
                         firestore
-                                .collection(BOOKINGS_COLLECTION)
+                                .collection(Booking.COLLECTION_NAME)
                                 .whereEqualTo("userId", userId)
                                 .orderBy("date")
                                 .get()
@@ -115,7 +111,7 @@ constructor(
     ): Result<Unit> =
             try {
                 firestore
-                        .collection(BOOKINGS_COLLECTION)
+                        .collection(Booking.COLLECTION_NAME)
                         .document(bookingId)
                         .update(
                                 mapOf(

@@ -10,4 +10,15 @@ data class Team(
 ) {
     // Leerer Konstruktor für Firestore
     constructor() : this("", "", "", emptyList(), "")
+
+    companion object {
+        const val ID_FIELD = "id"
+        const val NAME_FIELD = "name"
+        const val DESCRIPTION_FIELD = "description"
+        const val MEMBERS_FIELD = "members"
+        const val MANAGER_ID_FIELD = "managerId"
+
+        // collection name in Firestore
+        const val COLLECTION_NAME = "teams"
+    }
 }
