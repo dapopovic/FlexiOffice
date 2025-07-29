@@ -44,9 +44,9 @@ class BookingRepository
                 val querySnapshot =
                     firestore
                         .collection(Booking.COLLECTION_NAME)
-                        .whereEqualTo("teamId", teamId)
-                        .whereGreaterThanOrEqualTo("date", startDateStr)
-                        .whereLessThanOrEqualTo("date", endDateStr)
+                        .whereEqualTo(Booking.TEAM_ID_FIELD, teamId)
+                        .whereGreaterThanOrEqualTo(Booking.DATE_FIELD, startDateStr)
+                        .whereLessThanOrEqualTo(Booking.DATE_FIELD, endDateStr)
                         .get()
                         .await()
 
@@ -71,9 +71,9 @@ class BookingRepository
                 val listenerRegistration =
                     firestore
                         .collection(Booking.COLLECTION_NAME)
-                        .whereEqualTo("teamId", teamId)
-                        .whereGreaterThanOrEqualTo("date", startDateStr)
-                        .whereLessThanOrEqualTo("date", endDateStr)
+                        .whereEqualTo(Booking.TEAM_ID_FIELD, teamId)
+                        .whereGreaterThanOrEqualTo(Booking.DATE_FIELD, startDateStr)
+                        .whereLessThanOrEqualTo(Booking.DATE_FIELD, endDateStr)
                         .addSnapshotListener { snapshot, error ->
                             if (error != null) {
                                 trySend(Result.failure(error))

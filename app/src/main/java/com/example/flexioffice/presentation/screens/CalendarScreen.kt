@@ -81,7 +81,7 @@ private fun CalendarViewWithLoading(
             Box(
                 modifier =
                     Modifier
-                        .fillMaxWidth()
+                        .fillMaxSize()
                         .height(300.dp),
                 // Approximate calendar height
                 contentAlignment = Alignment.Center,
@@ -150,7 +150,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel()) {
                 CalendarHeader(
                     isWeekView = uiState.isWeekView,
                     onToggleView = viewModel::toggleViewMode,
-                    onRefresh = viewModel::loadDemoData,
+                    onRefresh = { viewModel.loadBookingsForMonth(uiState.currentMonth) },
                     isLoadingDemoData = uiState.isLoadingDemoData,
                 )
 

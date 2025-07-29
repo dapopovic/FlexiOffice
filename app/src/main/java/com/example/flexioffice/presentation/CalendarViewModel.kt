@@ -1,11 +1,13 @@
 package com.example.flexioffice.presentation
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.BookingRepository
 import com.example.flexioffice.data.UserRepository
 import com.example.flexioffice.data.model.Booking
+import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.data.model.CalendarEvent
 import com.example.flexioffice.data.model.EventType
 import com.example.flexioffice.data.model.User
@@ -80,7 +82,10 @@ class CalendarViewModel
                                             currentMonth.monthValue,
                                         ).map { bookingsResult ->
                                             val bookings =
-                                                bookingsResult.getOrNull() ?: emptyList()
+                                                (bookingsResult.getOrNull() ?: emptyList()).filter {
+                                                    it.status != BookingStatus.CANCELLED
+                                                }
+                                            Log.d("CalendarViewModel", "Loaded bookings: $bookings")
                                             CalendarUiState(
                                                 isLoading = false,
                                                 currentUser = user,
@@ -130,7 +135,7 @@ class CalendarViewModel
         }
 
         /** Lädt Buchungen für einen bestimmten Monat */
-        private fun loadBookingsForMonth(month: YearMonth) {
+        fun loadBookingsForMonth(month: YearMonth) {
             val teamId = _uiState.value.currentUser?.teamId
             if (teamId.isNullOrEmpty() || teamId == User.NO_TEAM) return
 
@@ -138,7 +143,10 @@ class CalendarViewModel
                 _uiState.value = _uiState.value.copy(isLoadingMonthData = true)
 
                 bookingRepository.getTeamBookingsStream(teamId, month.year, month.monthValue).collect { result ->
-                    val bookings = result.getOrNull() ?: emptyList()
+                    val bookings =
+                        (result.getOrNull() ?: emptyList()).filter {
+                            it.status != BookingStatus.CANCELLED
+                        }
                     _uiState.value =
                         _uiState.value.copy(
                             isLoadingMonthData = false,
