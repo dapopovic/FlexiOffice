@@ -59,7 +59,7 @@ class MainViewModel
                                 userResult
                                     .map { user ->
                                         // Success: We got the user data.
-                                        val navItems = BottomNavigationItems.getItemsForRole(user.role)
+                                        val navItems = BottomNavigationItems.getItemsForUser(user)
                                         MainUiState(
                                             isLoading = false,
                                             currentUser = user,
@@ -67,8 +67,8 @@ class MainViewModel
                                         )
                                     }.getOrElse {
                                         // Failure: Could not get user profile from Firestore.
-                                        // Still logged in, but fall back to a default role.
-                                        val navItems = BottomNavigationItems.getItemsForRole(User.ROLE_USER)
+                                        // Still logged in, but fall back to a default role without team.
+                                        val navItems = BottomNavigationItems.getItemsForUser(null)
                                         MainUiState(
                                             isLoading = false,
                                             currentUser = null, // Or a default User object
@@ -88,6 +88,12 @@ class MainViewModel
         fun hasAccessToRoute(route: String): Boolean {
             val currentState = _uiState.value
             return currentState.availableNavItems.any { it.route == route }
+        }
+
+        /** Prüft ob der aktuelle Benutzer Teil eines Teams ist */
+        fun hasTeamMembership(): Boolean {
+            val currentUser = _uiState.value.currentUser
+            return currentUser?.teamId?.isNotEmpty() == true && currentUser.teamId != User.NO_TEAM
         }
 
         /** Gibt die Standard-Route für den aktuellen Benutzer zurück */

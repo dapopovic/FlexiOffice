@@ -114,6 +114,7 @@ fun MainAppScreen(
             FlexiOfficeNavigation(
                 navController = navController,
                 startDestination = mainViewModel.getDefaultRoute(),
+                mainViewModel = mainViewModel,
             )
         }
     }

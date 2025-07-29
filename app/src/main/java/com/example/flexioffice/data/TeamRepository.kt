@@ -28,7 +28,7 @@ class TeamRepository
                     .document(uid)
                     .get()
                     .await()
-            val teamId = userDoc.getString("teamId") ?: return null
+            val teamId = userDoc.getString(User.TEAM_ID_FIELD) ?: return null
             return getTeam(teamId).getOrNull()
         }
 

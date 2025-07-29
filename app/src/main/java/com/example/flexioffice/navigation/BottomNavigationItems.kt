@@ -12,6 +12,7 @@ data class BottomNavigationItem(
     val hasNews: Boolean = false,
     val badgeCount: Int? = null,
     val requiredRole: String? = null, // null = für alle Rollen verfügbar
+    val requiresTeamMembership: Boolean = false, // true = erfordert Team-Mitgliedschaft
 )
 
 /** Factory für BottomNavigation Items */
@@ -30,6 +31,7 @@ object BottomNavigationItems {
             title = "Buchen",
             selectedIconId = R.drawable.book_24px_filled,
             unselectedIconId = R.drawable.book_24px,
+            requiresTeamMembership = true, // Erfordert Team-Mitgliedschaft
         )
 
     val requests =
@@ -57,14 +59,23 @@ object BottomNavigationItems {
             unselectedIconId = R.drawable.person_24px,
         )
 
-    /** Gibt die für eine Rolle verfügbaren Navigation-Items zurück */
-    fun getItemsForRole(userRole: String): List<BottomNavigationItem> {
+    /** Gibt die für eine Rolle und Team-Status verfügbaren Navigation-Items zurück */
+    fun getItemsForUser(user: User?): List<BottomNavigationItem> {
         val allItems = listOf(calendar, booking, requests, teams, profile)
+        val userRole = user?.role ?: User.ROLE_USER
+        val hasTeam = user?.teamId?.isNotEmpty() == true && user.teamId != User.NO_TEAM
 
         return allItems.filter { item ->
-            item.requiredRole == null ||
-                item.requiredRole == userRole ||
-                (item.requiredRole == User.ROLE_MANAGER && userRole == User.ROLE_ADMIN)
+            // Prüfe Rollen-Berechtigung
+            val hasRoleAccess =
+                item.requiredRole == null ||
+                    item.requiredRole == userRole ||
+                    (item.requiredRole == User.ROLE_MANAGER && userRole == User.ROLE_ADMIN)
+
+            // Prüfe Team-Mitgliedschaft falls erforderlich
+            val hasTeamAccess = !item.requiresTeamMembership || hasTeam
+
+            hasRoleAccess && hasTeamAccess
         }
     }
 }

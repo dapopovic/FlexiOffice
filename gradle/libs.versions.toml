@@ -47,6 +47,9 @@ hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-com
 # Navigation
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 
+# Calendar
+kizitonwose-calendar-compose = { group = "com.kizitonwose.calendar", name = "compose", version = "2.8.0" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
