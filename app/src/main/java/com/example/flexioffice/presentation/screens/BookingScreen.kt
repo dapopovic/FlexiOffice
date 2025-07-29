@@ -409,6 +409,8 @@ private fun BookingItem(
     onCancelClick: (Booking) -> Unit = {},
 ) {
     val isStorniert = booking.status == BookingStatus.CANCELLED
+    val dateTimeFormatter =
+        DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(java.util.Locale.GERMAN)
     Card(
         modifier = Modifier.fillMaxWidth(),
         onClick = { onClick(booking) },
@@ -436,7 +438,7 @@ private fun BookingItem(
                 Text(
                     text =
                         booking.date.format(
-                            DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(java.util.Locale.GERMAN),
+                            dateTimeFormatter,
                         ),
                     style = MaterialTheme.typography.titleMedium,
                     color =

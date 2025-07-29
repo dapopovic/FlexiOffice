@@ -1,5 +1,6 @@
 package com.example.flexioffice.presentation
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.data.BookingRepository
@@ -43,17 +44,7 @@ class BookingViewModel
     ) : ViewModel() {
         private val _uiState =
             MutableStateFlow(
-                BookingUiState(
-                    isLoading = false,
-                    error = null,
-                    showBookingDialog = false,
-                    showDatePicker = false,
-                    showDetailsSheet = false,
-                    selectedDate = null,
-                    comment = "",
-                    userBookings = emptyList(),
-                    selectedBooking = null,
-                ),
+                BookingUiState(),
             )
         val uiState: StateFlow<BookingUiState> = _uiState
 
@@ -156,7 +147,7 @@ class BookingViewModel
                         return@launch
                     }
 
-                    android.util.Log.d("BookingViewModel", "Erstelle Buchung für User: ${user.name}, Team: ${team.id}")
+                    Log.d("BookingViewModel", "Erstelle Buchung für User: ${user.name}, Team: ${team.id}")
 
                     val booking =
                         Booking(
@@ -172,13 +163,13 @@ class BookingViewModel
                             reviewerId = team.managerId,
                         )
 
-                    android.util.Log.d("BookingViewModel", "Speichere Buchung in Firestore...")
+                    Log.d("BookingViewModel", "Speichere Buchung in Firestore...")
                     bookingRepository.createBooking(booking)
-                    android.util.Log.d("BookingViewModel", "Buchung erfolgreich gespeichert")
+                    Log.d("BookingViewModel", "Buchung erfolgreich gespeichert")
                     hideBookingDialog()
                     loadUserBookings() // Aktualisiere die Liste der Buchungen
                 } catch (e: Exception) {
-                    android.util.Log.e("BookingViewModel", "Fehler beim Erstellen der Buchung", e)
+                    Log.e("BookingViewModel", "Fehler beim Erstellen der Buchung", e)
                     _uiState.update { it.copy(error = "Fehler beim Erstellen der Buchung: ${e.message}") }
                 } finally {
                     _uiState.update { it.copy(isLoading = false) }
@@ -189,7 +180,7 @@ class BookingViewModel
         private suspend fun loadApproverName(userId: String?): String {
             return try {
                 if (userId == null) return "Nicht zugewiesen"
-                val user = userRepository.getUserById(userId)
+                val user = userRepository.getUserById(userId).getOrNull()
                 user?.name ?: "Unbekannt"
             } catch (e: Exception) {
                 "Fehler beim Laden"

@@ -27,6 +27,22 @@ data class Booking(
         set(value) {
             this.dateString = value.toString()
         }
+
+    companion object {
+        const val ID_FIELD = "id"
+        const val USER_ID_FIELD = "userId"
+        const val TEAM_ID_FIELD = "teamId"
+        const val DATE_FIELD = "date"
+        const val TYPE_FIELD = "type"
+        const val STATUS_FIELD = "status"
+        const val COMMENT_FIELD = "comment"
+        const val CREATED_AT_FIELD = "createdAt"
+        const val REVIEWER_ID_FIELD = "reviewerId"
+        const val USER_NAME_FIELD = "userName"
+
+        // collection name in Firestore
+        const val COLLECTION_NAME = "bookings"
+    }
 }
 
 enum class BookingType {
