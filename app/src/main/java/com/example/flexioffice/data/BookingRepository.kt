@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,13 +21,54 @@ class BookingRepository
     constructor(
         private val firestore: FirebaseFirestore,
     ) {
-        /** Erstellt eine neue Buchung */
+        /** Lädt alle Buchungen für einen bestimmten Monat */
+        suspend fun getBookingsForMonth(month: YearMonth): List<Booking> {
+            val startDate = month.atDay(1)
+            val endDate = month.atEndOfMonth()
+            val startDateStr = startDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
+            val endDateStr = endDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
+
+            return firestore
+                .collection(Booking.COLLECTION_NAME)
+                .whereGreaterThanOrEqualTo(Booking.DATE_FIELD, startDateStr)
+                .whereLessThanOrEqualTo(Booking.DATE_FIELD, endDateStr)
+                .get()
+                .await()
+                .toObjects(Booking::class.java)
+        }
+
+        /** Erstellt eine neue Buchung aus einem existierenden Booking-Objekt */
         suspend fun createBooking(booking: Booking): Result<String> =
             try {
                 val docRef = firestore.collection(Booking.COLLECTION_NAME).document()
                 val bookingWithId = booking.copy(id = docRef.id)
                 docRef.set(bookingWithId).await()
                 Result.success(docRef.id)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+
+        /** Erstellt eine neue Buchung aus Datum und Kommentar */
+        suspend fun createBooking(
+            date: LocalDate,
+            comment: String,
+            userId: String,
+            userName: String,
+            teamId: String,
+            type: BookingType = BookingType.HOME_OFFICE,
+        ): Result<String> =
+            try {
+                val booking =
+                    Booking(
+                        dateString = date.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                        userId = userId,
+                        userName = userName,
+                        teamId = teamId,
+                        type = type,
+                        comment = comment,
+                        status = BookingStatus.PENDING,
+                    )
+                createBooking(booking)
             } catch (e: Exception) {
                 Result.failure(e)
             }

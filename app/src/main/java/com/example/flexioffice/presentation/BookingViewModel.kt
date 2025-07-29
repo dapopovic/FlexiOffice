@@ -41,6 +41,7 @@ data class BookingUiState(
     val showCancelledBookings: Boolean = false,
     val userBookings: List<Booking> = emptyList(),
     val approverName: String? = null,
+    val isWeekView: Boolean = false, // Neue Property für Kalenderansicht
 )
 
 @HiltViewModel
@@ -61,6 +62,14 @@ class BookingViewModel
 
         init {
             observeUserBookings()
+        }
+
+        fun toggleCalendarView() {
+            _uiState.update { it.copy(isWeekView = !it.isWeekView) }
+        }
+
+        fun onDateLongPressed(date: LocalDate) {
+            showBookingDialogForDate(date)
         }
 
         @OptIn(ExperimentalCoroutinesApi::class)
@@ -111,11 +120,29 @@ class BookingViewModel
             }
         }
 
-        fun showBookingDialog() {
-            _uiState.update { it.copy(showBookingDialog = true) }
+    fun showBookingDialogForDate(date: LocalDate) {
+        viewModelScope.launch {
+            _uiState.update { currentState ->
+                currentState.copy(
+                    showBookingDialog = true,
+                    selectedDate = date,
+                    comment = ""
+                )
+            }
         }
+    }
 
-        fun hideBookingDialog() {
+    fun showBookingDialog(preselectedDate: LocalDate? = null) {
+        viewModelScope.launch {
+            _uiState.update { currentState ->
+                currentState.copy(
+                    showBookingDialog = true,
+                    selectedDate = preselectedDate,
+                    comment = ""
+                )
+            }
+        }
+    }        fun hideBookingDialog() {
             _uiState.update {
                 it.copy(
                     showBookingDialog = false,

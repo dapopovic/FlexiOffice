@@ -1,7 +1,9 @@
 package com.example.flexioffice.presentation.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -57,6 +59,7 @@ fun MonthCalendar(
     selectedDate: LocalDate?,
     events: List<CalendarEvent>,
     onDateSelected: (LocalDate) -> Unit,
+    onDateLongPress: (LocalDate) -> Unit,
     onMonthChanged: (YearMonth) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -93,6 +96,7 @@ fun MonthCalendar(
                         isSelected = selectedDate == day.date,
                         events = dayEvents,
                         onClick = { onDateSelected(day.date) },
+                        onLongClick = { onDateLongPress(day.date) },
                     )
                 },
                 monthHeader = { /* Empty, we use custom header */ },
@@ -158,6 +162,7 @@ private fun CalendarDay(
     isSelected: Boolean,
     events: List<CalendarEvent>,
     onClick: () -> Unit,
+    onLongClick: () -> Unit = {},
 ) {
     val isToday = day.date == LocalDate.now()
     val isCurrentMonth = day.position == DayPosition.MonthDate
@@ -175,7 +180,11 @@ private fun CalendarDay(
                             MaterialTheme.colorScheme.primaryContainer
                         else -> Color.Transparent
                     },
-                ).clickable(enabled = isCurrentMonth) { onClick() },
+                ).combinedClickable(
+                    enabled = isCurrentMonth,
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                ),
         contentAlignment = Alignment.TopCenter,
     ) {
         Column(

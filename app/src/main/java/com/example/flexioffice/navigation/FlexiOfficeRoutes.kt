@@ -12,7 +12,9 @@ sealed class FlexiOfficeRoutes(
     // Main App Routes
     object Calendar : FlexiOfficeRoutes("calendar")
 
-    object Booking : FlexiOfficeRoutes("booking")
+    object Booking : FlexiOfficeRoutes("booking") {
+        const val fullRoute = "booking?date={date}"
+    }
 
     object Requests : FlexiOfficeRoutes("requests") // Nur für Leads
 
