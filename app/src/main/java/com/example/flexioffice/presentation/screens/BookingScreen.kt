@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -23,7 +24,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,9 +45,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.presentation.BookingViewModel
@@ -63,27 +66,27 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
     // Stornierungsdialog
     if (uiState.showCancelDialog && uiState.selectedBooking != null) {
         AlertDialog(
-                onDismissRequest = { viewModel.hideCancelDialog() },
-                title = { Text("Buchung stornieren") },
-                text = { Text("Möchten Sie diese Buchung wirklich stornieren?") },
-                confirmButton = {
-                    Button(
-                            onClick = { viewModel.cancelBooking() },
-                            enabled = !uiState.isLoading,
-                    ) {
-                        if (uiState.isLoading) {
-                            CircularProgressIndicator(
-                                    modifier = Modifier.size(16.dp),
-                                    strokeWidth = 2.dp,
-                            )
-                        } else {
-                            Text("Stornieren")
-                        }
+            onDismissRequest = { viewModel.hideCancelDialog() },
+            title = { Text("Buchung stornieren") },
+            text = { Text("Möchten Sie diese Buchung wirklich stornieren?") },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.cancelBooking() },
+                    enabled = !uiState.isLoading,
+                ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    } else {
+                        Text("Stornieren")
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { viewModel.hideCancelDialog() }) { Text("Abbrechen") }
-                },
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.hideCancelDialog() }) { Text("Abbrechen") }
+            },
         )
     }
 
@@ -99,47 +102,69 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
     }
 
     Scaffold(
-            floatingActionButton = {
-                FloatingActionButton(
-                        onClick = { viewModel.showBookingDialog() },
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                ) {
-                    Icon(
-                            Icons.Default.Add,
-                            contentDescription = "Neuer Home Office Antrag",
-                            modifier = Modifier.padding(12.dp),
-                    )
-                }
-            },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = { viewModel.showBookingDialog() },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Neuer Home Office Antrag",
+                    modifier = Modifier.padding(12.dp),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Antrag erstellen",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
+            }
+        },
     ) { paddingValues ->
         LazyColumn(
-                modifier =
-                        Modifier.fillMaxSize()
-                                .padding(paddingValues)
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.schedule_24px),
+                            contentDescription = "Anträge Icon",
+                            modifier = Modifier.padding(end = 8.dp),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                        Text(
                             text = "Home Office Anträge",
                             style = MaterialTheme.typography.headlineMedium,
+                        )
+                    }
+                    Text(
+                        text = "Hier können Sie Ihre Home Office Anträge verwalten.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp),
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
                     Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(
-                                text = "Stornierte Anträge anzeigen",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            text = "Stornierte Anträge anzeigen",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Switch(
-                                checked = uiState.showCancelledBookings,
-                                onCheckedChange = { viewModel.toggleCancelledBookings() },
+                            checked = uiState.showCancelledBookings,
+                            onCheckedChange = { viewModel.toggleCancelledBookings() },
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
@@ -149,41 +174,40 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
             if (uiState.userBookings.isEmpty()) {
                 item {
                     Card(
-                            modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Column(
-                                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Text(
-                                    text = "Keine Anträge vorhanden",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                text = "Keine Anträge vorhanden",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                    text =
-                                            "Erstellen Sie einen neuen Home Office Antrag mit dem + Button",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center,
+                                text =
+                                    "Erstellen Sie einen neuen Home Office Antrag mit dem + Button",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
                             )
                         }
                     }
                 }
             } else {
                 items(
-                        uiState.userBookings
-                                .filter { booking ->
-                                    uiState.showCancelledBookings ||
-                                            booking.status != BookingStatus.CANCELLED
-                                }
-                                .sortedByDescending { it.date },
+                    uiState.userBookings
+                        .filter { booking ->
+                            uiState.showCancelledBookings ||
+                                booking.status != BookingStatus.CANCELLED
+                        }.sortedByDescending { it.date },
                 ) { booking ->
                     BookingItem(
-                            booking = booking,
-                            onClick = { viewModel.showDetailsSheet(it) },
-                            onCancelClick = { viewModel.showCancelDialog(it) },
+                        booking = booking,
+                        onClick = { viewModel.showDetailsSheet(it) },
+                        onCancelClick = { viewModel.showCancelDialog(it) },
                     )
                 }
             }
@@ -192,69 +216,69 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
 
     if (uiState.showBookingDialog) {
         AlertDialog(
-                onDismissRequest = { viewModel.hideBookingDialog() },
-                title = {
-                    Text(
-                            "Neue Home Office Buchung",
-                            style = MaterialTheme.typography.headlineSmall,
-                    )
-                },
-                text = {
-                    Column(
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            modifier = Modifier.padding(top = 8.dp),
-                    ) {
-                        Button(
-                                onClick = { viewModel.showDatePicker() },
-                                modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(
-                                    uiState.selectedDate?.format(
-                                            DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-                                    )
-                                            ?: "Datum auswählen",
-                            )
-                        }
-
-                        OutlinedTextField(
-                                value = uiState.comment,
-                                onValueChange = { viewModel.updateComment(it) },
-                                label = { Text("Kommentar") },
-                                modifier = Modifier.fillMaxWidth(),
-                        )
-
-                        if (uiState.error != null) {
-                            Text(
-                                    text = uiState.error!!,
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.bodySmall,
-                            )
-                        }
-                    }
-                },
-                confirmButton = {
+            onDismissRequest = { viewModel.hideBookingDialog() },
+            title = {
+                Text(
+                    "Neue Home Office Buchung",
+                    style = MaterialTheme.typography.headlineSmall,
+                )
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.padding(top = 8.dp),
+                ) {
                     Button(
-                            onClick = { viewModel.createBooking() },
-                            enabled = !uiState.isLoading && uiState.selectedDate != null,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = MaterialTheme.shapes.small,
+                        onClick = { viewModel.showDatePicker() },
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
-                        if (uiState.isLoading) {
-                            CircularProgressIndicator(
-                                    modifier = Modifier.padding(end = 8.dp),
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    strokeWidth = 2.dp,
-                            )
-                        }
                         Text(
-                                "Home Office buchen",
-                                modifier = Modifier.padding(vertical = 4.dp),
+                            uiState.selectedDate?.format(
+                                DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM),
+                            )
+                                ?: "Datum auswählen",
                         )
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { viewModel.hideBookingDialog() }) { Text("Abbrechen") }
-                },
+
+                    OutlinedTextField(
+                        value = uiState.comment,
+                        onValueChange = { viewModel.updateComment(it) },
+                        label = { Text("Kommentar") },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    if (uiState.error != null) {
+                        Text(
+                            text = uiState.error!!,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.createBooking() },
+                    enabled = !uiState.isLoading && uiState.selectedDate != null,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.small,
+                ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.padding(end = 8.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp,
+                        )
+                    }
+                    Text(
+                        "Home Office buchen",
+                        modifier = Modifier.padding(vertical = 4.dp),
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.hideBookingDialog() }) { Text("Abbrechen") }
+            },
         )
     }
 
@@ -262,90 +286,91 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
         uiState.selectedBooking?.let { booking ->
             val bottomSheetState = rememberModalBottomSheetState()
             ModalBottomSheet(
-                    onDismissRequest = { viewModel.hideDetailsSheet() },
-                    sheetState = bottomSheetState,
+                onDismissRequest = { viewModel.hideDetailsSheet() },
+                sheetState = bottomSheetState,
             ) {
                 Column(
-                        modifier =
-                                Modifier.fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     Text(
-                            text = "Home Office Details",
-                            style = MaterialTheme.typography.headlineSmall,
-                            modifier = Modifier.padding(bottom = 8.dp),
+                        text = "Home Office Details",
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(bottom = 8.dp),
                     )
 
                     // Datum
                     Column {
                         Text(
-                                text = "Datum",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            text = "Datum",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
-                                text =
-                                        booking.date.format(
-                                                DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG),
-                                        ),
-                                style = MaterialTheme.typography.bodyLarge,
+                            text =
+                                booking.date.format(
+                                    DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG),
+                                ),
+                            style = MaterialTheme.typography.bodyLarge,
                         )
                     }
 
                     // Status
                     Column {
                         Text(
-                                text = "Status",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            text = "Status",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
-                                text =
-                                        when (booking.status) {
-                                            BookingStatus.APPROVED -> "✓ Genehmigt"
-                                            BookingStatus.PENDING -> "⏳ Ausstehend"
-                                            BookingStatus.DECLINED -> "✗ Abgelehnt"
-                                            BookingStatus.CANCELLED -> "⊘ Storniert"
-                                        },
-                                style = MaterialTheme.typography.bodyLarge,
-                                color =
-                                        when (booking.status) {
-                                            BookingStatus.APPROVED ->
-                                                    MaterialTheme.colorScheme.primary
-                                            BookingStatus.PENDING ->
-                                                    MaterialTheme.colorScheme.secondary
-                                            BookingStatus.DECLINED ->
-                                                    MaterialTheme.colorScheme.error
-                                            BookingStatus.CANCELLED ->
-                                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                        },
+                            text =
+                                when (booking.status) {
+                                    BookingStatus.APPROVED -> "✓ Genehmigt"
+                                    BookingStatus.PENDING -> "⏳ Ausstehend"
+                                    BookingStatus.DECLINED -> "✗ Abgelehnt"
+                                    BookingStatus.CANCELLED -> "⊘ Storniert"
+                                },
+                            style = MaterialTheme.typography.bodyLarge,
+                            color =
+                                when (booking.status) {
+                                    BookingStatus.APPROVED ->
+                                        MaterialTheme.colorScheme.primary
+                                    BookingStatus.PENDING ->
+                                        MaterialTheme.colorScheme.secondary
+                                    BookingStatus.DECLINED ->
+                                        MaterialTheme.colorScheme.error
+                                    BookingStatus.CANCELLED ->
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                },
                         )
                     }
 
                     // Antragsteller
                     Column {
                         Text(
-                                text = "Antragsteller",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            text = "Antragsteller",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
-                                text = booking.userName,
-                                style = MaterialTheme.typography.bodyLarge,
+                            text = booking.userName,
+                            style = MaterialTheme.typography.bodyLarge,
                         )
                     }
 
                     // Approver
                     Column {
                         Text(
-                                text = "Genehmigt durch",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            text = "Genehmigt durch",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
-                                text = uiState.approverName ?: "Wird geladen...",
-                                style = MaterialTheme.typography.bodyLarge,
+                            text = uiState.approverName ?: "Wird geladen...",
+                            style = MaterialTheme.typography.bodyLarge,
                         )
                     }
 
@@ -353,13 +378,13 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
                     if (booking.comment.isNotEmpty()) {
                         Column {
                             Text(
-                                    text = "Kommentar",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                text = "Kommentar",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             Text(
-                                    text = booking.comment,
-                                    style = MaterialTheme.typography.bodyLarge,
+                                text = booking.comment,
+                                style = MaterialTheme.typography.bodyLarge,
                             )
                         }
                     }
@@ -374,42 +399,42 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
     if (uiState.showDatePicker) {
         val today = LocalDate.now()
         val datePickerState =
-                rememberDatePickerState(
-                        initialSelectedDateMillis =
-                                uiState.selectedDate?.toEpochDay()?.let { it * 24 * 60 * 60 * 1000 }
-                                        ?: (today.toEpochDay() * 24 * 60 * 60 * 1000),
-                        yearRange = today.year..(today.year + 1),
-                        selectableDates =
-                                object : SelectableDates {
-                                    override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                                        val date =
-                                                LocalDate.ofEpochDay(
-                                                        utcTimeMillis / (24 * 60 * 60 * 1000)
-                                                )
-                                        return !date.isBefore(today)
-                                    }
-                                },
-                )
+            rememberDatePickerState(
+                initialSelectedDateMillis =
+                    uiState.selectedDate?.toEpochDay()?.let { it * 24 * 60 * 60 * 1000 }
+                        ?: (today.toEpochDay() * 24 * 60 * 60 * 1000),
+                yearRange = today.year..(today.year + 1),
+                selectableDates =
+                    object : SelectableDates {
+                        override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                            val date =
+                                LocalDate.ofEpochDay(
+                                    utcTimeMillis / (24 * 60 * 60 * 1000),
+                                )
+                            return !date.isBefore(today)
+                        }
+                    },
+            )
 
         DatePickerDialog(
-                onDismissRequest = { viewModel.hideDatePicker() },
-                confirmButton = {
-                    TextButton(
-                            onClick = {
-                                datePickerState.selectedDateMillis?.let { millis ->
-                                    val selectedDate =
-                                            LocalDate.ofEpochDay(millis / (24 * 60 * 60 * 1000))
-                                    viewModel.updateSelectedDate(selectedDate)
-                                }
-                            },
-                    ) { Text("OK") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { viewModel.hideDatePicker() }) { Text("Abbrechen") }
-                },
+            onDismissRequest = { viewModel.hideDatePicker() },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val selectedDate =
+                                LocalDate.ofEpochDay(millis / (24 * 60 * 60 * 1000))
+                            viewModel.updateSelectedDate(selectedDate)
+                        }
+                    },
+                ) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.hideDatePicker() }) { Text("Abbrechen") }
+            },
         ) {
             DatePicker(
-                    state = datePickerState,
+                state = datePickerState,
             )
         }
     }
@@ -418,93 +443,94 @@ fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BookingItem(
-        booking: Booking,
-        onClick: (Booking) -> Unit = {},
-        onCancelClick: (Booking) -> Unit = {},
+    booking: Booking,
+    onClick: (Booking) -> Unit = {},
+    onCancelClick: (Booking) -> Unit = {},
 ) {
     val isStorniert = booking.status == BookingStatus.CANCELLED
-    val dateTimeFormatter = remember {
-        DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(Locale.GERMAN)
-    }
+    val dateTimeFormatter =
+        remember {
+            DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(Locale.GERMAN)
+        }
     Card(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = { onClick(booking) },
-            colors =
-                    CardDefaults.cardColors(
-                            containerColor =
-                                    if (booking.status == BookingStatus.CANCELLED) {
-                                        MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.35f)
-                                    } else {
-                                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
-                                    },
-                    ),
+        modifier = Modifier.fillMaxWidth(),
+        onClick = { onClick(booking) },
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    if (booking.status == BookingStatus.CANCELLED) {
+                        MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.35f)
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                    },
+            ),
     ) {
         Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
-                    modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f),
             ) {
                 Text(
-                        text =
-                                booking.date.format(
-                                        dateTimeFormatter,
-                                ),
-                        style = MaterialTheme.typography.titleMedium,
-                        color =
-                                if (isStorniert) {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                } else {
-                                    MaterialTheme.colorScheme.onSurface
-                                },
+                    text =
+                        booking.date.format(
+                            dateTimeFormatter,
+                        ),
+                    style = MaterialTheme.typography.titleMedium,
+                    color =
+                        if (isStorniert) {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
                 )
                 if (booking.comment.isNotBlank()) {
                     Text(
-                            text = booking.comment,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color =
-                                    if (isStorniert) {
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                    } else {
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                    },
+                        text = booking.comment,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color =
+                            if (isStorniert) {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
                     )
                 }
             }
 
             Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                        text =
-                                when (booking.status) {
-                                    BookingStatus.APPROVED -> "✓ Genehmigt"
-                                    BookingStatus.PENDING -> "⏳ Ausstehend"
-                                    BookingStatus.DECLINED -> "✗ Abgelehnt"
-                                    BookingStatus.CANCELLED -> "⊘ Storniert"
-                                },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color =
-                                when (booking.status) {
-                                    BookingStatus.APPROVED -> MaterialTheme.colorScheme.primary
-                                    BookingStatus.PENDING -> MaterialTheme.colorScheme.secondary
-                                    BookingStatus.DECLINED -> MaterialTheme.colorScheme.error
-                                    BookingStatus.CANCELLED ->
-                                            MaterialTheme.colorScheme.onSurfaceVariant
-                                },
+                    text =
+                        when (booking.status) {
+                            BookingStatus.APPROVED -> "✓ Genehmigt"
+                            BookingStatus.PENDING -> "⏳ Ausstehend"
+                            BookingStatus.DECLINED -> "✗ Abgelehnt"
+                            BookingStatus.CANCELLED -> "⊘ Storniert"
+                        },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color =
+                        when (booking.status) {
+                            BookingStatus.APPROVED -> MaterialTheme.colorScheme.primary
+                            BookingStatus.PENDING -> MaterialTheme.colorScheme.secondary
+                            BookingStatus.DECLINED -> MaterialTheme.colorScheme.error
+                            BookingStatus.CANCELLED ->
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                        },
                 )
 
                 if (!isStorniert) {
                     IconButton(
-                            onClick = { onCancelClick(booking) },
+                        onClick = { onCancelClick(booking) },
                     ) {
                         Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Buchung stornieren",
-                                tint = MaterialTheme.colorScheme.error,
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Buchung stornieren",
+                            tint = MaterialTheme.colorScheme.error,
                         )
                     }
                 }
