@@ -183,6 +183,7 @@ class BookingViewModel
                 val user = userRepository.getUserById(userId).getOrNull()
                 user?.name ?: "Unbekannt"
             } catch (e: Exception) {
+                Log.e("BookingViewModel", "Error loading approver name for userId: $userId", e)
                 "Fehler beim Laden"
             }
         }

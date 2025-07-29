@@ -38,6 +38,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -49,6 +50,7 @@ import com.example.flexioffice.presentation.BookingViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -410,7 +412,9 @@ private fun BookingItem(
 ) {
     val isStorniert = booking.status == BookingStatus.CANCELLED
     val dateTimeFormatter =
-        DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(java.util.Locale.GERMAN)
+        remember {
+            DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(Locale.GERMAN)
+        }
     Card(
         modifier = Modifier.fillMaxWidth(),
         onClick = { onClick(booking) },

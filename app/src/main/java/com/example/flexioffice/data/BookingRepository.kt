@@ -81,10 +81,10 @@ class BookingRepository
                 firestore
                     .collection(Booking.COLLECTION_NAME)
                     .document(bookingId)
-                    .update("status", newStatus.name)
+                    .update(Booking.STATUS_FIELD, newStatus.name)
                     .await()
             } catch (e: Exception) {
-                android.util.Log.e(
+                Log.e(
                     "BookingRepository",
                     "Fehler beim Aktualisieren des Buchungsstatus",
                     e,
@@ -94,7 +94,7 @@ class BookingRepository
         }
 
         suspend fun createBooking(booking: Booking) {
-            android.util.Log.d("BookingRepository", "Erstelle neue Buchung für Datum: ${booking.date}")
+            Log.d("BookingRepository", "Erstelle neue Buchung für Datum: ${booking.date}")
             val bookingMap =
                 mapOf(
                     Booking.ID_FIELD to booking.id,
@@ -110,17 +110,17 @@ class BookingRepository
                 )
 
             try {
-                android.util.Log.d("BookingRepository", "Sende Daten an Firestore...")
-                val documentRef = firestore.collection("bookings").document()
-                val bookingWithId = bookingMap + ("id" to documentRef.id)
+                Log.d("BookingRepository", "Sende Daten an Firestore...")
+                val documentRef = firestore.collection(Booking.COLLECTION_NAME).document()
+                val bookingWithId = bookingMap + (Booking.ID_FIELD to documentRef.id)
 
                 documentRef.set(bookingWithId).await()
-                android.util.Log.d(
+                Log.d(
                     "BookingRepository",
                     "Buchung erfolgreich erstellt mit ID: ${documentRef.id}",
                 )
             } catch (e: Exception) {
-                android.util.Log.e("BookingRepository", "Fehler beim Erstellen der Buchung", e)
+                Log.e("BookingRepository", "Fehler beim Erstellen der Buchung", e)
                 throw e
             }
         }

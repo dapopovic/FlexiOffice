@@ -179,7 +179,7 @@ class UserRepository
                 firestore
                     .collection(User.COLLECTION_NAME)
                     .document(uid)
-                    .update("teamId", teamId)
+                    .update(User.TEAM_ID_FIELD, teamId)
                     .await()
                 Result.success(Unit)
             } catch (e: Exception) {
