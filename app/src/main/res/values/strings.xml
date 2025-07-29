@@ -13,4 +13,6 @@
     <string name="TeamAccessRequired_team_mitgliedschaft_erforderlich">Team-Mitgliedschaft erforderlich</string>
     <string name="TeamAccessRequired_team_mitgliedschaft_erforderlich_beschreibung">Um Home Office Anträge zu erstellen und zu verwalten, müssen Sie Mitglied eines Teams sein.</string>
     <string name="TeamAccessRequired_zu_den_teams">Zu den Teams</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Abbrechen</string>
 </resources>
