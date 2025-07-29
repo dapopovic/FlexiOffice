@@ -2,4 +2,5 @@
     <string name="app_name">FlexiOffice</string>
     <string name="no_team_allowed_notificiation">Sie sind derzeit keinem Team zugeordnet und haben nicht die Berechtigung, ein Team zu erstellen.</string>
     <string name="no_team_notificiation">Sie sind derzeit keinem Team zugeordnet. Erstellen Sie ein neues Team und laden Sie Mitglieder ein.</string>
+    <string name="TeamAccessRequired_Team_Beitreten">Treten Sie einem bestehenden Team bei oder erstellen Sie ein neues Team, um auf diese Funktion zugreifen zu können.</string>
 </resources>

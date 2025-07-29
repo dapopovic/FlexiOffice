@@ -15,7 +15,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -42,8 +41,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import com.example.flexioffice.R
-import com.example.flexioffice.data.model.User
+import com.example.flexioffice.navigation.FlexiOfficeRoutes
 import com.example.flexioffice.presentation.CalendarUiState
 import com.example.flexioffice.presentation.CalendarViewModel
 import com.example.flexioffice.presentation.components.EventsList
@@ -115,7 +115,10 @@ private fun CalendarViewWithLoading(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel()) {
+fun CalendarScreen(
+    viewModel: CalendarViewModel = hiltViewModel(),
+    navigationController: NavHostController,
+) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -180,14 +183,13 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel()) {
                     events = uiState.events,
                 )
 
-                // Empty State or Demo Data Button
                 if (uiState.events.isEmpty()) {
+                    // Show empty state if no events but has team
                     EmptyStateOrDemoButton(
-                        hasTeam =
-                            !uiState.currentUser?.teamId.isNullOrEmpty() &&
-                                uiState.currentUser?.teamId != User.NO_TEAM,
+                        hasTeam = !uiState.currentUser?.teamId.isNullOrEmpty(),
                         onLoadDemo = viewModel::loadDemoData,
                         isLoadingDemoData = uiState.isLoadingDemoData,
+                        navigationController,
                     )
                 }
             }
@@ -281,6 +283,7 @@ private fun EmptyStateOrDemoButton(
     hasTeam: Boolean,
     onLoadDemo: () -> Unit,
     isLoadingDemoData: Boolean = false,
+    navigationController: NavHostController,
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -323,27 +326,7 @@ private fun EmptyStateOrDemoButton(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Button(
-                    onClick = onLoadDemo,
-                    enabled = !isLoadingDemoData,
-                ) {
-                    if (isLoadingDemoData) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp,
-                            )
-                            Text("Laden...")
-                        }
-                    } else {
-                        Text("Demo-Daten laden")
-                    }
-                }
-
-                OutlinedButton(onClick = { /* TODO: Navigate to booking */ }) {
+                OutlinedButton(onClick = { navigationController.navigate(FlexiOfficeRoutes.Booking.route) }) {
                     Text("Home-Office buchen")
                 }
             }

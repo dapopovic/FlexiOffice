@@ -165,28 +165,12 @@ class CalendarViewModel
                     val date = booking.date
                     CalendarEvent(
                         id = booking.id,
-                        title = "${booking.userName} - Home Office",
+                        title = booking.userName,
                         date = date,
                         type = EventType.HOME_OFFICE,
                         participantNames = listOf(booking.userName),
                         color = 0xFF4CAF50, // Green for home office
                     )
-                }.groupBy { it.date }
-                .map { (date, eventsOnDate) ->
-                    if (eventsOnDate.size == 1) {
-                        eventsOnDate.first()
-                    } else {
-                        // Multiple events on same date, create a summary event
-                        CalendarEvent(
-                            id = "multi_$date",
-                            title = "${eventsOnDate.size} Team-Mitglieder im Home Office",
-                            date = date,
-                            type = EventType.HOME_OFFICE,
-                            participantNames =
-                                eventsOnDate.map { it.participantNames }.flatten(),
-                            color = 0xFF4CAF50,
-                        )
-                    }
                 }
 
         /** Lädt Demo-Daten für Testing */

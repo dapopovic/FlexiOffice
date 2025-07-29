@@ -4,10 +4,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.flexioffice.presentation.components.TeamAccessRequired
 import com.example.flexioffice.presentation.screens.BookingScreen
 import com.example.flexioffice.presentation.screens.CalendarScreen
 import com.example.flexioffice.presentation.screens.LoginScreen
@@ -19,6 +22,7 @@ import com.example.flexioffice.presentation.screens.TeamsScreen
 fun FlexiOfficeNavigation(
     navController: NavHostController,
     startDestination: String,
+    mainViewModel: com.example.flexioffice.presentation.MainViewModel = hiltViewModel(),
 ) {
     NavHost(
         navController = navController,
@@ -34,10 +38,23 @@ fun FlexiOfficeNavigation(
         }
 
         // Calendar Screen
-        composable(FlexiOfficeRoutes.Calendar.route) { CalendarScreen() }
+        composable(FlexiOfficeRoutes.Calendar.route) { CalendarScreen(hiltViewModel(), navController) }
 
-        // Booking Screen
-        composable(FlexiOfficeRoutes.Booking.route) { BookingScreen() }
+        // Booking Screen - Protected by team membership
+        composable(FlexiOfficeRoutes.Booking.route) {
+            if (mainViewModel.hasAccessToRoute(FlexiOfficeRoutes.Booking.route)) {
+                BookingScreen()
+            } else {
+                // Show team access required screen
+                TeamAccessRequired(
+                    onNavigateToTeams = {
+                        navController.navigate(FlexiOfficeRoutes.Teams.route) {
+                            popUpTo(FlexiOfficeRoutes.Booking.route) { inclusive = true }
+                        }
+                    },
+                )
+            }
+        }
 
         // Requests Screen (nur für Manager/Leads)
         composable(FlexiOfficeRoutes.Requests.route) {
