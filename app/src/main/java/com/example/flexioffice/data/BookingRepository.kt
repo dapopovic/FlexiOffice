@@ -3,6 +3,7 @@ package com.example.flexioffice.data
 import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.data.model.BookingType
+import com.example.flexioffice.data.model.Team
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -74,6 +75,26 @@ class BookingRepository
                     )
                 }
 
+                // Hole Team-Informationen für den Reviewer
+                val team =
+                    try {
+                        val teamDoc =
+                            firestore
+                                .collection(Team.COLLECTION_NAME)
+                                .document(teamId)
+                                .get()
+                                .await()
+                        teamDoc.toObject(Team::class.java)
+                            ?: return Result.failure(IllegalArgumentException("Team nicht gefunden"))
+                    } catch (e: Exception) {
+                        return Result.failure(IllegalArgumentException("Fehler beim Laden des Teams"))
+                    }
+
+                // Prüfe ob das Team einen Manager hat
+                if (team.managerId.isNullOrEmpty()) {
+                    return Result.failure(IllegalArgumentException("Das Team hat keinen Manager zugewiesen"))
+                }
+
                 val booking =
                     Booking(
                         dateString = date.format(DateTimeFormatter.ISO_LOCAL_DATE),
@@ -84,7 +105,7 @@ class BookingRepository
                         comment = comment,
                         status = BookingStatus.PENDING,
                         createdAt = LocalDate.now().toString(),
-                        reviewerId = "", // Wird erst beim Review gesetzt
+                        reviewerId = team.managerId,
                     )
                 createBooking(booking)
             } catch (e: Exception) {
