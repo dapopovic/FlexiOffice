@@ -5,13 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.BookingRepository
+import com.example.flexioffice.data.NotificationRepository
 import com.example.flexioffice.data.UserRepository
 import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,37 +22,39 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class RequestsUiState(
-        val isLoading: Boolean = false,
-        val error: String? = null,
-        val pendingRequests: List<Booking> = emptyList(),
-        val currentUser: User? = null,
-        val selectedBooking: Booking? = null,
-        val isApprovingRequest: Boolean = false,
-        val isDecliningRequest: Boolean = false,
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val pendingRequests: List<Booking> = emptyList(),
+    val currentUser: User? = null,
+    val selectedBooking: Booking? = null,
+    val isApprovingRequest: Boolean = false,
+    val isDecliningRequest: Boolean = false,
 )
 
 @HiltViewModel
 class RequestsViewModel
-@Inject
-constructor(
+    @Inject
+    constructor(
         private val bookingRepository: BookingRepository,
         private val userRepository: UserRepository,
         private val authRepository: AuthRepository,
+        private val notificationRepository: NotificationRepository,
         private val auth: FirebaseAuth,
-) : ViewModel() {
-    private val _uiState = MutableStateFlow(RequestsUiState())
-    val uiState: StateFlow<RequestsUiState> = _uiState
+    ) : ViewModel() {
+        private val _uiState = MutableStateFlow(RequestsUiState())
+        val uiState: StateFlow<RequestsUiState> = _uiState
 
-    init {
-        observePendingRequests()
-    }
+        init {
+            observePendingRequests()
+        }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun observePendingRequests() {
-        viewModelScope.launch {
-            authRepository
+        @OptIn(ExperimentalCoroutinesApi::class)
+        private fun observePendingRequests() {
+            viewModelScope.launch {
+                authRepository
                     .currentUser
                     .map { it?.uid }
                     .distinctUntilChanged()
@@ -65,179 +67,191 @@ constructor(
                                 if (user?.teamId.isNullOrEmpty() || user?.teamId == User.NO_TEAM) {
                                     // User has no team, show empty state
                                     flowOf(
-                                            RequestsUiState(
-                                                    isLoading = false,
-                                                    currentUser = user,
-                                                    pendingRequests = emptyList(),
-                                                    error = null,
-                                            ),
+                                        RequestsUiState(
+                                            isLoading = false,
+                                            currentUser = user,
+                                            pendingRequests = emptyList(),
+                                            error = null,
+                                        ),
                                     )
                                 } else if (user?.role != User.ROLE_MANAGER) {
                                     // User is not a manager, no access to requests
                                     flowOf(
-                                            RequestsUiState(
-                                                    isLoading = false,
-                                                    currentUser = user,
-                                                    pendingRequests = emptyList(),
-                                                    error =
-                                                            "Keine Berechtigung zum Anzeigen von Anfragen",
-                                            ),
+                                        RequestsUiState(
+                                            isLoading = false,
+                                            currentUser = user,
+                                            pendingRequests = emptyList(),
+                                            error =
+                                                "Keine Berechtigung zum Anzeigen von Anfragen",
+                                        ),
                                     )
                                 } else {
                                     // User is a manager, load pending team requests
-                                    bookingRepository.getTeamPendingRequestsStream(user.teamId)
-                                            .map { requestsResult ->
-                                                val requests =
-                                                        requestsResult.getOrNull() ?: emptyList()
-                                                RequestsUiState(
-                                                        isLoading = false,
-                                                        currentUser = user,
-                                                        pendingRequests = requests,
-                                                        error =
-                                                                requestsResult.exceptionOrNull()
-                                                                        ?.message,
-                                                )
-                                            }
+                                    bookingRepository
+                                        .getTeamPendingRequestsStream(user.teamId)
+                                        .map { requestsResult ->
+                                            val requests =
+                                                requestsResult.getOrNull() ?: emptyList()
+                                            RequestsUiState(
+                                                isLoading = false,
+                                                currentUser = user,
+                                                pendingRequests = requests,
+                                                error =
+                                                    requestsResult
+                                                        .exceptionOrNull()
+                                                        ?.message,
+                                            )
+                                        }
                                 }
                             }
                         }
-                    }
-                    .catch { e ->
+                    }.catch { e ->
                         _uiState.value = _uiState.value.copy(error = e.message, isLoading = false)
-                    }
-                    .collect { state -> _uiState.update { state } }
+                    }.collect { state -> _uiState.update { state } }
+            }
         }
-    }
 
-    fun approveRequest(booking: Booking) {
-        val currentUserId = auth.currentUser?.uid ?: return
+        fun approveRequest(booking: Booking) {
+            val currentUserId = auth.currentUser?.uid ?: return
 
-        viewModelScope.launch {
-            try {
-                _uiState.update {
-                    it.copy(isApprovingRequest = true, selectedBooking = booking, error = null)
-                }
+            viewModelScope.launch {
+                try {
+                    _uiState.update {
+                        it.copy(isApprovingRequest = true, selectedBooking = booking, error = null)
+                    }
 
-                Log.d(
+                    Log.d(
                         "RequestsViewModel",
-                        "Genehmige Antrag: ${booking.id} für User: ${booking.userName}"
-                )
+                        "Genehmige Antrag: ${booking.id} für User: ${booking.userName}",
+                    )
 
-                bookingRepository
+                    bookingRepository
                         .updateBookingStatus(
-                                booking.id,
-                                BookingStatus.APPROVED,
-                                currentUserId,
-                        )
-                        .fold(
-                                onSuccess = {
-                                    Log.d("RequestsViewModel", "Antrag erfolgreich genehmigt")
+                            booking.id,
+                            BookingStatus.APPROVED,
+                            currentUserId,
+                        ).fold(
+                            onSuccess = {
+                                Log.d("RequestsViewModel", "Antrag erfolgreich genehmigt")
 
-                                    // TODO: FCM Push-Notification an Antragsteller senden
-                                    // Implementierung einer Cloud Function oder direkte
-                                    // FCM-Notification
-                                    Log.d(
-                                            "RequestsViewModel",
-                                            "FCM-Notification sollte hier an User ${booking.userId} gesendet werden: 'Ihr Home-Office-Antrag für ${booking.date} wurde genehmigt'"
-                                    )
-
-                                    _uiState.update {
-                                        it.copy(isApprovingRequest = false, selectedBooking = null)
-                                    }
-                                },
-                                onFailure = { exception ->
-                                    Log.e("RequestsViewModel", "Fehler beim Genehmigen", exception)
-                                    _uiState.update {
-                                        it.copy(
-                                                error =
-                                                        "Fehler beim Genehmigen: ${exception.message}",
-                                                isApprovingRequest = false,
-                                                selectedBooking = null
+                                // Send FCM notification to requester
+                                viewModelScope.launch {
+                                    try {
+                                        notificationRepository.sendBookingStatusNotification(
+                                            booking = booking,
+                                            newStatus = BookingStatus.APPROVED,
+                                            reviewerName = uiState.value.currentUser?.name ?: "Manager",
                                         )
+                                        Log.d("RequestsViewModel", "FCM-Notification erfolgreich gesendet")
+                                    } catch (e: Exception) {
+                                        Log.e("RequestsViewModel", "Fehler beim Senden der FCM-Notification", e)
+                                        // Don't fail the overall operation if notification fails
                                     }
                                 }
+
+                                _uiState.update {
+                                    it.copy(isApprovingRequest = false, selectedBooking = null)
+                                }
+                            },
+                            onFailure = { exception ->
+                                Log.e("RequestsViewModel", "Fehler beim Genehmigen", exception)
+                                _uiState.update {
+                                    it.copy(
+                                        error =
+                                            "Fehler beim Genehmigen: ${exception.message}",
+                                        isApprovingRequest = false,
+                                        selectedBooking = null,
+                                    )
+                                }
+                            },
                         )
-            } catch (e: Exception) {
-                Log.e("RequestsViewModel", "Unerwarteter Fehler beim Genehmigen", e)
-                _uiState.update {
-                    it.copy(
+                } catch (e: Exception) {
+                    Log.e("RequestsViewModel", "Unerwarteter Fehler beim Genehmigen", e)
+                    _uiState.update {
+                        it.copy(
                             error = "Unerwarteter Fehler: ${e.message}",
                             isApprovingRequest = false,
-                            selectedBooking = null
-                    )
+                            selectedBooking = null,
+                        )
+                    }
                 }
             }
         }
-    }
 
-    fun declineRequest(booking: Booking) {
-        val currentUserId = auth.currentUser?.uid ?: return
+        fun declineRequest(booking: Booking) {
+            val currentUserId = auth.currentUser?.uid ?: return
 
-        viewModelScope.launch {
-            try {
-                _uiState.update {
-                    it.copy(isDecliningRequest = true, selectedBooking = booking, error = null)
-                }
+            viewModelScope.launch {
+                try {
+                    _uiState.update {
+                        it.copy(isDecliningRequest = true, selectedBooking = booking, error = null)
+                    }
 
-                Log.d(
+                    Log.d(
                         "RequestsViewModel",
-                        "Lehne Antrag ab: ${booking.id} für User: ${booking.userName}"
-                )
+                        "Lehne Antrag ab: ${booking.id} für User: ${booking.userName}",
+                    )
 
-                bookingRepository
+                    bookingRepository
                         .updateBookingStatus(
-                                booking.id,
-                                BookingStatus.DECLINED,
-                                currentUserId,
-                        )
-                        .fold(
-                                onSuccess = {
-                                    Log.d("RequestsViewModel", "Antrag erfolgreich abgelehnt")
+                            booking.id,
+                            BookingStatus.DECLINED,
+                            currentUserId,
+                        ).fold(
+                            onSuccess = {
+                                Log.d("RequestsViewModel", "Antrag erfolgreich abgelehnt")
 
-                                    // TODO: FCM Push-Notification an Antragsteller senden
-                                    // Implementierung einer Cloud Function oder direkte
-                                    // FCM-Notification
-                                    Log.d(
-                                            "RequestsViewModel",
-                                            "FCM-Notification sollte hier an User ${booking.userId} gesendet werden: 'Ihr Home-Office-Antrag für ${booking.date} wurde abgelehnt'"
-                                    )
-
-                                    _uiState.update {
-                                        it.copy(isDecliningRequest = false, selectedBooking = null)
-                                    }
-                                },
-                                onFailure = { exception ->
-                                    Log.e("RequestsViewModel", "Fehler beim Ablehnen", exception)
-                                    _uiState.update {
-                                        it.copy(
-                                                error =
-                                                        "Fehler beim Ablehnen: ${exception.message}",
-                                                isDecliningRequest = false,
-                                                selectedBooking = null
+                                // Send FCM notification to requester
+                                viewModelScope.launch {
+                                    try {
+                                        notificationRepository.sendBookingStatusNotification(
+                                            booking = booking,
+                                            newStatus = BookingStatus.DECLINED,
+                                            reviewerName = uiState.value.currentUser?.name ?: "Manager",
                                         )
+                                        Log.d("RequestsViewModel", "FCM-Notification erfolgreich gesendet")
+                                    } catch (e: Exception) {
+                                        Log.e("RequestsViewModel", "Fehler beim Senden der FCM-Notification", e)
+                                        // Don't fail the overall operation if notification fails
                                     }
                                 }
+
+                                _uiState.update {
+                                    it.copy(isDecliningRequest = false, selectedBooking = null)
+                                }
+                            },
+                            onFailure = { exception ->
+                                Log.e("RequestsViewModel", "Fehler beim Ablehnen", exception)
+                                _uiState.update {
+                                    it.copy(
+                                        error =
+                                            "Fehler beim Ablehnen: ${exception.message}",
+                                        isDecliningRequest = false,
+                                        selectedBooking = null,
+                                    )
+                                }
+                            },
                         )
-            } catch (e: Exception) {
-                Log.e("RequestsViewModel", "Unerwarteter Fehler beim Ablehnen", e)
-                _uiState.update {
-                    it.copy(
+                } catch (e: Exception) {
+                    Log.e("RequestsViewModel", "Unerwarteter Fehler beim Ablehnen", e)
+                    _uiState.update {
+                        it.copy(
                             error = "Unerwarteter Fehler: ${e.message}",
                             isDecliningRequest = false,
-                            selectedBooking = null
-                    )
+                            selectedBooking = null,
+                        )
+                    }
                 }
             }
         }
-    }
 
-    fun clearError() {
-        _uiState.update { it.copy(error = null) }
-    }
+        fun clearError() {
+            _uiState.update { it.copy(error = null) }
+        }
 
-    fun isProcessingRequest(bookingId: String): Boolean {
-        val state = _uiState.value
-        return (state.isApprovingRequest || state.isDecliningRequest) &&
+        fun isProcessingRequest(bookingId: String): Boolean {
+            val state = _uiState.value
+            return (state.isApprovingRequest || state.isDecliningRequest) &&
                 state.selectedBooking?.id == bookingId
+        }
     }
-}

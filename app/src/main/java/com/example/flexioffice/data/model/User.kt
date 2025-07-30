@@ -7,9 +7,11 @@ data class User(
     val role: String = "user", // Standard-Rolle
     val teamId: String = "", // Leerer String = kein Team
     val id: String = "", // Firestore-Dokument-ID, optional
+    // Firebase Cloud Messaging Token für Push-Benachrichtigungen
+    val fcmToken: String = "",
 ) {
     // Leerer Konstruktor für Firestore
-    constructor() : this("", "", "user", "", "")
+    constructor() : this("", "", "user", "", "", "")
 
     companion object {
         // Standard-Rollen
@@ -26,6 +28,7 @@ data class User(
         const val ROLE_FIELD = "role"
         const val TEAM_ID_FIELD = "teamId"
         const val ID_FIELD = "id"
+        const val FCM_TOKEN_FIELD = "fcmToken"
 
         // collection name in Firestore
         const val COLLECTION_NAME = "users"
