@@ -57,10 +57,7 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/**
- * Creates a shimmer effect modifier
- */
-
+/** Creates a shimmer effect modifier */
 fun Modifier.customShimmerEffect(
     isEnabled: Boolean = true,
     colors: List<Color> =
@@ -94,16 +91,18 @@ fun Modifier.customShimmerEffect(
             brush =
                 Brush.linearGradient(
                     colors = colors,
-                    start = Offset(x = translateAnim.value - 200f, y = translateAnim.value - 200f),
+                    start =
+                        Offset(
+                            x = translateAnim.value - 200f,
+                            y = translateAnim.value - 200f,
+                        ),
                     end = Offset(x = translateAnim.value, y = translateAnim.value),
                 ),
             shape = RoundedCornerShape(12.dp),
         )
     }
 
-/**
- * Creates a pulsing glow effect
- */
+/** Creates a pulsing glow effect */
 fun Modifier.customPulseGlow(
     isEnabled: Boolean = true,
     glowColor: Color = Color.White.copy(alpha = 0.4f),
@@ -182,46 +181,50 @@ fun InAppNotificationBanner(
     }
 
     // Animation values
-    val slideOffset by animateFloatAsState(
-        targetValue = if (isVisible && !isAnimatingOut) 0f else -100f,
-        animationSpec =
-            spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessLow,
-            ),
-        label = "slideOffset",
-    )
+    val slideOffset by
+        animateFloatAsState(
+            targetValue = if (isVisible && !isAnimatingOut) 0f else -100f,
+            animationSpec =
+                spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow,
+                ),
+            label = "slideOffset",
+        )
 
-    val alpha by animateFloatAsState(
-        targetValue = if (isVisible && !isAnimatingOut) 1f else 0f,
-        animationSpec =
-            tween(
-                durationMillis = 300,
-                easing = FastOutSlowInEasing,
-            ),
-        label = "alpha",
-    )
+    val alpha by
+        animateFloatAsState(
+            targetValue = if (isVisible && !isAnimatingOut) 1f else 0f,
+            animationSpec =
+                tween(
+                    durationMillis = 300,
+                    easing = FastOutSlowInEasing,
+                ),
+            label = "alpha",
+        )
 
-    val scale by animateFloatAsState(
-        targetValue = if (isVisible && !isAnimatingOut) 1f else 0.8f,
-        animationSpec =
-            spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessMedium,
-            ),
-        label = "scale",
-    )
+    val scale by
+        animateFloatAsState(
+            targetValue = if (isVisible && !isAnimatingOut) 1f else 0.8f,
+            animationSpec =
+                spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMedium,
+                ),
+            label = "scale",
+        )
 
     // Icon bounce animation
-    val iconBounce by animateFloatAsState(
-        targetValue = if (isAnimatingIn) 1.2f else 1f,
-        animationSpec =
-            spring(
-                dampingRatio = Spring.DampingRatioLowBouncy,
-                stiffness = Spring.StiffnessHigh,
-            ),
-        label = "iconBounce",
-    )
+    val iconBounce by
+        animateFloatAsState(
+            targetValue = if (isAnimatingIn) 1.2f else 1f,
+            animationSpec =
+                spring(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessHigh,
+                ),
+            label = "iconBounce",
+        )
 
     AnimatedVisibility(
         visible = isVisible,
@@ -278,9 +281,15 @@ fun InAppNotificationBanner(
                                     isEnabled = true,
                                     colors =
                                         listOf(
-                                            Color.White.copy(alpha = 0.0f),
-                                            Color.White.copy(alpha = 0.4f),
-                                            Color.White.copy(alpha = 0.0f),
+                                            Color.White.copy(
+                                                alpha = 0.0f,
+                                            ),
+                                            Color.White.copy(
+                                                alpha = 0.4f,
+                                            ),
+                                            Color.White.copy(
+                                                alpha = 0.0f,
+                                            ),
                                         ),
                                 )
                             }
@@ -288,7 +297,9 @@ fun InAppNotificationBanner(
                                 // Add pulse glow for urgent notifications
                                 Modifier.customPulseGlow(
                                     isEnabled = true,
-                                    glowColor = MaterialTheme.colorScheme.error.copy(alpha = 0.3f),
+                                    glowColor =
+                                        MaterialTheme.colorScheme.error
+                                            .copy(alpha = 0.3f),
                                     pulseSpeed = 800,
                                 )
                             }
@@ -301,19 +312,13 @@ fun InAppNotificationBanner(
             colors = CardDefaults.cardColors(containerColor = backgroundColor),
         ) {
             Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    modifier =
-                        Modifier
-                            .size(24.dp)
-                            .scale(iconBounce),
+                    modifier = Modifier.size(24.dp).scale(iconBounce),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
@@ -337,19 +342,22 @@ fun InAppNotificationBanner(
 
                 if (onAction != null) {
                     // Animated action button
-                    val buttonScale by animateFloatAsState(
-                        targetValue = if (isAnimatingIn) 1.1f else 1f,
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                                stiffness = Spring.StiffnessMedium,
-                            ),
-                        label = "buttonScale",
-                    )
+                    val buttonScale by
+                        animateFloatAsState(
+                            targetValue = if (isAnimatingIn) 1.1f else 1f,
+                            animationSpec =
+                                spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessMedium,
+                                ),
+                            label = "buttonScale",
+                        )
 
                     TextButton(
                         onClick = {
-                            hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            hapticFeedback.performHapticFeedback(
+                                HapticFeedbackType.TextHandleMove,
+                            )
                             isAnimatingOut = true
                             onAction()
                         },
@@ -358,17 +366,16 @@ fun InAppNotificationBanner(
                             ButtonDefaults.textButtonColors(
                                 contentColor = MaterialTheme.colorScheme.primary,
                             ),
-                    ) {
-                        Text("Ansehen")
-                    }
+                    ) { Text("Ansehen") }
                 }
 
                 // Animated close button
-                val closeButtonRotation by animateFloatAsState(
-                    targetValue = if (isAnimatingOut) 180f else 0f,
-                    animationSpec = tween(300),
-                    label = "closeButtonRotation",
-                )
+                val closeButtonRotation by
+                    animateFloatAsState(
+                        targetValue = if (isAnimatingOut) 180f else 0f,
+                        animationSpec = tween(300),
+                        label = "closeButtonRotation",
+                    )
 
                 IconButton(
                     onClick = {
@@ -381,11 +388,9 @@ fun InAppNotificationBanner(
                         }
                     },
                     modifier =
-                        Modifier
-                            .size(24.dp)
-                            .graphicsLayer {
-                                rotationZ = closeButtonRotation
-                            },
+                        Modifier.size(24.dp).graphicsLayer {
+                            rotationZ = closeButtonRotation
+                        },
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
