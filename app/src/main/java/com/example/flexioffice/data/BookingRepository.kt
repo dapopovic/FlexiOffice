@@ -104,7 +104,7 @@ class BookingRepository
                         type = type,
                         comment = comment,
                         status = BookingStatus.PENDING,
-                        createdAt = LocalDate.now().toString(),
+                        createdAt = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
                         reviewerId = team.managerId,
                     )
                 createBooking(booking)
@@ -265,7 +265,7 @@ class BookingRepository
                             type = BookingType.HOME_OFFICE,
                             status = BookingStatus.APPROVED,
                             comment = "Home Office Tag",
-                            createdAt = currentDate.toString(),
+                            createdAt = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
                         ),
                         Booking(
                             userId = "demo_user_2",
@@ -278,7 +278,7 @@ class BookingRepository
                             type = BookingType.HOME_OFFICE,
                             status = BookingStatus.APPROVED,
                             comment = "Remote Work",
-                            createdAt = currentDate.toString(),
+                            createdAt = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
                         ),
                         Booking(
                             userId = "demo_user_3",
@@ -291,7 +291,7 @@ class BookingRepository
                             type = BookingType.HOME_OFFICE,
                             status = BookingStatus.APPROVED,
                             comment = "Home Office",
-                            createdAt = currentDate.toString(),
+                            createdAt = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
                         ),
                     )
 
