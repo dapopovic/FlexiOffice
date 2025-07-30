@@ -61,7 +61,7 @@ fun FlexiOfficeNavigation(
         }
 
         composable(
-            route = FlexiOfficeRoutes.Booking.fullRoute,
+            route = FlexiOfficeRoutes.Booking.FULL_ROUTE,
             arguments =
                 listOf(
                     androidx.navigation.navArgument("date") {
