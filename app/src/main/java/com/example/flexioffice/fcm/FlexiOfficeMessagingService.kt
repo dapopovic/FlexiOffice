@@ -10,8 +10,14 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.flexioffice.MainActivity
 import com.example.flexioffice.R
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class FlexiOfficeMessagingService : FirebaseMessagingService() {
     companion object {
@@ -29,8 +35,6 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         Log.d(TAG, "Refreshed FCM token: $token")
 
-        // TODO: Send the token to your server/Firestore
-        // This should be handled by FCMTokenManager
         sendTokenToServer(token)
     }
 
@@ -144,8 +148,20 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun sendTokenToServer(token: String) {
-        // This will be handled by FCMTokenManager
-        Log.d(TAG, "Token should be sent to server: $token")
+        GlobalScope.launch {
+            try {
+                val fcmTokenManager =
+                    FCMTokenManager(
+                        FirebaseMessaging.getInstance(),
+                        FirebaseFirestore.getInstance(),
+                        FirebaseAuth.getInstance(),
+                    )
+                fcmTokenManager.updateToken(token)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to send FCM token to server: ${e.message}")
+            }
+        }
     }
 }

@@ -112,120 +112,73 @@ class RequestsViewModel
         }
 
         fun approveRequest(booking: Booking) {
-            val currentUserId = auth.currentUser?.uid ?: return
+            processBookingRequest(
+                booking = booking,
+                newStatus = BookingStatus.APPROVED,
+                isApproving = true,
+            )
+        }
 
+        fun declineRequest(booking: Booking) {
+            processBookingRequest(
+                booking = booking,
+                newStatus = BookingStatus.DECLINED,
+                isApproving = false,
+            )
+        }
+
+        private fun processBookingRequest(
+            booking: Booking,
+            newStatus: BookingStatus,
+            isApproving: Boolean,
+        ) {
+            val currentUserId = auth.currentUser?.uid ?: return
+            val action = if (isApproving) "Genehmige" else "Lehne"
+            val actionPast = if (isApproving) "genehmigt" else "abgelehnt"
+            val actionError = if (isApproving) "Genehmigen" else "Ablehnen"
             viewModelScope.launch {
                 try {
                     _uiState.update {
-                        it.copy(isApprovingRequest = true, selectedBooking = booking, error = null)
+                        it.copy(
+                            isApprovingRequest = isApproving,
+                            isDecliningRequest = !isApproving,
+                            selectedBooking = booking,
+                            error = null,
+                        )
                     }
 
                     Log.d(
                         "RequestsViewModel",
-                        "Genehmige Antrag: ${booking.id} für User: ${booking.userName}",
+                        "$action Antrag ab: ${booking.id} für User: ${booking.userName}",
                     )
 
                     bookingRepository
                         .updateBookingStatus(
                             booking.id,
-                            BookingStatus.APPROVED,
+                            newStatus,
                             currentUserId,
                         ).fold(
                             onSuccess = {
-                                Log.d("RequestsViewModel", "Antrag erfolgreich genehmigt")
+                                Log.d("RequestsViewModel", "Antrag erfolgreich $actionPast")
 
                                 // Send FCM notification to requester
-                                viewModelScope.launch {
-                                    try {
-                                        notificationRepository.sendBookingStatusNotification(
-                                            booking = booking,
-                                            newStatus = BookingStatus.APPROVED,
-                                            reviewerName = uiState.value.currentUser?.name ?: "Manager",
-                                        )
-                                        Log.d("RequestsViewModel", "FCM-Notification erfolgreich gesendet")
-                                    } catch (e: Exception) {
-                                        Log.e("RequestsViewModel", "Fehler beim Senden der FCM-Notification", e)
-                                        // Don't fail the overall operation if notification fails
-                                    }
-                                }
+                                sendStatusNotification(booking, newStatus)
 
                                 _uiState.update {
-                                    it.copy(isApprovingRequest = false, selectedBooking = null)
-                                }
-                            },
-                            onFailure = { exception ->
-                                Log.e("RequestsViewModel", "Fehler beim Genehmigen", exception)
-                                _uiState.update {
                                     it.copy(
-                                        error =
-                                            "Fehler beim Genehmigen: ${exception.message}",
                                         isApprovingRequest = false,
+                                        isDecliningRequest = false,
                                         selectedBooking = null,
                                     )
                                 }
                             },
-                        )
-                } catch (e: Exception) {
-                    Log.e("RequestsViewModel", "Unerwarteter Fehler beim Genehmigen", e)
-                    _uiState.update {
-                        it.copy(
-                            error = "Unerwarteter Fehler: ${e.message}",
-                            isApprovingRequest = false,
-                            selectedBooking = null,
-                        )
-                    }
-                }
-            }
-        }
-
-        fun declineRequest(booking: Booking) {
-            val currentUserId = auth.currentUser?.uid ?: return
-
-            viewModelScope.launch {
-                try {
-                    _uiState.update {
-                        it.copy(isDecliningRequest = true, selectedBooking = booking, error = null)
-                    }
-
-                    Log.d(
-                        "RequestsViewModel",
-                        "Lehne Antrag ab: ${booking.id} für User: ${booking.userName}",
-                    )
-
-                    bookingRepository
-                        .updateBookingStatus(
-                            booking.id,
-                            BookingStatus.DECLINED,
-                            currentUserId,
-                        ).fold(
-                            onSuccess = {
-                                Log.d("RequestsViewModel", "Antrag erfolgreich abgelehnt")
-
-                                // Send FCM notification to requester
-                                viewModelScope.launch {
-                                    try {
-                                        notificationRepository.sendBookingStatusNotification(
-                                            booking = booking,
-                                            newStatus = BookingStatus.DECLINED,
-                                            reviewerName = uiState.value.currentUser?.name ?: "Manager",
-                                        )
-                                        Log.d("RequestsViewModel", "FCM-Notification erfolgreich gesendet")
-                                    } catch (e: Exception) {
-                                        Log.e("RequestsViewModel", "Fehler beim Senden der FCM-Notification", e)
-                                        // Don't fail the overall operation if notification fails
-                                    }
-                                }
-
-                                _uiState.update {
-                                    it.copy(isDecliningRequest = false, selectedBooking = null)
-                                }
-                            },
                             onFailure = { exception ->
-                                Log.e("RequestsViewModel", "Fehler beim Ablehnen", exception)
+                                Log.e("RequestsViewModel", "Fehler beim $actionError", exception)
                                 _uiState.update {
                                     it.copy(
                                         error =
-                                            "Fehler beim Ablehnen: ${exception.message}",
+                                            "Fehler beim $actionError: ${exception.message}",
+                                        isApprovingRequest = false,
                                         isDecliningRequest = false,
                                         selectedBooking = null,
                                     )
@@ -233,14 +186,34 @@ class RequestsViewModel
                             },
                         )
                 } catch (e: Exception) {
-                    Log.e("RequestsViewModel", "Unerwarteter Fehler beim Ablehnen", e)
+                    Log.e("RequestsViewModel", "Unerwarteter Fehler beim $actionError", e)
                     _uiState.update {
                         it.copy(
                             error = "Unerwarteter Fehler: ${e.message}",
+                            isApprovingRequest = false,
                             isDecliningRequest = false,
                             selectedBooking = null,
                         )
                     }
+                }
+            }
+        }
+
+        private fun sendStatusNotification(
+            booking: Booking,
+            newStatus: BookingStatus,
+        ) {
+            viewModelScope.launch {
+                try {
+                    notificationRepository.sendBookingStatusNotification(
+                        booking = booking,
+                        newStatus = newStatus,
+                        reviewerName = uiState.value.currentUser?.name ?: "Manager",
+                    )
+                    Log.d("RequestsViewModel", "FCM-Notification erfolgreich gesendet")
+                } catch (e: Exception) {
+                    Log.e("RequestsViewModel", "Fehler beim Senden der FCM-Notification", e)
+                    // Don't fail the overall operation if notification fails
                 }
             }
         }

@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.flexioffice.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -34,7 +35,7 @@ class FCMTokenManager
                 }
 
                 val token = task.result
-                Log.d(TAG, "FCM Token erhalten: $token")
+                Log.d(TAG, "FCM Token erhalten")
 
                 val userId = auth.currentUser?.uid
                 if (userId != null) {
@@ -53,7 +54,7 @@ class FCMTokenManager
         suspend fun initializeFCMSuspend(): Result<String> =
             try {
                 val token = firebaseMessaging.token.await()
-                Log.d(TAG, "FCM Token erhalten: $token")
+                Log.d(TAG, "FCM Token erhalten")
 
                 val userId = auth.currentUser?.uid
                 if (userId != null) {
@@ -79,7 +80,7 @@ class FCMTokenManager
             firestore
                 .collection(User.COLLECTION_NAME)
                 .document(userId)
-                .update(FCM_TOKEN_FIELD, token)
+                .set(mapOf(FCM_TOKEN_FIELD to token), SetOptions.merge())
                 .addOnSuccessListener {
                     Log.d(TAG, "FCM Token erfolgreich in Firestore gespeichert")
                 }.addOnFailureListener { exception ->
@@ -99,7 +100,7 @@ class FCMTokenManager
                 firestore
                     .collection(User.COLLECTION_NAME)
                     .document(userId)
-                    .update(FCM_TOKEN_FIELD, token)
+                    .set(mapOf(FCM_TOKEN_FIELD to token), SetOptions.merge())
                     .await()
 
                 Log.d(TAG, "FCM Token erfolgreich in Firestore gespeichert")
@@ -119,7 +120,7 @@ class FCMTokenManager
                     firestore
                         .collection(User.COLLECTION_NAME)
                         .document(userId)
-                        .update(FCM_TOKEN_FIELD, null)
+                        .set(mapOf(FCM_TOKEN_FIELD to null), SetOptions.merge())
                         .await()
 
                     Log.d(TAG, "FCM Token erfolgreich entfernt")
