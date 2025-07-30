@@ -189,6 +189,28 @@ class BookingRepository
                 awaitClose { listenerRegistration.remove() }
             }
 
+        /** Stream für ausstehende Team-Buchungsanfragen (PENDING Status) */
+        fun getTeamPendingRequestsStream(teamId: String): Flow<Result<List<Booking>>> =
+            callbackFlow {
+                val listenerRegistration =
+                    firestore
+                        .collection(Booking.COLLECTION_NAME)
+                        .whereEqualTo(Booking.TEAM_ID_FIELD, teamId)
+                        .whereEqualTo(Booking.STATUS_FIELD, BookingStatus.PENDING)
+                        .orderBy(Booking.DATE_FIELD)
+                        .addSnapshotListener { snapshot, error ->
+                            if (error != null) {
+                                trySend(Result.failure(error))
+                                return@addSnapshotListener
+                            }
+                            if (snapshot != null) {
+                                val bookings = snapshot.toObjects(Booking::class.java)
+                                trySend(Result.success(bookings))
+                            }
+                        }
+                awaitClose { listenerRegistration.remove() }
+            }
+
         /** Lädt Buchungen für einen Benutzer */
         suspend fun getUserBookings(userId: String): Result<List<Booking>> =
             try {

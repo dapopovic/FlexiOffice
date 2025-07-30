@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.BookingRepository
+import com.example.flexioffice.data.NotificationRepository
 import com.example.flexioffice.data.TeamRepository
 import com.example.flexioffice.data.UserRepository
 import com.example.flexioffice.data.model.Booking
@@ -52,6 +53,7 @@ class BookingViewModel
         private val teamRepository: TeamRepository,
         private val userRepository: UserRepository,
         private val authRepository: AuthRepository,
+        private val notificationRepository: NotificationRepository,
         private val auth: FirebaseAuth,
     ) : ViewModel() {
         private val _uiState =
@@ -245,7 +247,12 @@ class BookingViewModel
                             teamId = team.id,
                             dateString = currentState.selectedDate.toString(),
                             type = BookingType.HOME_OFFICE,
-                            status = BookingStatus.PENDING,
+                            status =
+                                if (user.role == User.ROLE_MANAGER || team.managerId == userId) {
+                                    BookingStatus.APPROVED
+                                } else {
+                                    BookingStatus.PENDING
+                                },
                             comment = currentState.comment,
                             createdAt = LocalDate.now().toString(),
                             reviewerId = team.managerId,
@@ -253,6 +260,22 @@ class BookingViewModel
 
                     bookingRepository.createBooking(booking)
                     hideBookingDialog()
+                    viewModelScope.launch {
+                        try {
+                            notificationRepository.sendNewBookingRequestNotification(
+                                booking,
+                                team.managerId,
+                            )
+                        } catch (
+                            e: Exception,
+                        ) {
+                            Log.e(
+                                "BookingViewModel",
+                                "Fehler beim Senden der Benachrichtigung",
+                                e,
+                            )
+                        }
+                    }
                 } catch (e: Exception) {
                     Log.e("BookingViewModel", "Fehler beim Erstellen der Buchung", e)
                     _uiState.update {

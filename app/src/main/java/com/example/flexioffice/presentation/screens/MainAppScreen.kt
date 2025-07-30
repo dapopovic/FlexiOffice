@@ -1,6 +1,7 @@
 package com.example.flexioffice.presentation.screens
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Badge
@@ -23,15 +24,19 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.flexioffice.navigation.FlexiOfficeNavigation
+import com.example.flexioffice.presentation.InAppNotificationViewModel
 import com.example.flexioffice.presentation.MainViewModel
+import com.example.flexioffice.presentation.components.InAppNotificationBanner
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainAppScreen(
     mainViewModel: MainViewModel = hiltViewModel(),
     navController: NavHostController,
+    inAppNotificationViewModel: InAppNotificationViewModel = hiltViewModel(),
 ) {
     val uiState by mainViewModel.uiState.collectAsState()
+    val notificationState by inAppNotificationViewModel.notificationState.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
@@ -106,12 +111,42 @@ fun MainAppScreen(
             }
         },
     ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
-            FlexiOfficeNavigation(
-                navController = navController,
-                startDestination = mainViewModel.getDefaultRoute(),
-                mainViewModel = mainViewModel,
+        Column(modifier = Modifier.padding(innerPadding)) {
+            // In-App Notification Banner
+            InAppNotificationBanner(
+                title = notificationState.title,
+                message = notificationState.message,
+                type = notificationState.type,
+                isVisible = notificationState.isVisible,
+                onDismiss = { inAppNotificationViewModel.dismissNotification() },
+                onAction = {
+                    // Navigate to appropriate screen based on notification type
+                    val targetRoute =
+                        when (notificationState.type) {
+                            "booking_status_update" -> "booking"
+                            "new_booking_request" -> "requests"
+                            else -> "calendar"
+                        }
+
+                    navController.navigate(targetRoute) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                    inAppNotificationViewModel.dismissNotification()
+                },
             )
+
+            // Main Navigation Content
+            Box(modifier = Modifier.weight(1f)) {
+                FlexiOfficeNavigation(
+                    navController = navController,
+                    startDestination = mainViewModel.getDefaultRoute(),
+                    mainViewModel = mainViewModel,
+                )
+            }
         }
     }
 }

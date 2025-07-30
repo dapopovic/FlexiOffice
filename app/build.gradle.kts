@@ -67,6 +67,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.messaging)
 
     // ViewModel and Lifecycle
     implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -81,6 +82,9 @@ dependencies {
 
     // Calendar
     implementation(libs.kizitonwose.calendar.compose)
+
+    // LocalBroadcastManager for in-app notifications
+    implementation(libs.androidx.localbroadcastmanager)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
