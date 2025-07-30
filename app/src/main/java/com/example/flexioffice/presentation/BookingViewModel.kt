@@ -216,7 +216,12 @@ class BookingViewModel
                             teamId = team.id,
                             dateString = currentState.selectedDate.toString(),
                             type = BookingType.HOME_OFFICE,
-                            status = BookingStatus.PENDING,
+                            status =
+                                if (user.role == User.ROLE_MANAGER || team.managerId == userId) {
+                                    BookingStatus.APPROVED
+                                } else {
+                                    BookingStatus.PENDING
+                                },
                             comment = currentState.comment,
                             createdAt = LocalDate.now().toString(),
                             reviewerId = team.managerId,
