@@ -154,7 +154,10 @@ class CalendarViewModel
             loadBookingsForMonth(_uiState.value.currentMonth)
         }
 
-        fun showBookingDialog(date: LocalDate, defaultComment: String = "") {
+        fun showBookingDialog(
+            date: LocalDate,
+            defaultComment: String = "",
+        ) {
             _uiState.value =
                 _uiState.value.copy(
                     showBookingDialog = true,
@@ -177,7 +180,10 @@ class CalendarViewModel
             _uiState.value = _uiState.value.copy(bookingComment = comment)
         }
 
-        fun createDirectBooking(date: LocalDate, comment: String = "Home-Office Tag") {
+        fun createDirectBooking(
+            date: LocalDate,
+            comment: String = "Home-Office Tag",
+        ) {
             val currentUser = _uiState.value.currentUser ?: return
 
             viewModelScope.launch {
@@ -191,14 +197,16 @@ class CalendarViewModel
                             teamId = currentUser.teamId,
                         )
                     if (!result.isSuccess) {
-                        _uiState.value = _uiState.value.copy(
-                            errorMessage = result.exceptionOrNull()?.message ?: "Fehler beim Erstellen der Buchung"
-                        )
+                        _uiState.value =
+                            _uiState.value.copy(
+                                errorMessage = result.exceptionOrNull()?.message ?: "Fehler beim Erstellen der Buchung",
+                            )
                     }
                 } catch (e: Exception) {
-                    _uiState.value = _uiState.value.copy(
-                        errorMessage = e.message ?: "Fehler beim Erstellen der Buchung"
-                    )
+                    _uiState.value =
+                        _uiState.value.copy(
+                            errorMessage = e.message ?: "Fehler beim Erstellen der Buchung",
+                        )
                 }
             }
         }
