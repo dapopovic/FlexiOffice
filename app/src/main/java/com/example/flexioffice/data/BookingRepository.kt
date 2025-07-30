@@ -3,12 +3,14 @@ package com.example.flexioffice.data
 import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.data.model.BookingType
+import com.example.flexioffice.data.model.Team
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,13 +22,113 @@ class BookingRepository
     constructor(
         private val firestore: FirebaseFirestore,
     ) {
-        /** Erstellt eine neue Buchung */
+        /** Lädt alle Buchungen für einen bestimmten Monat */
+        suspend fun getBookingsForMonth(month: YearMonth): List<Booking> {
+            val startDate = month.atDay(1)
+            val endDate = month.atEndOfMonth()
+            val startDateStr = startDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
+            val endDateStr = endDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
+
+            return firestore
+                .collection(Booking.COLLECTION_NAME)
+                .whereGreaterThanOrEqualTo(Booking.DATE_FIELD, startDateStr)
+                .whereLessThanOrEqualTo(Booking.DATE_FIELD, endDateStr)
+                .get()
+                .await()
+                .toObjects(Booking::class.java)
+        }
+
+        /** Erstellt eine neue Buchung aus einem existierenden Booking-Objekt */
         suspend fun createBooking(booking: Booking): Result<String> =
             try {
                 val docRef = firestore.collection(Booking.COLLECTION_NAME).document()
                 val bookingWithId = booking.copy(id = docRef.id)
                 docRef.set(bookingWithId).await()
                 Result.success(docRef.id)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+
+        /** Erstellt eine neue Buchung aus Datum und Kommentar */
+        suspend fun createBooking(
+            date: LocalDate,
+            comment: String,
+            userId: String,
+            userName: String,
+            teamId: String,
+            type: BookingType = BookingType.HOME_OFFICE,
+        ): Result<String> {
+            return try {
+                // Validiere das Datum
+                if (date.isBefore(LocalDate.now())) {
+                    return Result.failure(IllegalArgumentException("Buchungen für vergangene Tage sind nicht möglich"))
+                }
+
+                // Prüfe auf existierende Buchungen
+                val existingBooking =
+                    getUserBookingsForDate(userId, date).getOrNull()?.firstOrNull {
+                        it.status != BookingStatus.CANCELLED
+                    }
+                if (existingBooking != null) {
+                    return Result.failure(
+                        IllegalArgumentException("Sie haben bereits eine aktive Buchung für diesen Tag"),
+                    )
+                }
+
+                // Hole Team-Informationen für den Reviewer
+                val team =
+                    try {
+                        val teamDoc =
+                            firestore
+                                .collection(Team.COLLECTION_NAME)
+                                .document(teamId)
+                                .get()
+                                .await()
+                        teamDoc.toObject(Team::class.java)
+                            ?: return Result.failure(IllegalArgumentException("Team nicht gefunden"))
+                    } catch (e: Exception) {
+                        return Result.failure(IllegalArgumentException("Fehler beim Laden des Teams: ${e.message}", e))
+                    }
+
+                // Prüfe ob das Team einen Manager hat
+                if (team.managerId.isNullOrEmpty()) {
+                    return Result.failure(IllegalArgumentException("Das Team hat keinen Manager zugewiesen"))
+                }
+
+                val booking =
+                    Booking(
+                        dateString = date.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                        userId = userId,
+                        userName = userName,
+                        teamId = teamId,
+                        type = type,
+                        comment = comment,
+                        status = BookingStatus.PENDING,
+                        createdAt = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
+                        reviewerId = team.managerId,
+                    )
+                createBooking(booking)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
+        /** Lädt Buchungen eines Benutzers für ein bestimmtes Datum */
+        private suspend fun getUserBookingsForDate(
+            userId: String,
+            date: LocalDate,
+        ): Result<List<Booking>> =
+            try {
+                val dateStr = date.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                val querySnapshot =
+                    firestore
+                        .collection(Booking.COLLECTION_NAME)
+                        .whereEqualTo(Booking.USER_ID_FIELD, userId)
+                        .whereEqualTo(Booking.DATE_FIELD, dateStr)
+                        .get()
+                        .await()
+
+                Result.success(querySnapshot.toObjects(Booking::class.java))
             } catch (e: Exception) {
                 Result.failure(e)
             }
@@ -163,7 +265,7 @@ class BookingRepository
                             type = BookingType.HOME_OFFICE,
                             status = BookingStatus.APPROVED,
                             comment = "Home Office Tag",
-                            createdAt = currentDate.toString(),
+                            createdAt = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
                         ),
                         Booking(
                             userId = "demo_user_2",
@@ -176,7 +278,7 @@ class BookingRepository
                             type = BookingType.HOME_OFFICE,
                             status = BookingStatus.APPROVED,
                             comment = "Remote Work",
-                            createdAt = currentDate.toString(),
+                            createdAt = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
                         ),
                         Booking(
                             userId = "demo_user_3",
@@ -189,7 +291,7 @@ class BookingRepository
                             type = BookingType.HOME_OFFICE,
                             status = BookingStatus.APPROVED,
                             comment = "Home Office",
-                            createdAt = currentDate.toString(),
+                            createdAt = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
                         ),
                     )
 

@@ -44,8 +44,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.flexioffice.R
 import com.example.flexioffice.navigation.FlexiOfficeRoutes
+import com.example.flexioffice.presentation.BookingViewModel
 import com.example.flexioffice.presentation.CalendarUiState
 import com.example.flexioffice.presentation.CalendarViewModel
+import com.example.flexioffice.presentation.components.BookingDialog
 import com.example.flexioffice.presentation.components.EventsList
 import com.example.flexioffice.presentation.components.MonthCalendar
 import com.example.flexioffice.presentation.components.TeamHomeOfficeSummary
@@ -56,6 +58,8 @@ import java.time.YearMonth
 private fun CalendarViewWithLoading(
     uiState: CalendarUiState,
     onDateSelected: (java.time.LocalDate) -> Unit,
+    onDateLongPress: (java.time.LocalDate) -> Unit,
+    onDateDoubleClick: (java.time.LocalDate) -> Unit,
     onMonthChanged: (YearMonth) -> Unit,
 ) {
     Box {
@@ -72,6 +76,8 @@ private fun CalendarViewWithLoading(
                 selectedDate = uiState.selectedDate,
                 events = uiState.events,
                 onDateSelected = onDateSelected,
+                onDateLongPress = onDateLongPress,
+                onDateDoubleClick = onDateDoubleClick,
                 onMonthChanged = onMonthChanged,
             )
         }
@@ -117,6 +123,7 @@ private fun CalendarViewWithLoading(
 @Composable
 fun CalendarScreen(
     viewModel: CalendarViewModel = hiltViewModel(),
+    bookingViewModel: BookingViewModel = hiltViewModel(),
     navigationController: NavHostController,
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -127,8 +134,23 @@ fun CalendarScreen(
         uiState.errorMessage?.let { message ->
             Log.e("CalendarScreen", "Error: $message")
             snackbarHostState.showSnackbar(message)
-            viewModel.clearError()
+            viewModel.clearErrorMessage()
         }
+    }
+
+    // Booking Dialog
+    if (uiState.showBookingDialog) {
+        BookingDialog(
+            showDialog = true,
+            selectedDate = uiState.bookingDialogDate,
+            comment = uiState.bookingComment,
+            error = uiState.errorMessage,
+            isLoading = uiState.isCreatingBooking,
+            onDismiss = { viewModel.hideBookingDialog() },
+            onDateClick = { /* Datum ist bereits ausgewählt */ },
+            onCommentChange = { viewModel.updateBookingComment(it) },
+            onCreateBooking = { viewModel.handleBookingCreation() },
+        )
     }
 
     Scaffold(
@@ -161,6 +183,14 @@ fun CalendarScreen(
                 CalendarViewWithLoading(
                     uiState = uiState,
                     onDateSelected = viewModel::selectDate,
+                    onDateLongPress = { date ->
+                        // Dialog direkt im CalendarScreen anzeigen
+                        viewModel.showBookingDialog(date)
+                    },
+                    onDateDoubleClick = { date ->
+                        // direktbuchung
+                        viewModel.createDirectBooking(date)
+                    },
                     onMonthChanged = { month ->
                         if (month != uiState.currentMonth) {
                             if (month.isAfter(uiState.currentMonth)) {
@@ -187,8 +217,6 @@ fun CalendarScreen(
                     // Show empty state if no events but has team
                     EmptyStateOrDemoButton(
                         hasTeam = !uiState.currentUser?.teamId.isNullOrEmpty(),
-                        onLoadDemo = viewModel::loadDemoData,
-                        isLoadingDemoData = uiState.isLoadingDemoData,
                         navigationController,
                     )
                 }
@@ -281,8 +309,6 @@ private fun CalendarHeader(
 @Composable
 private fun EmptyStateOrDemoButton(
     hasTeam: Boolean,
-    onLoadDemo: () -> Unit,
-    isLoadingDemoData: Boolean = false,
     navigationController: NavHostController,
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {

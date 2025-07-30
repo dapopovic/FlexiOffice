@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -38,12 +37,42 @@ fun FlexiOfficeNavigation(
         }
 
         // Calendar Screen
-        composable(FlexiOfficeRoutes.Calendar.route) { CalendarScreen(hiltViewModel(), navController) }
+        composable(FlexiOfficeRoutes.Calendar.route) {
+            CalendarScreen(
+                hiltViewModel(),
+                bookingViewModel = hiltViewModel(),
+                navController,
+            )
+        }
 
         // Booking Screen - Protected by team membership
-        composable(FlexiOfficeRoutes.Booking.route) {
+        composable(route = FlexiOfficeRoutes.Booking.route) {
             if (mainViewModel.hasAccessToRoute(FlexiOfficeRoutes.Booking.route)) {
                 BookingScreen()
+            } else {
+                TeamAccessRequired(
+                    onNavigateToTeams = {
+                        navController.navigate(FlexiOfficeRoutes.Teams.route) {
+                            popUpTo(FlexiOfficeRoutes.Booking.route) { inclusive = true }
+                        }
+                    },
+                )
+            }
+        }
+
+        composable(
+            route = FlexiOfficeRoutes.Booking.FULL_ROUTE,
+            arguments =
+                listOf(
+                    androidx.navigation.navArgument("date") {
+                        type = androidx.navigation.NavType.StringType
+                        nullable = true
+                    },
+                ),
+        ) { backStackEntry ->
+            if (mainViewModel.hasAccessToRoute(FlexiOfficeRoutes.Booking.route)) {
+                val date = backStackEntry.arguments?.getString("date")
+                BookingScreen(selectedDate = date)
             } else {
                 // Show team access required screen
                 TeamAccessRequired(
