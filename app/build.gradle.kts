@@ -83,6 +83,9 @@ dependencies {
     // Calendar
     implementation(libs.kizitonwose.calendar.compose)
 
+    // LocalBroadcastManager for in-app notifications
+    implementation(libs.androidx.localbroadcastmanager)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

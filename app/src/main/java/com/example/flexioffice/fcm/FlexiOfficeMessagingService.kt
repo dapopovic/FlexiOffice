@@ -1,22 +1,25 @@
 package com.example.flexioffice.fcm
 
+import android.app.ActivityManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.flexioffice.MainActivity
 import com.example.flexioffice.R
+import com.example.flexioffice.fcm.FCMTokenManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 class FlexiOfficeMessagingService : FirebaseMessagingService() {
@@ -27,9 +30,16 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
         private const val CHANNEL_DESCRIPTION = "Benachrichtigungen über Buchungsanfragen-Status"
     }
 
+    private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        serviceScope.cancel()
     }
 
     override fun onNewToken(token: String) {
@@ -45,12 +55,13 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
         if (remoteMessage.data.isNotEmpty()) {
             Log.d(TAG, "Message data payload: ${remoteMessage.data}")
             handleDataMessage(remoteMessage.data)
-        }
-
-        // Check if message contains a notification payload
-        remoteMessage.notification?.let {
-            Log.d(TAG, "Message Notification Body: ${it.body}")
-            showNotification(it.title, it.body)
+        } else {
+            // Only show notification payload if there's no data payload
+            // This prevents duplicate notifications when both payloads are present
+            remoteMessage.notification?.let {
+                Log.d(TAG, "Message Notification Body: ${it.body}")
+                showNotification(it.title, it.body)
+            }
         }
     }
 
@@ -72,17 +83,17 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
 
                 val body =
                     when (status) {
-                        "APPROVED" -> "Ihr Home-Office-Antrag für $date wurde genehmigt."
-                        "DECLINED" -> "Ihr Home-Office-Antrag für $date wurde leider abgelehnt."
+                        "APPROVED" -> "Ihr Home-Office-Antrag${date?.let { " für $it" } ?: ""} wurde genehmigt."
+                        "DECLINED" -> "Ihr Home-Office-Antrag${date?.let { " für $it" } ?: ""} wurde leider abgelehnt."
                         else -> "Der Status Ihrer Buchung wurde geändert."
                     }
 
-                showNotification(title, body, bookingId)
+                showNotificationWithType(title, body, type, bookingId, userName, date)
             }
             "new_booking_request" -> {
                 val title = "Neue Buchungsanfrage 📋"
-                val body = "$userName möchte Home-Office am $date"
-                showNotification(title, body, bookingId)
+                val body = "${userName ?: "Ein Mitarbeiter"} möchte Home-Office${date?.let { " am $it" } ?: ""}"
+                showNotificationWithType(title, body, type, bookingId, userName, date)
             }
             else -> {
                 Log.w(TAG, "Unknown message type: $type")
@@ -95,6 +106,18 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
         body: String?,
         bookingId: String? = null,
     ) {
+        // If app is in foreground, send in-app notification instead
+        if (isAppInForeground()) {
+            Log.d(TAG, "App is in foreground, sending in-app notification")
+            InAppNotificationManager.sendInAppNotification(
+                context = this,
+                title = title ?: "FlexiOffice",
+                body = body ?: "Sie haben eine neue Nachricht",
+                bookingId = bookingId,
+            )
+            return
+        }
+
         val intent =
             Intent(this, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -129,28 +152,52 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
         notificationManager.notify(notificationId, notificationBuilder.build())
     }
 
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel =
-                NotificationChannel(
-                    CHANNEL_ID,
-                    CHANNEL_NAME,
-                    NotificationManager.IMPORTANCE_HIGH,
-                ).apply {
-                    description = CHANNEL_DESCRIPTION
-                    enableVibration(true)
-                    enableLights(true)
-                }
-
-            val notificationManager: NotificationManager =
-                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
+    private fun showNotificationWithType(
+        title: String?,
+        body: String?,
+        type: String?,
+        bookingId: String? = null,
+        userName: String? = null,
+        date: String? = null,
+    ) {
+        // If app is in foreground, send in-app notification instead
+        if (isAppInForeground()) {
+            Log.d(TAG, "App is in foreground, sending in-app notification")
+            InAppNotificationManager.sendInAppNotification(
+                context = this,
+                title = title ?: "FlexiOffice",
+                body = body ?: "Sie haben eine neue Nachricht",
+                type = type,
+                bookingId = bookingId,
+                userName = userName,
+                date = date,
+            )
+            return
         }
+
+        // Show regular notification if app is in background
+        showNotification(title, body, bookingId)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
+    private fun createNotificationChannel() {
+        val channel =
+            NotificationChannel(
+                CHANNEL_ID,
+                CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_HIGH,
+            ).apply {
+                description = CHANNEL_DESCRIPTION
+                enableVibration(true)
+                enableLights(true)
+            }
+
+        val notificationManager: NotificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
+    }
+
     private fun sendTokenToServer(token: String) {
-        GlobalScope.launch {
+        serviceScope.launch {
             try {
                 val fcmTokenManager =
                     FCMTokenManager(
@@ -162,6 +209,33 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to send FCM token to server: ${e.message}")
             }
+        }
+    }
+
+    /**
+     * Check if the app is currently in the foreground
+     * Uses a simplified approach suitable for modern Android versions
+     */
+    private fun isAppInForeground(): Boolean {
+        try {
+            val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            val appProcesses = activityManager.runningAppProcesses ?: return false
+
+            val packageName = packageName
+            for (appProcess in appProcesses) {
+                if (appProcess.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND &&
+                    appProcess.processName == packageName
+                ) {
+                    Log.d(TAG, "App is in foreground")
+                    return true
+                }
+            }
+            Log.d(TAG, "App is in background")
+            return false
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not determine app state, showing notification anyway", e)
+            // If we can't determine the state, show the notification to be safe
+            return false
         }
     }
 }

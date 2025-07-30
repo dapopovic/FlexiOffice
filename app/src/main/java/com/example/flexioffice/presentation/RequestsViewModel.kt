@@ -149,7 +149,7 @@ class RequestsViewModel
 
                     Log.d(
                         "RequestsViewModel",
-                        "$action Antrag ab: ${booking.id} für User: ${booking.userName}",
+                        "$action Antrag: ${booking.id} für User: ${booking.userName}",
                     )
 
                     bookingRepository
