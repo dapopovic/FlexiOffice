@@ -87,7 +87,7 @@ class BookingRepository
                         teamDoc.toObject(Team::class.java)
                             ?: return Result.failure(IllegalArgumentException("Team nicht gefunden"))
                     } catch (e: Exception) {
-                        return Result.failure(IllegalArgumentException("Fehler beim Laden des Teams"))
+                        return Result.failure(IllegalArgumentException("Fehler beim Laden des Teams: ${e.message}", e))
                     }
 
                 // Prüfe ob das Team einen Manager hat
