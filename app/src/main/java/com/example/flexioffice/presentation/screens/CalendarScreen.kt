@@ -59,6 +59,7 @@ private fun CalendarViewWithLoading(
     uiState: CalendarUiState,
     onDateSelected: (java.time.LocalDate) -> Unit,
     onDateLongPress: (java.time.LocalDate) -> Unit,
+    onDateDoubleClick: (java.time.LocalDate) -> Unit,
     onMonthChanged: (YearMonth) -> Unit,
 ) {
     Box {
@@ -76,6 +77,7 @@ private fun CalendarViewWithLoading(
                 events = uiState.events,
                 onDateSelected = onDateSelected,
                 onDateLongPress = onDateLongPress,
+                onDateDoubleClick = onDateDoubleClick,
                 onMonthChanged = onMonthChanged,
             )
         }
@@ -184,6 +186,10 @@ fun CalendarScreen(
                     onDateLongPress = { date ->
                         // Dialog direkt im CalendarScreen anzeigen
                         viewModel.showBookingDialog(date)
+                    },
+                    onDateDoubleClick = { date ->
+                        // direktbuchung
+                        viewModel.createDirectBooking(date)
                     },
                     onMonthChanged = { month ->
                         if (month != uiState.currentMonth) {

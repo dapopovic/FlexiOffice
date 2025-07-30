@@ -60,6 +60,7 @@ fun MonthCalendar(
     events: List<CalendarEvent>,
     onDateSelected: (LocalDate) -> Unit,
     onDateLongPress: (LocalDate) -> Unit,
+    onDateDoubleClick: (LocalDate) -> Unit,
     onMonthChanged: (YearMonth) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -97,6 +98,7 @@ fun MonthCalendar(
                         events = dayEvents,
                         onClick = { onDateSelected(day.date) },
                         onLongClick = { onDateLongPress(day.date) },
+                        onDoubleClick = { onDateDoubleClick(day.date) },
                     )
                 },
                 monthHeader = { /* Empty, we use custom header */ },
@@ -163,6 +165,7 @@ private fun CalendarDay(
     events: List<CalendarEvent>,
     onClick: () -> Unit,
     onLongClick: () -> Unit = {},
+    onDoubleClick: () -> Unit = {},
 ) {
     val isToday = day.date == LocalDate.now()
     val isCurrentMonth = day.position == DayPosition.MonthDate
@@ -184,6 +187,7 @@ private fun CalendarDay(
                     enabled = isCurrentMonth,
                     onClick = onClick,
                     onLongClick = onLongClick,
+                    onDoubleClick = onDoubleClick,
                 ),
         contentAlignment = Alignment.TopCenter,
     ) {
