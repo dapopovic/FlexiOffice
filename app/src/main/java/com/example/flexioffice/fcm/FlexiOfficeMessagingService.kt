@@ -14,7 +14,6 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
 class FlexiOfficeMessagingService : FirebaseMessagingService() {
-
     companion object {
         private const val TAG = "FCMService"
         private const val CHANNEL_ID = "flexioffice_booking_updates"
@@ -29,7 +28,7 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         Log.d(TAG, "Refreshed FCM token: $token")
-        
+
         // TODO: Send the token to your server/Firestore
         // This should be handled by FCMTokenManager
         sendTokenToServer(token)
@@ -60,18 +59,20 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
 
         when (type) {
             "booking_status_update" -> {
-                val title = when (status) {
-                    "APPROVED" -> "Home-Office genehmigt! ✅"
-                    "DECLINED" -> "Home-Office abgelehnt ❌"
-                    else -> "Buchungsstatus geändert"
-                }
-                
-                val body = when (status) {
-                    "APPROVED" -> "Ihr Home-Office-Antrag für $date wurde genehmigt."
-                    "DECLINED" -> "Ihr Home-Office-Antrag für $date wurde leider abgelehnt."
-                    else -> "Der Status Ihrer Buchung wurde geändert."
-                }
-                
+                val title =
+                    when (status) {
+                        "APPROVED" -> "Home-Office genehmigt! ✅"
+                        "DECLINED" -> "Home-Office abgelehnt ❌"
+                        else -> "Buchungsstatus geändert"
+                    }
+
+                val body =
+                    when (status) {
+                        "APPROVED" -> "Ihr Home-Office-Antrag für $date wurde genehmigt."
+                        "DECLINED" -> "Ihr Home-Office-Antrag für $date wurde leider abgelehnt."
+                        else -> "Der Status Ihrer Buchung wurde geändert."
+                    }
+
                 showNotification(title, body, bookingId)
             }
             "new_booking_request" -> {
@@ -85,31 +86,39 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
         }
     }
 
-    private fun showNotification(title: String?, body: String?, bookingId: String? = null) {
-        val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            // Navigate to appropriate screen based on notification
-            bookingId?.let {
-                putExtra("booking_id", it)
-                putExtra("navigate_to", "requests")
+    private fun showNotification(
+        title: String?,
+        body: String?,
+        bookingId: String? = null,
+    ) {
+        val intent =
+            Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                // Navigate to appropriate screen based on notification
+                bookingId?.let {
+                    putExtra("booking_id", it)
+                    putExtra("navigate_to", "requests")
+                }
             }
-        }
 
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(
-            this, 
-            0, 
-            intent, 
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        val pendingIntent: PendingIntent =
+            PendingIntent.getActivity(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
 
-        val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.assignment_24px)
-            .setContentTitle(title ?: "FlexiOffice")
-            .setContentText(body ?: "Sie haben eine neue Nachricht")
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
+        val notificationBuilder =
+            NotificationCompat
+                .Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.drawable.assignment_24px)
+                .setContentTitle(title ?: "FlexiOffice")
+                .setContentText(body ?: "Sie haben eine neue Nachricht")
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(body))
 
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val notificationId = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
@@ -118,15 +127,16 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = CHANNEL_DESCRIPTION
-                enableVibration(true)
-                enableLights(true)
-            }
+            val channel =
+                NotificationChannel(
+                    CHANNEL_ID,
+                    CHANNEL_NAME,
+                    NotificationManager.IMPORTANCE_HIGH,
+                ).apply {
+                    description = CHANNEL_DESCRIPTION
+                    enableVibration(true)
+                    enableLights(true)
+                }
 
             val notificationManager: NotificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
