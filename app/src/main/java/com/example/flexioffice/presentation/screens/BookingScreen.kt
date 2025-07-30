@@ -29,7 +29,16 @@ import com.example.flexioffice.presentation.components.CancelBookingDialog
 import com.example.flexioffice.presentation.components.EmptyBookingsCard
 
 @Composable
-fun BookingScreen(viewModel: BookingViewModel = hiltViewModel()) {
+fun BookingScreen(
+    viewModel: BookingViewModel = hiltViewModel(),
+    selectedDate: String? = null,
+) {
+    // Wenn ein Datum übergeben wurde, zeige den Dialog
+    LaunchedEffect(selectedDate) {
+        selectedDate?.let { dateStr ->
+            viewModel.showBookingDialog(java.time.LocalDate.parse(dateStr))
+        }
+    }
     val uiState by viewModel.uiState.collectAsState()
 
     // Cancel booking dialog
