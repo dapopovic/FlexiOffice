@@ -213,21 +213,20 @@ fun RequestItem(
     val swipeThreshold = screenWidthPx / 2f // Hälfte der Bildschirmbreite
 
     // Farben für visuelles Feedback
-    val approveColor =
-        androidx.compose.ui.graphics
-            .Color(0xFF4CAF50) // Helles Grün
-    val declineColor =
-        androidx.compose.ui.graphics
-            .Color(0xFFFF5722) // Helles Rot
+    val approveColor = MaterialTheme.colorScheme.primary // typisches Theme-Grün
+    val declineColor = MaterialTheme.colorScheme.error // z.B. Rot aus Theme
     val neutralColor = MaterialTheme.colorScheme.surfaceBright // Gleiche graue Farbe wie BookingItems
 
+    // Hilfsfunktion für Alpha-Berechnung
+    fun swipeAlpha(offset: Float, threshold: Float): Float =
+        (kotlin.math.abs(offset) / threshold).coerceAtMost(0.3f)
+
     // Berechne Hintergrundfarbe basierend auf Swipe-Richtung
-    val backgroundColor =
-        when {
-            offsetX > 50f -> approveColor.copy(alpha = (offsetX / swipeThreshold).coerceAtMost(0.3f))
-            offsetX < -50f -> declineColor.copy(alpha = (-offsetX / swipeThreshold).coerceAtMost(0.3f))
-            else -> neutralColor
-        }
+    val backgroundColor = when {
+        offsetX > 50f -> approveColor.copy(alpha = swipeAlpha(offsetX, swipeThreshold))
+        offsetX < -50f -> declineColor.copy(alpha = swipeAlpha(offsetX, swipeThreshold))
+        else -> neutralColor
+    }
 
     LaunchedEffect(offsetX) {
         if (isSwipeProcessing) return@LaunchedEffect
