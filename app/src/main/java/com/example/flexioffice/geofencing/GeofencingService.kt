@@ -4,7 +4,6 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.ConnectivityManager
@@ -118,10 +117,10 @@ class GeofencingService : Service() {
             val today = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
             val lastNotificationDate = sharedPrefs.getString(KEY_LAST_NOTIFICATION_DATE, "")
 
-//            if (lastNotificationDate == today) {
-//                Log.d(TAG, "Heute bereits eine Home Office Notification gesendet - überspringe")
-//                return
-//            }
+            if (lastNotificationDate == today) {
+                Log.d(TAG, "Heute bereits eine Home Office Notification gesendet - überspringe")
+                return
+            }
 
             // Prüfe Netzwerkverbindung
             if (!isNetworkAvailable()) {
