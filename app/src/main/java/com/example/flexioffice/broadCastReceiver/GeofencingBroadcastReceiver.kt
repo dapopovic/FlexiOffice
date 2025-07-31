@@ -30,7 +30,6 @@ class GeofencingBroadcastReceiver : BroadcastReceiver() {
             Log.e(TAG, "Geofencing error: ${geofencingEvent.errorCode}")
             return
         }
-        Log.d(TAG, "Test")
 
         // Prüfe den Geofence-Übergang
         val geofenceTransition = geofencingEvent.geofenceTransition

@@ -16,8 +16,8 @@ import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.BookingRepository
 import com.example.flexioffice.data.UserRepository
 import com.example.flexioffice.data.model.BookingStatus
-import com.example.flexioffice.geofencing.notifications.HomeOfficeNotificationManager
 import com.example.flexioffice.geofencing.GeofencingManager
+import com.example.flexioffice.geofencing.notifications.HomeOfficeNotificationManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -44,7 +44,7 @@ class GeofencingService : Service() {
         private const val FOREGROUND_CHANNEL_ID = "geofencing_service_channel"
         private const val NETWORK_TIMEOUT_MS = 10000L // 10 seconds
         private const val MAX_RETRY_COUNT = 3
-        
+
         // Action constants
         const val ACTION_REREGISTER_GEOFENCES = "com.example.flexioffice.action.REREGISTER_GEOFENCES"
     }
@@ -124,10 +124,10 @@ class GeofencingService : Service() {
             val today = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
             val lastNotificationDate = sharedPrefs.getString(KEY_LAST_NOTIFICATION_DATE, "")
 
-            if (lastNotificationDate == today) {
-                Log.d(TAG, "Heute bereits eine Home Office Notification gesendet - überspringe")
-                return
-            }
+//            if (lastNotificationDate == today) {
+//                Log.d(TAG, "Heute bereits eine Home Office Notification gesendet - überspringe")
+//                return
+//            }
 
             // Prüfe Netzwerkverbindung
             if (!isNetworkAvailable()) {
@@ -259,10 +259,10 @@ class GeofencingService : Service() {
                     return@withTimeout
                 }
 
-                // Prüfe ob User noch Home-Koordinaten hat 
+                // Prüfe ob User noch Home-Koordinaten hat
                 if (user.hasHomeLocation) {
                     Log.d(TAG, "Re-registriere Geofence für User: ${user.name}")
-                    
+
                     geofencingManager.setupHomeGeofence(user).fold(
                         onSuccess = {
                             Log.d(TAG, "Geofence erfolgreich re-registriert nach Boot/Update")
@@ -271,14 +271,13 @@ class GeofencingService : Service() {
                             Log.e(TAG, "Fehler beim Re-Registrieren der Geofence", error)
                             // Setze Status auf inaktiv bei Fehlern
                             geofencingManager.removeGeofences()
-                        }
+                        },
                     )
                 } else {
                     Log.d(TAG, "User hat keine Home-Location mehr - deaktiviere Geofencing")
                     geofencingManager.removeGeofences()
                 }
             }
-
         } catch (e: TimeoutCancellationException) {
             Log.w(TAG, "Timeout beim Re-Registrieren der Geofences")
         } catch (e: UnknownHostException) {

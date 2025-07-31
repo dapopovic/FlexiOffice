@@ -1,6 +1,5 @@
 package com.example.flexioffice.geofencing
 
-import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -55,7 +54,6 @@ class GeofencingManager
          * Konfiguriert Geofencing für das Zuhause des Benutzers
          */
         @RequiresApi(Build.VERSION_CODES.S)
-        @SuppressLint("MissingPermission")
         fun setupHomeGeofence(user: User): Result<Unit> {
             return try {
                 if (!user.hasHomeLocation) {
