@@ -1,5 +1,7 @@
 package com.example.flexioffice.presentation.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,12 +31,16 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun BookingItem(
     booking: Booking,
     onClick: (Booking) -> Unit = {},
     onCancelClick: (Booking) -> Unit = {},
+    onLongClick: () -> Unit = {},
+    isMultiSelectMode: Boolean = false,
+    isSelected: Boolean = false,
+    onSelectionChanged: (Boolean) -> Unit = {},
 ) {
     val isStorniert = booking.status == BookingStatus.CANCELLED
     val dateTimeFormatter =
@@ -42,13 +49,30 @@ fun BookingItem(
         }
 
     Card(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        onClick = { onClick(booking) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .combinedClickable(
+                onClick = { 
+                    if (isMultiSelectMode && !isStorniert) {
+                        onSelectionChanged(!isSelected)
+                    } else if (!isMultiSelectMode) {
+                        onClick(booking)
+                    }
+                },
+                onLongClick = {
+                    if (!isStorniert) {
+                        onLongClick()
+                    }
+                }
+            ),
         colors =
             CardDefaults.cardColors(
                 containerColor =
                     if (booking.status == BookingStatus.CANCELLED) {
                         MaterialTheme.colorScheme.surfaceContainerLow
+                    } else if (isSelected) {
+                        MaterialTheme.colorScheme.primaryContainer
                     } else {
                         MaterialTheme.colorScheme.surfaceBright
                     },
@@ -62,6 +86,15 @@ fun BookingItem(
             modifier = Modifier.fillMaxWidth().padding(20.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // Multi-select Checkbox
+            if (isMultiSelectMode && !isStorniert) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = { onSelectionChanged(it) },
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+            }
+
             // Status Icon
             Icon(
                 painter =

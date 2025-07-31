@@ -167,6 +167,7 @@ fun CalendarScreen(
                 modifier =
                     Modifier
                         .fillMaxSize()
+                        .padding(padding)
                         .padding(16.dp)
                         .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp),

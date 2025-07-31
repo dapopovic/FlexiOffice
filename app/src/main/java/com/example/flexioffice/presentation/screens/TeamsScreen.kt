@@ -754,7 +754,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
         },
     ) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
         ) {
             // Header
             Row(
