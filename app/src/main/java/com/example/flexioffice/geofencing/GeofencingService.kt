@@ -1,5 +1,6 @@
 package com.example.flexioffice.geofencing
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -10,6 +11,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.IBinder
 import android.util.Log
+import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
 import com.example.flexioffice.data.AuthRepository
@@ -23,6 +25,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -162,8 +165,7 @@ class GeofencingService : Service() {
 
                 val hasHomeOfficeToday =
                     todayBookings.any { booking ->
-                        booking.status == BookingStatus.APPROVED &&
-                            booking.date == LocalDate.now()
+                        booking.status == BookingStatus.APPROVED
                     }
 
                 if (hasHomeOfficeToday) {
@@ -207,7 +209,7 @@ class GeofencingService : Service() {
     /**
      * Plant einen erneuten Versuch für später ein (nur bei Netzwerkproblemen)
      */
-    private fun scheduleRetry() {
+    private suspend fun scheduleRetry() {
         val currentRetryCount = sharedPrefs.getInt(KEY_RETRY_COUNT, 0)
 
         if (currentRetryCount < MAX_RETRY_COUNT) {
@@ -216,8 +218,14 @@ class GeofencingService : Service() {
 
             Log.d(TAG, "Plane Wiederholung $newRetryCount/$MAX_RETRY_COUNT für später ein")
 
-            // TODO: Hier könnte man einen AlarmManager oder WorkManager für delayed retry verwenden
-            // Für jetzt loggen wir nur und der nächste Geofence-Exit wird es erneut versuchen
+            val delayMs = 30000L * (1 shl (newRetryCount - 1))
+
+            Log.d(TAG, "Plane Wiederholung $newRetryCount/$MAX_RETRY_COUNT in ${delayMs / 1000}s")
+
+            scope.launch {
+                delay(delayMs)
+                checkAndSendHomeOfficeNotification()
+            }
         } else {
             Log.w(TAG, "Maximale Anzahl von Wiederholungen erreicht - gebe auf")
             sharedPrefs.edit { putInt(KEY_RETRY_COUNT, 0) }
@@ -227,6 +235,7 @@ class GeofencingService : Service() {
     /**
      * Re-registriert Geofences nach einem Geräte-Neustart oder App-Update
      */
+    @RequiresPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     private suspend fun reregisterGeofencesAfterBoot() {
         try {
             Log.d(TAG, "Re-registriere Geofences nach Boot/Update...")
@@ -287,6 +296,7 @@ class GeofencingService : Service() {
         }
     }
 
+    @RequiresPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     override fun onStartCommand(
         intent: Intent?,
         flags: Int,

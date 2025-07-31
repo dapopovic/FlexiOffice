@@ -1,17 +1,16 @@
 package com.example.flexioffice.geofencing
 
+import android.Manifest
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
+import androidx.annotation.RequiresPermission
 import androidx.core.content.edit
 import com.example.flexioffice.broadCastReceiver.GeofencingBroadcastReceiver
 import com.example.flexioffice.data.model.User
+import com.example.flexioffice.geofencing.permissions.LocationPermissionManager
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.GeofencingRequest
@@ -25,6 +24,7 @@ class GeofencingManager
     @Inject
     constructor(
         @ApplicationContext private val context: Context,
+        private val locationPermissionManager: LocationPermissionManager,
     ) {
         companion object {
             private const val TAG = "GeofencingManager"
@@ -53,7 +53,7 @@ class GeofencingManager
         /**
          * Konfiguriert Geofencing für das Zuhause des Benutzers
          */
-        @RequiresApi(Build.VERSION_CODES.S)
+        @RequiresPermission(Manifest.permission.ACCESS_FINE_LOCATION)
         fun setupHomeGeofence(user: User): Result<Unit> {
             return try {
                 if (!user.hasHomeLocation) {
@@ -61,7 +61,7 @@ class GeofencingManager
                     return Result.failure(IllegalStateException("Keine Home-Location konfiguriert"))
                 }
 
-                if (!hasLocationPermissions()) {
+                if (!locationPermissionManager.hasAllRequiredPermissions()) {
                     Log.w(TAG, "Keine Location-Berechtigung vorhanden")
                     return Result.failure(SecurityException("Keine Location-Berechtigung"))
                 }
@@ -152,17 +152,4 @@ class GeofencingManager
                 null
             }
         }
-
-        /**
-         * Prüft ob alle erforderlichen Location-Berechtigungen vorhanden sind
-         */
-        private fun hasLocationPermissions(): Boolean =
-            ActivityCompat.checkSelfPermission(
-                context,
-                android.Manifest.permission.ACCESS_FINE_LOCATION,
-            ) == PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(
-                    context,
-                    android.Manifest.permission.ACCESS_BACKGROUND_LOCATION,
-                ) == PackageManager.PERMISSION_GRANTED
     }
