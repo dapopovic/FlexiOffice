@@ -74,6 +74,10 @@ class MainViewModel
                                     }.getOrElse {
                                         // Failure: Could not get user profile from Firestore.
                                         // Still logged in, but fall back to a default role without team.
+
+                                        // Initialize geofencing even with fallback user data
+                                        geofencingInitializer.initializeGeofencingOnAppStart()
+
                                         val navItems = BottomNavigationItems.getItemsForUser(null)
                                         MainUiState(
                                             isLoading = false,

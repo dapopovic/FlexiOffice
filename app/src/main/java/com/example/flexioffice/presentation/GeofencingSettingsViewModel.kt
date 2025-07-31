@@ -15,6 +15,7 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -146,6 +147,15 @@ class GeofencingSettingsViewModel
                 try {
                     // Hole aktuellen Standort
                     val cancellationTokenSource = CancellationTokenSource()
+                    viewModelScope.launch {
+                        delay(30000)
+                        cancellationTokenSource.cancel() // Abbrechen nach 30 Sekunden
+                        _uiState.value =
+                            _uiState.value.copy(
+                                isSettingHomeLocation = false,
+                                errorMessage = "Standortabfrage abgebrochen. Bitte erneut versuchen.",
+                            )
+                    }
                     val location =
                         fusedLocationClient
                             .getCurrentLocation(

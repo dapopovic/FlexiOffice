@@ -311,7 +311,7 @@ private fun HomeLocationCard(
                         Locale.getDefault(),
                         "%.6f",
                         homeLatitude,
-                    )}, ${String.format(Locale.getDefault(),"%.6f", homeLongitude)}",
+                    )}, ${String.format(Locale.getDefault(), "%.6f", homeLongitude)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
