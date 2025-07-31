@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.example.flexioffice.R
 import com.example.flexioffice.navigation.FlexiOfficeRoutes
@@ -85,10 +86,7 @@ private fun CalendarViewWithLoading(
         // Loading overlay for month data
         if (uiState.isLoadingMonthData) {
             Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .height(300.dp),
+                modifier = Modifier.fillMaxSize().height(300.dp),
                 // Approximate calendar height
                 contentAlignment = Alignment.Center,
             ) {
@@ -353,9 +351,18 @@ private fun EmptyStateOrDemoButton(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                OutlinedButton(onClick = { navigationController.navigate(FlexiOfficeRoutes.Booking.route) }) {
-                    Text("Home-Office buchen")
-                }
+                OutlinedButton(
+                    onClick = {
+                        // Navigate to booking without affecting the navigation stack
+                        navigationController.navigate(FlexiOfficeRoutes.Booking.route) {
+                            popUpTo(navigationController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                ) { Text("Home-Office buchen") }
             }
         }
     }
