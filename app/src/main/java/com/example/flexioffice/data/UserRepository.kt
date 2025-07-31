@@ -226,4 +226,26 @@ class UserRepository
             } catch (e: Exception) {
                 Result.failure(e)
             }
+
+        /** Aktualisiert die Home-Location eines Benutzers für Geofencing */
+        suspend fun updateUserHomeLocation(
+            uid: String,
+            latitude: Double,
+            longitude: Double,
+        ): Result<Unit> =
+            try {
+                val updates = mapOf(
+                    User.HOME_LATITUDE_FIELD to latitude,
+                    User.HOME_LONGITUDE_FIELD to longitude,
+                    User.HAS_HOME_LOCATION_FIELD to true,
+                )
+                firestore
+                    .collection(User.COLLECTION_NAME)
+                    .document(uid)
+                    .update(updates)
+                    .await()
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
     }

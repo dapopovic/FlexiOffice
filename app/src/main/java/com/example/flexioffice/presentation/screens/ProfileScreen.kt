@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -18,6 +19,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,7 +32,9 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import com.example.flexioffice.R
+import com.example.flexioffice.navigation.FlexiOfficeRoutes
 import com.example.flexioffice.presentation.AuthViewModel
 import com.example.flexioffice.presentation.MainViewModel
 
@@ -39,6 +43,7 @@ import com.example.flexioffice.presentation.MainViewModel
 fun ProfileScreen(
     authViewModel: AuthViewModel = hiltViewModel(),
     mainViewModel: MainViewModel = hiltViewModel(),
+    navController: NavHostController? = null,
 ) {
     val authUiState by authViewModel.uiState.collectAsState()
     val mainUiState by mainViewModel.uiState.collectAsState()
@@ -289,6 +294,21 @@ fun ProfileScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+            }
+
+            // Geofencing Settings Button
+            OutlinedButton(
+                onClick = {
+                    navController?.navigate(FlexiOfficeRoutes.GeofencingSettings.route)
+                },
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            ) {
+                Icon(
+                    Icons.Default.LocationOn,
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = 8.dp),
+                )
+                Text("Home Office Erinnerungen")
             }
 
             // Logout Button
