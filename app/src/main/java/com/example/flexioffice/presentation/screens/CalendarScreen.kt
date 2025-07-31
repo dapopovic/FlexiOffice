@@ -124,6 +124,15 @@ fun CalendarScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    // Shake-Erkennung registrieren
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        viewModel.registerShakeDetection(context)
+        onDispose {
+            viewModel.unregisterShakeDetection()
+        }
+    }
 
     // Show error messages
     LaunchedEffect(uiState.errorMessage) {
@@ -146,6 +155,25 @@ fun CalendarScreen(
             onDateClick = { /* Datum ist bereits ausgewählt */ },
             onCommentChange = { viewModel.updateBookingComment(it) },
             onCreateBooking = { viewModel.handleBookingCreation() },
+        )
+    }
+
+    // Storno-Dialog bei Shake
+    if (uiState.showCancelDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { viewModel.hideCancelDialog() },
+            title = { androidx.compose.material3.Text("Buchung stornieren?") },
+            text = { androidx.compose.material3.Text("Möchtest du die Buchung wirklich stornieren?") },
+            confirmButton = {
+                androidx.compose.material3.Button(onClick = { viewModel.confirmCancelBooking() }) {
+                    androidx.compose.material3.Text("Stornieren")
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.Button(onClick = { viewModel.hideCancelDialog() }) {
+                    androidx.compose.material3.Text("Abbrechen")
+                }
+            }
         )
     }
 

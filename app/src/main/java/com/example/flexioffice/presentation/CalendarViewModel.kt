@@ -1,5 +1,6 @@
 package com.example.flexioffice.presentation
 
+import android.hardware.SensorManager
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,6 +12,7 @@ import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.data.model.CalendarEvent
 import com.example.flexioffice.data.model.EventType
 import com.example.flexioffice.data.model.User
+import com.example.flexioffice.util.ShakeDetector
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,6 +43,8 @@ data class CalendarUiState(
     val bookingDialogDate: LocalDate? = null,
     val bookingComment: String = "",
     val isCreatingBooking: Boolean = false,
+    val showCancelDialog: Boolean = false,
+    val cancelBookingId: String? = null,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -297,6 +301,76 @@ class CalendarViewModel
                                 errorMessage = e.message ?: "Fehler beim Laden der Demo-Daten",
                             )
                     }
+            }
+        }
+
+        // Shake-Erkennung
+        private var sensorManager: android.hardware.SensorManager? = null
+        private var shakeDetector: ShakeDetector? = null
+
+        fun registerShakeDetection(context: android.content.Context) {
+            if (sensorManager != null) return
+            sensorManager =
+                context.getSystemService(android.content.Context.SENSOR_SERVICE) as android.hardware.SensorManager
+            val accelerometer = sensorManager?.getDefaultSensor(android.hardware.Sensor.TYPE_ACCELEROMETER)
+            shakeDetector =
+                ShakeDetector {
+                    onShakeDetected()
+                }
+            sensorManager?.registerListener(
+                shakeDetector,
+                accelerometer,
+                android.hardware.SensorManager.SENSOR_DELAY_UI,
+            )
+        }
+
+        fun unregisterShakeDetection() {
+            sensorManager?.unregisterListener(shakeDetector)
+            sensorManager = null
+            shakeDetector = null
+        }
+
+        private fun onShakeDetected() {
+            val state = _uiState.value
+            val selectedDate = state.selectedDate
+            val currentUser = state.currentUser
+            if (selectedDate != null && currentUser != null) {
+                val booking =
+                    state.bookings.find {
+                        it.date == selectedDate && it.userId == currentUser.id &&
+                            it.status != BookingStatus.CANCELLED
+                    }
+                if (booking != null) {
+                    _uiState.value = state.copy(showCancelDialog = true, cancelBookingId = booking.id)
+                }
+            }
+        }
+
+        fun hideCancelDialog() {
+            _uiState.value = _uiState.value.copy(showCancelDialog = false, cancelBookingId = null)
+        }
+
+        fun confirmCancelBooking() {
+            val state = _uiState.value
+            val bookingId = state.cancelBookingId ?: return
+            val currentUser = state.currentUser ?: return
+            viewModelScope.launch {
+                try {
+                    bookingRepository.updateBookingStatus(
+                        bookingId = bookingId,
+                        status = BookingStatus.CANCELLED,
+                        reviewerId = currentUser.id,
+                    )
+                    _uiState.value = state.copy(showCancelDialog = false, cancelBookingId = null)
+                    loadBookingsForMonth(state.currentMonth)
+                } catch (e: Exception) {
+                    _uiState.value =
+                        state.copy(
+                            errorMessage = e.message ?: "Fehler beim Stornieren der Buchung",
+                            showCancelDialog = false,
+                            cancelBookingId = null,
+                        )
+                }
             }
         }
     }
