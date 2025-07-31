@@ -218,15 +218,18 @@ fun RequestItem(
     val neutralColor = MaterialTheme.colorScheme.surfaceBright // Gleiche graue Farbe wie BookingItems
 
     // Hilfsfunktion für Alpha-Berechnung
-    fun swipeAlpha(offset: Float, threshold: Float): Float =
-        (kotlin.math.abs(offset) / threshold).coerceAtMost(0.3f)
+    fun swipeAlpha(
+        offset: Float,
+        threshold: Float,
+    ): Float = (kotlin.math.abs(offset) / threshold).coerceAtMost(0.3f)
 
     // Berechne Hintergrundfarbe basierend auf Swipe-Richtung
-    val backgroundColor = when {
-        offsetX > 50f -> approveColor.copy(alpha = swipeAlpha(offsetX, swipeThreshold))
-        offsetX < -50f -> declineColor.copy(alpha = swipeAlpha(offsetX, swipeThreshold))
-        else -> neutralColor
-    }
+    val backgroundColor =
+        when {
+            offsetX > 50f -> approveColor.copy(alpha = swipeAlpha(offsetX, swipeThreshold))
+            offsetX < -50f -> declineColor.copy(alpha = swipeAlpha(offsetX, swipeThreshold))
+            else -> neutralColor
+        }
 
     LaunchedEffect(offsetX) {
         if (isSwipeProcessing) return@LaunchedEffect
