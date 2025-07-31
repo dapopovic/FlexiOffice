@@ -46,7 +46,8 @@
         <!-- Geofencing Broadcast Receiver -->
         <receiver
             android:name=".geofencing.GeofencingBroadcastReceiver"
-            android:exported="false" />
+            android:exported="false" >
+        </receiver>
 
         <!-- Geofencing Service -->
         <service

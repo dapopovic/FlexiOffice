@@ -78,7 +78,7 @@ class GeofencingInitializer
         /**
          * Deaktiviert Geofencing beim Logout
          */
-        suspend fun cleanupGeofencingOnLogout() {
+        fun cleanupGeofencingOnLogout() {
             try {
                 Log.d(TAG, "Cleaning up geofencing on logout...")
                 geofencingManager.removeGeofences().fold(

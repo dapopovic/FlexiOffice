@@ -30,8 +30,8 @@ class GeofencingManager
             private const val TAG = "GeofencingManager"
             private const val HOME_GEOFENCE_ID = "home_geofence"
             private const val GEOFENCE_RADIUS_METERS = 200f // 200 Meter Radius um das Zuhause
-            private const val GEOFENCE_PREFS = "geofence_prefs"
-            private const val KEY_GEOFENCE_ACTIVE = "geofence_active"
+            const val GEOFENCE_PREFS = "geofence_prefs"
+            const val KEY_GEOFENCE_ACTIVE = "geofence_active"
             private const val KEY_LAST_HOME_LOCATION_LAT = "last_home_lat"
             private const val KEY_LAST_HOME_LOCATION_LNG = "last_home_lng"
         }
@@ -80,7 +80,7 @@ class GeofencingManager
                             GEOFENCE_RADIUS_METERS,
                         ).setExpirationDuration(Geofence.NEVER_EXPIRE)
                         .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_EXIT)
-                        .setLoiteringDelay(30000) // 30 Sekunden warten bevor Exit getriggert wird
+                        .setNotificationResponsiveness(0) // Sofortige Benachrichtigung
                         .build()
 
                 val geofencingRequest =
@@ -95,12 +95,11 @@ class GeofencingManager
                     "Aktiviere Home Geofence für Koordinaten: ${user.homeLatitude}, ${user.homeLongitude}",
                 )
                 geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)
-                Log.d(TAG, "Geofence erfolgreich aktiviert mit PendingIntent: ${geofencePendingIntent.isBroadcast}")
-
                 // Speichere Status in SharedPreferences
                 sharedPrefs.edit {
                     putString(KEY_LAST_HOME_LOCATION_LAT, user.homeLatitude.toString())
                         .putString(KEY_LAST_HOME_LOCATION_LNG, user.homeLongitude.toString())
+                        .putBoolean(KEY_GEOFENCE_ACTIVE, true)
                 }
 
                 Log.d(

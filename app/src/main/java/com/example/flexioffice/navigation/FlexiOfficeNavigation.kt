@@ -110,7 +110,9 @@ fun FlexiOfficeNavigation(
 
         // Geofencing Settings Screen
         composable(FlexiOfficeRoutes.GeofencingSettings.route) {
-            GeofencingSettingsScreen()
+            GeofencingSettingsScreen(hiltViewModel(), navigateBack = {
+                navController.popBackStack()
+            })
         }
     }
 }

@@ -13,12 +13,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -33,7 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -41,11 +43,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.flexioffice.R
 import com.example.flexioffice.presentation.GeofencingSettingsViewModel
+import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GeofencingSettingsScreen(viewModel: GeofencingSettingsViewModel = hiltViewModel()) {
+fun GeofencingSettingsScreen(
+    viewModel: GeofencingSettingsViewModel = hiltViewModel(),
+    navigateBack: () -> Unit = {},
+) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Permission launcher für Location-Berechtigungen
@@ -90,7 +96,9 @@ fun GeofencingSettingsScreen(viewModel: GeofencingSettingsViewModel = hiltViewMo
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             // Header
-            GeofencingSettingsHeader()
+            GeofencingSettingsHeader(
+                onBackPressed = navigateBack,
+            )
 
             // Location Permission Card
             LocationPermissionCard(
@@ -99,8 +107,6 @@ fun GeofencingSettingsScreen(viewModel: GeofencingSettingsViewModel = hiltViewMo
                 onRequestPermissions = {
                     val permissions =
                         arrayOf(
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION,
                             Manifest.permission.ACCESS_BACKGROUND_LOCATION,
                         )
                     locationPermissionLauncher.launch(permissions)
@@ -149,12 +155,22 @@ fun GeofencingSettingsScreen(viewModel: GeofencingSettingsViewModel = hiltViewMo
 }
 
 @Composable
-private fun GeofencingSettingsHeader() {
+private fun GeofencingSettingsHeader(onBackPressed: () -> Unit = {}) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        IconButton(
+            onClick = onBackPressed,
+            modifier = Modifier.size(32.dp),
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+                tint = MaterialTheme.colorScheme.onSurface,
+            )
+        }
         Icon(
             imageVector = Icons.Default.LocationOn,
             contentDescription = "Location Icon",
@@ -280,9 +296,10 @@ private fun HomeLocationCard(
                 )
                 Text(
                     text = "Koordinaten: ${String.format(
+                        Locale.getDefault(),
                         "%.6f",
                         homeLatitude,
-                    )}, ${String.format("%.6f", homeLongitude)}",
+                    )}, ${String.format(Locale.getDefault(),"%.6f", homeLongitude)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

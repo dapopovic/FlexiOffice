@@ -63,7 +63,7 @@ class GeofencingService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        sharedPrefs = getSharedPreferences(NOTIFICATION_PREFS, Context.MODE_PRIVATE)
+        sharedPrefs = getSharedPreferences(NOTIFICATION_PREFS, MODE_PRIVATE)
         createNotificationChannel()
         Log.d(TAG, "GeofencingService erstellt")
     }
@@ -99,7 +99,7 @@ class GeofencingService : Service() {
      * Prüft ob eine Netzwerkverbindung verfügbar ist
      */
     private fun isNetworkAvailable(): Boolean {
-        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
 
         val network = connectivityManager.activeNetwork ?: return false
         val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
@@ -118,10 +118,10 @@ class GeofencingService : Service() {
             val today = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
             val lastNotificationDate = sharedPrefs.getString(KEY_LAST_NOTIFICATION_DATE, "")
 
-            if (lastNotificationDate == today) {
-                Log.d(TAG, "Heute bereits eine Home Office Notification gesendet - überspringe")
-                return
-            }
+//            if (lastNotificationDate == today) {
+//                Log.d(TAG, "Heute bereits eine Home Office Notification gesendet - überspringe")
+//                return
+//            }
 
             // Prüfe Netzwerkverbindung
             if (!isNetworkAvailable()) {
@@ -181,7 +181,7 @@ class GeofencingService : Service() {
                 }
             }
         } catch (e: TimeoutCancellationException) {
-            Log.w(TAG, "Timeout beim Prüfen des Home Office Status - versuche später erneut")
+            Log.w(TAG, "Timeout beim Prüfen des Home Office Status - versuche später erneut ${e.message}")
             scheduleRetry()
         } catch (e: UnknownHostException) {
             Log.w(TAG, "DNS Resolution Fehler - keine Internetverbindung: ${e.message}")
@@ -237,7 +237,7 @@ class GeofencingService : Service() {
             }
         }
 
-        return START_NOT_STICKY
+        return START_STICKY
     }
 
     override fun onDestroy() {
