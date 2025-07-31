@@ -234,11 +234,12 @@ class UserRepository
             longitude: Double,
         ): Result<Unit> =
             try {
-                val updates = mapOf(
-                    User.HOME_LATITUDE_FIELD to latitude,
-                    User.HOME_LONGITUDE_FIELD to longitude,
-                    User.HAS_HOME_LOCATION_FIELD to true,
-                )
+                val updates =
+                    mapOf(
+                        User.HOME_LATITUDE_FIELD to latitude,
+                        User.HOME_LONGITUDE_FIELD to longitude,
+                        User.HAS_HOME_LOCATION_FIELD to true,
+                    )
                 firestore
                     .collection(User.COLLECTION_NAME)
                     .document(uid)

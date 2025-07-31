@@ -1,11 +1,9 @@
 package com.example.flexioffice.geofencing
 
-import android.content.Context
 import android.util.Log
 import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.UserRepository
 import com.example.flexioffice.geofencing.permissions.LocationPermissionManager
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton

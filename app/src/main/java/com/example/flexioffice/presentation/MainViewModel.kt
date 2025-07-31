@@ -62,10 +62,10 @@ class MainViewModel
                                     .map { user ->
                                         // Success: We got the user data.
                                         val navItems = BottomNavigationItems.getItemsForUser(user)
-                                        
+
                                         // Initialize geofencing for logged-in user
                                         geofencingInitializer.initializeGeofencingOnAppStart()
-                                        
+
                                         MainUiState(
                                             isLoading = false,
                                             currentUser = user,

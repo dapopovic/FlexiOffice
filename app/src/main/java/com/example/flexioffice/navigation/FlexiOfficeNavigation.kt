@@ -101,15 +101,15 @@ fun FlexiOfficeNavigation(
         }
 
         // Profile Screen
-        composable(FlexiOfficeRoutes.Profile.route) { 
-            ProfileScreen(navController = navController) 
+        composable(FlexiOfficeRoutes.Profile.route) {
+            ProfileScreen(navController = navController)
         }
 
         // Teams Screen
         composable(FlexiOfficeRoutes.Teams.route) { TeamsScreen() }
 
         // Geofencing Settings Screen
-        composable(FlexiOfficeRoutes.GeofencingSettings.route) { 
+        composable(FlexiOfficeRoutes.GeofencingSettings.route) {
             GeofencingSettingsScreen()
         }
     }

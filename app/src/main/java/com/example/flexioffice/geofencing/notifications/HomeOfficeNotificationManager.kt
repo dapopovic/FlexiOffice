@@ -23,7 +23,9 @@ class HomeOfficeNotificationManager
             private const val TAG = "HomeOfficeNotificationManager"
             private const val CHANNEL_ID = "home_office_reminders"
             private const val CHANNEL_NAME = "Home Office Erinnerungen"
-            private const val CHANNEL_DESCRIPTION = "Benachrichtigungen wenn Sie bei geplantem Home Office das Zuhause verlassen"
+            private const val CHANNEL_DESCRIPTION =
+                @Suppress("ktlint:standard:max-line-length")
+                "Benachrichtigungen wenn Sie bei geplantem Home Office das Zuhause verlassen"
             private const val NOTIFICATION_ID = 1001
         }
 
