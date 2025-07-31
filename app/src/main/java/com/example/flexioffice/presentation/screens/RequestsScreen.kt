@@ -45,6 +45,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.presentation.RequestsViewModel
+import com.example.flexioffice.presentation.components.EnterMultiSelectModeButton
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
@@ -95,6 +96,11 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
                     tint = MaterialTheme.colorScheme.primary,
                 )
                 Text(text = "Buchungsanfragen", style = MaterialTheme.typography.headlineMedium)
+                EnterMultiSelectModeButton(
+                    isMultiselectMode = uiState.isMultiSelectMode,
+                    onToggleMultiSelectView = viewModel::startMultiSelectMode,
+                    isBookingListEmpty = uiState.pendingRequests.isEmpty(),
+                )
             }
 
             Text(

@@ -101,6 +101,12 @@ fun BookingScreen(
                 BookingScreenHeader(
                     showCancelledBookings = uiState.showCancelledBookings,
                     onToggleCancelledBookings = { viewModel.toggleCancelledBookings() },
+                    onToggleMultiSelectView = { viewModel.startMultiSelectMode() },
+                    isMultiselectMode = uiState.isMultiSelectMode,
+                    isBookingListEmpty =
+                        uiState.userBookings.none { booking ->
+                            booking.status != BookingStatus.CANCELLED
+                        },
                 )
             }
 

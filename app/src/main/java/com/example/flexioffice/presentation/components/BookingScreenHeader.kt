@@ -17,11 +17,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.flexioffice.R
+import com.example.flexioffice.data.model.Booking
 
 @Composable
 fun BookingScreenHeader(
     showCancelledBookings: Boolean,
     onToggleCancelledBookings: () -> Unit,
+    onToggleMultiSelectView: (booking: Booking?) -> Unit,
+    isMultiselectMode: Boolean = false,
+    isBookingListEmpty: Boolean = false,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -40,6 +44,11 @@ fun BookingScreenHeader(
             Text(
                 text = "Home Office Anträge",
                 style = MaterialTheme.typography.headlineMedium,
+            )
+            EnterMultiSelectModeButton(
+                isMultiselectMode = isMultiselectMode,
+                isBookingListEmpty = isBookingListEmpty,
+                onToggleMultiSelectView = onToggleMultiSelectView,
             )
         }
         Text(

@@ -40,7 +40,6 @@ fun FlexiOfficeNavigation(
         composable(FlexiOfficeRoutes.Calendar.route) {
             CalendarScreen(
                 hiltViewModel(),
-                bookingViewModel = hiltViewModel(),
                 navController,
             )
         }
