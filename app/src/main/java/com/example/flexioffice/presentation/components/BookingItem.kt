@@ -71,7 +71,7 @@ fun BookingItem(
 
     LaunchedEffect(offsetX) {
         if (isSwipeProcessing) return@LaunchedEffect
-        
+
         if (offsetX > swipeThreshold) {
             // Rechts geswiped - Details
             isSwipeProcessing = true
