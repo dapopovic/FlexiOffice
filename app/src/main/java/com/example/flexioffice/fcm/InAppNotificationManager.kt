@@ -1,26 +1,29 @@
 package com.example.flexioffice.fcm
 
-import android.content.Context
-import android.content.Intent
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 /**
  * Manager for handling in-app notifications when the app is in foreground
  */
 object InAppNotificationManager {
-    const val ACTION_IN_APP_NOTIFICATION = "com.example.flexioffice.IN_APP_NOTIFICATION"
-    const val EXTRA_TITLE = "title"
-    const val EXTRA_BODY = "body"
-    const val EXTRA_TYPE = "type"
-    const val EXTRA_BOOKING_ID = "booking_id"
-    const val EXTRA_USER_NAME = "user_name"
-    const val EXTRA_DATE = "date"
+    data class InAppNotification(
+        val title: String,
+        val body: String,
+        val type: String? = null,
+        val bookingId: String? = null,
+        val userName: String? = null,
+        val date: String? = null,
+    )
+
+    private val _notificationFlow = MutableSharedFlow<InAppNotification>()
+    val notificationFlow: SharedFlow<InAppNotification> = _notificationFlow.asSharedFlow()
 
     /**
-     * Send an in-app notification broadcast
+     * Send an in-app notification
      */
-    fun sendInAppNotification(
-        context: Context,
+    suspend fun sendInAppNotification(
         title: String,
         body: String,
         type: String? = null,
@@ -28,16 +31,15 @@ object InAppNotificationManager {
         userName: String? = null,
         date: String? = null,
     ) {
-        val intent =
-            Intent(ACTION_IN_APP_NOTIFICATION).apply {
-                putExtra(EXTRA_TITLE, title)
-                putExtra(EXTRA_BODY, body)
-                putExtra(EXTRA_TYPE, type)
-                putExtra(EXTRA_BOOKING_ID, bookingId)
-                putExtra(EXTRA_USER_NAME, userName)
-                putExtra(EXTRA_DATE, date)
-            }
-
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
+        val notification =
+            InAppNotification(
+                title = title,
+                body = body,
+                type = type,
+                bookingId = bookingId,
+                userName = userName,
+                date = date,
+            )
+        _notificationFlow.emit(notification)
     }
 }

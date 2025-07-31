@@ -14,8 +14,6 @@ import com.example.flexioffice.data.model.BookingType
 import com.example.flexioffice.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.time.LocalDate
-import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -28,60 +26,62 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import javax.inject.Inject
 
 data class BookingUiState(
-        val isLoading: Boolean = false,
-        val error: String? = null,
-        val showBookingDialog: Boolean = false,
-        val showDatePicker: Boolean = false,
-        val showDetailsSheet: Boolean = false,
-        val showCancelDialog: Boolean = false,
-        val selectedBooking: Booking? = null,
-        val selectedDate: LocalDate? = null,
-        val comment: String = "",
-        val showCancelledBookings: Boolean = false,
-        val userBookings: List<Booking> = emptyList(),
-        val approverName: String? = null,
-        val isWeekView: Boolean = false, // Neue Property für Kalenderansicht
-        // Multi-select properties
-        val isMultiSelectMode: Boolean = false,
-        val selectedBookings: Set<String> = emptySet(), // Booking IDs
-        val isBatchProcessing: Boolean = false,
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val showBookingDialog: Boolean = false,
+    val showDatePicker: Boolean = false,
+    val showDetailsSheet: Boolean = false,
+    val showCancelDialog: Boolean = false,
+    val selectedBooking: Booking? = null,
+    val selectedDate: LocalDate? = null,
+    val comment: String = "",
+    val showCancelledBookings: Boolean = false,
+    val userBookings: List<Booking> = emptyList(),
+    val approverName: String? = null,
+    val isWeekView: Boolean = false, // Neue Property für Kalenderansicht
+    // Multi-select properties
+    val isMultiSelectMode: Boolean = false,
+    val selectedBookings: Set<String> = emptySet(), // Booking IDs
+    val isBatchProcessing: Boolean = false,
 )
 
 @HiltViewModel
 class BookingViewModel
-@Inject
-constructor(
+    @Inject
+    constructor(
         private val bookingRepository: BookingRepository,
         private val teamRepository: TeamRepository,
         private val userRepository: UserRepository,
         private val authRepository: AuthRepository,
         private val notificationRepository: NotificationRepository,
         private val auth: FirebaseAuth,
-) : ViewModel() {
-    private val _uiState =
+    ) : ViewModel() {
+        private val _uiState =
             MutableStateFlow(
-                    BookingUiState(),
+                BookingUiState(),
             )
-    val uiState: StateFlow<BookingUiState> = _uiState
+        val uiState: StateFlow<BookingUiState> = _uiState
 
-    init {
-        observeUserBookings()
-    }
+        init {
+            observeUserBookings()
+        }
 
-    fun toggleCalendarView() {
-        _uiState.update { it.copy(isWeekView = !it.isWeekView) }
-    }
+        fun toggleCalendarView() {
+            _uiState.update { it.copy(isWeekView = !it.isWeekView) }
+        }
 
-    fun onDateLongPressed(date: LocalDate) {
-        showBookingDialogForDate(date)
-    }
+        fun onDateLongPressed(date: LocalDate) {
+            showBookingDialogForDate(date)
+        }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun observeUserBookings() {
-        viewModelScope.launch {
-            authRepository
+        @OptIn(ExperimentalCoroutinesApi::class)
+        private fun observeUserBookings() {
+            viewModelScope.launch {
+                authRepository
                     .currentUser
                     .map { it?.uid }
                     .distinctUntilChanged()
@@ -94,130 +94,129 @@ constructor(
                                 if (user?.teamId.isNullOrEmpty() || user.teamId == User.NO_TEAM) {
                                     // User has no team, show empty calendar
                                     flowOf(
-                                            BookingUiState(
-                                                    isLoading = false,
-                                                    userBookings = emptyList(),
-                                                    error = null,
-                                            ),
+                                        BookingUiState(
+                                            isLoading = false,
+                                            userBookings = emptyList(),
+                                            error = null,
+                                        ),
                                     )
                                 } else {
-                                    bookingRepository.getUserBookingsStream(
-                                                    userId,
+                                    bookingRepository
+                                        .getUserBookingsStream(
+                                            userId,
+                                        ).map { bookingsResult ->
+                                            val bookings =
+                                                bookingsResult.getOrNull() ?: emptyList()
+                                            BookingUiState(
+                                                isLoading = false,
+                                                userBookings = bookings,
+                                                error =
+                                                    bookingsResult
+                                                        .exceptionOrNull()
+                                                        ?.message,
                                             )
-                                            .map { bookingsResult ->
-                                                val bookings =
-                                                        bookingsResult.getOrNull() ?: emptyList()
-                                                BookingUiState(
-                                                        isLoading = false,
-                                                        userBookings = bookings,
-                                                        error =
-                                                                bookingsResult.exceptionOrNull()
-                                                                        ?.message,
-                                                )
-                                            }
+                                        }
                                 }
                             }
                         }
-                    }
-                    .catch { e ->
+                    }.catch { e ->
                         _uiState.value = _uiState.value.copy(error = e.message, isLoading = false)
-                    }
-                    .collect { state -> _uiState.update { state } }
+                    }.collect { state -> _uiState.update { state } }
+            }
         }
-    }
 
-    fun showBookingDialogForDate(date: LocalDate) {
-        viewModelScope.launch {
-            _uiState.update { currentState ->
-                currentState.copy(
+        fun showBookingDialogForDate(date: LocalDate) {
+            viewModelScope.launch {
+                _uiState.update { currentState ->
+                    currentState.copy(
                         showBookingDialog = true,
                         selectedDate = date,
                         comment = "",
-                )
+                    )
+                }
             }
         }
-    }
 
-    fun showBookingDialog(preselectedDate: LocalDate? = null) {
-        viewModelScope.launch {
-            _uiState.update { currentState ->
-                currentState.copy(
+        fun showBookingDialog(preselectedDate: LocalDate? = null) {
+            viewModelScope.launch {
+                _uiState.update { currentState ->
+                    currentState.copy(
                         showBookingDialog = true,
                         selectedDate = preselectedDate,
                         comment = "",
-                )
+                    )
+                }
             }
         }
-    }
 
-    fun hideBookingDialog() {
-        _uiState.update {
-            it.copy(
+        fun hideBookingDialog() {
+            _uiState.update {
+                it.copy(
                     showBookingDialog = false,
                     showDatePicker = false,
                     selectedDate = null,
                     comment = "",
-            )
+                )
+            }
         }
-    }
 
-    fun showDatePicker() {
-        _uiState.update { it.copy(showDatePicker = true) }
-    }
+        fun showDatePicker() {
+            _uiState.update { it.copy(showDatePicker = true) }
+        }
 
-    fun hideDatePicker() {
-        _uiState.update { it.copy(showDatePicker = false) }
-    }
+        fun hideDatePicker() {
+            _uiState.update { it.copy(showDatePicker = false) }
+        }
 
-    fun updateSelectedDate(date: LocalDate) {
-        _uiState.update { it.copy(selectedDate = date, showDatePicker = false) }
-    }
+        fun updateSelectedDate(date: LocalDate) {
+            _uiState.update { it.copy(selectedDate = date, showDatePicker = false) }
+        }
 
-    fun updateComment(comment: String) {
-        _uiState.update { it.copy(comment = comment) }
-    }
+        fun updateComment(comment: String) {
+            _uiState.update { it.copy(comment = comment) }
+        }
 
-    fun clearError() {
-        _uiState.update { it.copy(error = null) }
-    }
+        fun clearError() {
+            _uiState.update { it.copy(error = null) }
+        }
 
-    fun createBooking() {
-        val userId =
+        fun createBooking() {
+            val userId =
                 auth.currentUser?.uid
-                        ?: run {
-                            _uiState.update { it.copy(error = "Benutzer nicht eingeloggt") }
-                            return
-                        }
-        val currentState = _uiState.value
-        val selectedDate = currentState.selectedDate
+                    ?: run {
+                        _uiState.update { it.copy(error = "Benutzer nicht eingeloggt") }
+                        return
+                    }
+            val currentState = _uiState.value
+            val selectedDate = currentState.selectedDate
 
-        if (selectedDate == null) {
-            _uiState.update { it.copy(error = "Bitte wählen Sie ein Datum aus") }
-            return
-        }
+            if (selectedDate == null) {
+                _uiState.update { it.copy(error = "Bitte wählen Sie ein Datum aus") }
+                return
+            }
 
-        // Prüfe, ob das ausgewählte Datum in der Vergangenheit liegt
-        if (currentState.selectedDate.isBefore(LocalDate.now())) {
-            _uiState.update { it.copy(error = "Buchungen für vergangene Tage sind nicht möglich") }
-            return
-        }
-        // Prüfe, ob bereits eine aktive Buchung für dieses Datum existiert
-        val existingBooking =
+            // Prüfe, ob das ausgewählte Datum in der Vergangenheit liegt
+            if (currentState.selectedDate.isBefore(LocalDate.now())) {
+                _uiState.update { it.copy(error = "Buchungen für vergangene Tage sind nicht möglich") }
+                return
+            }
+            // Prüfe, ob bereits eine aktive Buchung für dieses Datum existiert
+            val existingBooking =
                 currentState.userBookings.find {
                     it.date == currentState.selectedDate && it.status != BookingStatus.CANCELLED
                 }
-        if (existingBooking != null) {
-            _uiState.update {
-                it.copy(error = "Sie haben bereits eine aktive Buchung für diesen Tag")
+            if (existingBooking != null) {
+                _uiState.update {
+                    it.copy(error = "Sie haben bereits eine aktive Buchung für diesen Tag")
+                }
+                return
             }
-            return
-        }
 
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            viewModelScope.launch {
+                _uiState.update { it.copy(isLoading = true, error = null) }
 
-            try {
-                val (user, team) =
+                try {
+                    val (user, team) =
                         coroutineScope {
                             val userDeferred = async { userRepository.getCurrentUser() }
                             val teamDeferred = async { teamRepository.getCurrentUserTeam() }
@@ -225,255 +224,255 @@ constructor(
                             userDeferred.await() to teamDeferred.await()
                         }
 
-                if (user == null) {
-                    _uiState.update { it.copy(error = "Benutzer konnte nicht geladen werden") }
-                    return@launch
-                }
+                    if (user == null) {
+                        _uiState.update { it.copy(error = "Benutzer konnte nicht geladen werden") }
+                        return@launch
+                    }
 
-                if (team == null) {
-                    _uiState.update { it.copy(error = "Team konnte nicht geladen werden") }
-                    return@launch
-                }
+                    if (team == null) {
+                        _uiState.update { it.copy(error = "Team konnte nicht geladen werden") }
+                        return@launch
+                    }
 
-                Log.d(
+                    Log.d(
                         "BookingViewModel",
                         "Erstelle Buchung für User: ${user.name}, Team: ${team.id}",
-                )
+                    )
 
-                val booking =
+                    val booking =
                         Booking(
-                                id = "", // Die ID wird jetzt im Repository gesetzt
-                                userId = userId,
-                                userName = user.name,
-                                teamId = team.id,
-                                dateString = currentState.selectedDate.toString(),
-                                type = BookingType.HOME_OFFICE,
-                                status =
-                                        if (user.role == User.ROLE_MANAGER ||
-                                                        team.managerId == userId
-                                        ) {
-                                            BookingStatus.APPROVED
-                                        } else {
-                                            BookingStatus.PENDING
-                                        },
-                                comment = currentState.comment,
-                                createdAt = LocalDate.now().toString(),
-                                reviewerId = team.managerId,
+                            id = "", // Die ID wird jetzt im Repository gesetzt
+                            userId = userId,
+                            userName = user.name,
+                            teamId = team.id,
+                            dateString = currentState.selectedDate.toString(),
+                            type = BookingType.HOME_OFFICE,
+                            status =
+                                if (user.role == User.ROLE_MANAGER ||
+                                    team.managerId == userId
+                                ) {
+                                    BookingStatus.APPROVED
+                                } else {
+                                    BookingStatus.PENDING
+                                },
+                            comment = currentState.comment,
+                            createdAt = LocalDate.now().toString(),
+                            reviewerId = team.managerId,
                         )
 
-                bookingRepository.createBooking(booking)
-                hideBookingDialog()
-                viewModelScope.launch {
-                    try {
-                        notificationRepository.sendNewBookingRequestNotification(
+                    bookingRepository.createBooking(booking)
+                    hideBookingDialog()
+                    viewModelScope.launch {
+                        try {
+                            notificationRepository.sendNewBookingRequestNotification(
                                 booking,
                                 team.managerId,
-                        )
-                    } catch (e: Exception,) {
-                        Log.e(
+                            )
+                        } catch (e: Exception) {
+                            Log.e(
                                 "BookingViewModel",
                                 "Fehler beim Senden der Benachrichtigung",
                                 e,
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("BookingViewModel", "Fehler beim Erstellen der Buchung", e)
+                    _uiState.update {
+                        it.copy(
+                            error =
+                                "Die Buchung konnte nicht erstellt werden. Bitte versuchen Sie es später erneut.",
                         )
                     }
+                } finally {
+                    _uiState.update { it.copy(isLoading = false) }
                 }
-            } catch (e: Exception) {
-                Log.e("BookingViewModel", "Fehler beim Erstellen der Buchung", e)
-                _uiState.update {
-                    it.copy(
-                            error =
-                                    "Die Buchung konnte nicht erstellt werden. Bitte versuchen Sie es später erneut.",
-                    )
-                }
-            } finally {
-                _uiState.update { it.copy(isLoading = false) }
             }
         }
-    }
 
-    private suspend fun loadApproverName(userId: String?): String {
-        return try {
-            if (userId == null) return "Nicht zugewiesen"
-            val user = userRepository.getUserById(userId).getOrNull()
-            user?.name ?: "Unbekannt"
-        } catch (e: Exception) {
-            Log.e("BookingViewModel", "Error loading approver name for userId: $userId", e)
-            "Fehler beim Laden"
+        private suspend fun loadApproverName(userId: String?): String {
+            return try {
+                if (userId == null) return "Nicht zugewiesen"
+                val user = userRepository.getUserById(userId).getOrNull()
+                user?.name ?: "Unbekannt"
+            } catch (e: Exception) {
+                Log.e("BookingViewModel", "Error loading approver name for userId: $userId", e)
+                "Fehler beim Laden"
+            }
         }
-    }
 
-    fun showDetailsSheet(booking: Booking) {
-        viewModelScope.launch {
-            val approverName = loadApproverName(booking.reviewerId)
-            _uiState.update { currentState ->
-                currentState.copy(
+        fun showDetailsSheet(booking: Booking) {
+            viewModelScope.launch {
+                val approverName = loadApproverName(booking.reviewerId)
+                _uiState.update { currentState ->
+                    currentState.copy(
                         showDetailsSheet = true,
                         selectedBooking = booking,
                         approverName = approverName,
-                )
-            }
-        }
-    }
-
-    fun hideDetailsSheet() {
-        viewModelScope.launch {
-            _uiState.update { currentState ->
-                currentState.copy(
-                        showDetailsSheet = false,
-                        selectedBooking = null,
-                        approverName = null,
-                )
-            }
-        }
-    }
-
-    fun showCancelDialog(booking: Booking) {
-        _uiState.update {
-            it.copy(
-                    showCancelDialog = true,
-                    selectedBooking = booking,
-            )
-        }
-    }
-
-    fun hideCancelDialog() {
-        _uiState.update {
-            it.copy(
-                    showCancelDialog = false,
-                    selectedBooking = null,
-            )
-        }
-    }
-
-    fun cancelBooking() {
-        val booking = _uiState.value.selectedBooking ?: return
-
-        viewModelScope.launch {
-            try {
-                _uiState.update { it.copy(isLoading = true) }
-                val currentUserId =
-                        auth.currentUser?.uid ?: throw Exception("Benutzer nicht eingeloggt")
-                bookingRepository.updateBookingStatus(
-                        booking.id,
-                        BookingStatus.CANCELLED,
-                        currentUserId,
-                )
-                hideCancelDialog()
-            } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.message) }
-            } finally {
-                _uiState.update { it.copy(isLoading = false) }
-            }
-        }
-    }
-
-    fun toggleCancelledBookings() {
-        _uiState.update { it.copy(showCancelledBookings = !it.showCancelledBookings) }
-    }
-
-    // Multi-select functions
-    fun startMultiSelectMode(booking: Booking? = null) {
-        if (booking != null) {
-            _uiState.update {
-                it.copy(
-                        isMultiSelectMode = true,
-                        selectedBookings = setOf(booking.id),
-                )
-            }
-            return
-        }
-        _uiState.update {
-            it.copy(
-                    isMultiSelectMode = true,
-                    selectedBookings = emptySet(),
-            )
-        }
-    }
-
-    fun exitMultiSelectMode() {
-        _uiState.update {
-            it.copy(
-                    isMultiSelectMode = false,
-                    selectedBookings = emptySet(),
-            )
-        }
-    }
-
-    fun toggleBookingSelection(bookingId: String) {
-        _uiState.update { currentState ->
-            val selectedBookings = currentState.selectedBookings.toMutableSet()
-            if (selectedBookings.contains(bookingId)) {
-                selectedBookings.remove(bookingId)
-            } else {
-                selectedBookings.add(bookingId)
-            }
-            currentState.copy(selectedBookings = selectedBookings)
-        }
-    }
-
-    fun selectAllBookings() {
-        _uiState.update { currentState ->
-            val allBookingIds =
-                    currentState
-                            .userBookings
-                            .filter {
-                                it.status != BookingStatus.CANCELLED &&
-                                        (it.status != BookingStatus.CANCELLED ||
-                                                currentState.showCancelledBookings)
-                            }
-                            .map { it.id }
-                            .toSet()
-            currentState.copy(selectedBookings = allBookingIds)
-        }
-    }
-
-    fun clearSelection() {
-        _uiState.update { it.copy(selectedBookings = emptySet()) }
-    }
-
-    fun batchCancelBookings() {
-        val selectedIds = _uiState.value.selectedBookings
-        if (selectedIds.isEmpty()) return
-
-        val currentUserId = auth.currentUser?.uid ?: return
-
-        viewModelScope.launch {
-            try {
-                _uiState.update { it.copy(isBatchProcessing = true) }
-
-                bookingRepository
-                        .updateBookingStatusBatch(
-                                bookingIds = selectedIds.toList(),
-                                status = BookingStatus.CANCELLED,
-                                reviewerId = currentUserId,
-                        )
-                        .fold(
-                                onSuccess = {
-                                    _uiState.update {
-                                        it.copy(
-                                                selectedBookings = emptySet(),
-                                                isMultiSelectMode = false,
-                                                isBatchProcessing = false,
-                                        )
-                                    }
-                                },
-                                onFailure = { e: Throwable ->
-                                    _uiState.update {
-                                        it.copy(
-                                                error = "Fehler beim Batch-Update: ${e.message}",
-                                                isBatchProcessing = false,
-                                        )
-                                    }
-                                },
-                        )
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                            error = "Unerwarteter Fehler: ${e.message}",
-                            isBatchProcessing = false,
                     )
                 }
             }
         }
+
+        fun hideDetailsSheet() {
+            viewModelScope.launch {
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        showDetailsSheet = false,
+                        selectedBooking = null,
+                        approverName = null,
+                    )
+                }
+            }
+        }
+
+        fun showCancelDialog(booking: Booking) {
+            _uiState.update {
+                it.copy(
+                    showCancelDialog = true,
+                    selectedBooking = booking,
+                )
+            }
+        }
+
+        fun hideCancelDialog() {
+            _uiState.update {
+                it.copy(
+                    showCancelDialog = false,
+                    selectedBooking = null,
+                )
+            }
+        }
+
+        fun cancelBooking() {
+            val booking = _uiState.value.selectedBooking ?: return
+
+            viewModelScope.launch {
+                try {
+                    _uiState.update { it.copy(isLoading = true) }
+                    val currentUserId =
+                        auth.currentUser?.uid ?: throw Exception("Benutzer nicht eingeloggt")
+                    bookingRepository.updateBookingStatus(
+                        booking.id,
+                        BookingStatus.CANCELLED,
+                        currentUserId,
+                    )
+                    hideCancelDialog()
+                } catch (e: Exception) {
+                    _uiState.update { it.copy(error = e.message) }
+                } finally {
+                    _uiState.update { it.copy(isLoading = false) }
+                }
+            }
+        }
+
+        fun toggleCancelledBookings() {
+            _uiState.update { it.copy(showCancelledBookings = !it.showCancelledBookings) }
+        }
+
+        // Multi-select functions
+        fun startMultiSelectMode(booking: Booking? = null) {
+            if (booking != null) {
+                _uiState.update {
+                    it.copy(
+                        isMultiSelectMode = true,
+                        selectedBookings = setOf(booking.id),
+                    )
+                }
+                return
+            }
+            _uiState.update {
+                it.copy(
+                    isMultiSelectMode = true,
+                    selectedBookings = emptySet(),
+                )
+            }
+        }
+
+        fun exitMultiSelectMode() {
+            _uiState.update {
+                it.copy(
+                    isMultiSelectMode = false,
+                    selectedBookings = emptySet(),
+                )
+            }
+        }
+
+        fun toggleBookingSelection(bookingId: String) {
+            _uiState.update { currentState ->
+                val selectedBookings = currentState.selectedBookings.toMutableSet()
+                if (selectedBookings.contains(bookingId)) {
+                    selectedBookings.remove(bookingId)
+                } else {
+                    selectedBookings.add(bookingId)
+                }
+                currentState.copy(selectedBookings = selectedBookings)
+            }
+        }
+
+        fun selectAllBookings() {
+            _uiState.update { currentState ->
+                val allBookingIds =
+                    currentState
+                        .userBookings
+                        .filter {
+                            it.status != BookingStatus.CANCELLED &&
+                                (
+                                    it.status != BookingStatus.CANCELLED ||
+                                        currentState.showCancelledBookings
+                                )
+                        }.map { it.id }
+                        .toSet()
+                currentState.copy(selectedBookings = allBookingIds)
+            }
+        }
+
+        fun clearSelection() {
+            _uiState.update { it.copy(selectedBookings = emptySet()) }
+        }
+
+        fun batchCancelBookings() {
+            val selectedIds = _uiState.value.selectedBookings
+            if (selectedIds.isEmpty()) return
+
+            val currentUserId = auth.currentUser?.uid ?: return
+
+            viewModelScope.launch {
+                try {
+                    _uiState.update { it.copy(isBatchProcessing = true) }
+
+                    bookingRepository
+                        .updateBookingStatusBatch(
+                            bookingIds = selectedIds.toList(),
+                            status = BookingStatus.CANCELLED,
+                            reviewerId = currentUserId,
+                        ).fold(
+                            onSuccess = {
+                                _uiState.update {
+                                    it.copy(
+                                        selectedBookings = emptySet(),
+                                        isMultiSelectMode = false,
+                                        isBatchProcessing = false,
+                                    )
+                                }
+                            },
+                            onFailure = { e: Throwable ->
+                                _uiState.update {
+                                    it.copy(
+                                        error = "Fehler beim Batch-Update: ${e.message}",
+                                        isBatchProcessing = false,
+                                    )
+                                }
+                            },
+                        )
+                } catch (e: Exception) {
+                    _uiState.update {
+                        it.copy(
+                            error = "Unerwarteter Fehler: ${e.message}",
+                            isBatchProcessing = false,
+                        )
+                    }
+                }
+            }
+        }
     }
-}

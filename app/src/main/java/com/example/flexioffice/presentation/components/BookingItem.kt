@@ -49,23 +49,24 @@ fun BookingItem(
         }
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-            .combinedClickable(
-                onClick = { 
-                    if (isMultiSelectMode && !isStorniert) {
-                        onSelectionChanged(!isSelected)
-                    } else if (!isMultiSelectMode) {
-                        onClick(booking)
-                    }
-                },
-                onLongClick = {
-                    if (!isStorniert) {
-                        onLongClick()
-                    }
-                }
-            ),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp)
+                .combinedClickable(
+                    onClick = {
+                        if (isMultiSelectMode && !isStorniert) {
+                            onSelectionChanged(!isSelected)
+                        } else if (!isMultiSelectMode) {
+                            onClick(booking)
+                        }
+                    },
+                    onLongClick = {
+                        if (!isStorniert) {
+                            onLongClick()
+                        }
+                    },
+                ),
         colors =
             CardDefaults.cardColors(
                 containerColor =
@@ -91,7 +92,7 @@ fun BookingItem(
                 Checkbox(
                     checked = isSelected,
                     onCheckedChange = { onSelectionChanged(it) },
-                    modifier = Modifier.padding(end = 8.dp)
+                    modifier = Modifier.padding(end = 8.dp),
                 )
             }
 
