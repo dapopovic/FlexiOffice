@@ -45,7 +45,6 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.example.flexioffice.R
 import com.example.flexioffice.navigation.FlexiOfficeRoutes
-import com.example.flexioffice.presentation.BookingViewModel
 import com.example.flexioffice.presentation.CalendarUiState
 import com.example.flexioffice.presentation.CalendarViewModel
 import com.example.flexioffice.presentation.components.BookingDialog
@@ -121,7 +120,6 @@ private fun CalendarViewWithLoading(
 @Composable
 fun CalendarScreen(
     viewModel: CalendarViewModel = hiltViewModel(),
-    bookingViewModel: BookingViewModel = hiltViewModel(),
     navigationController: NavHostController,
 ) {
     val uiState by viewModel.uiState.collectAsState()
