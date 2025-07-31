@@ -15,6 +15,8 @@ import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
 
+private const val FIRESTORE_BATCH_LIMIT = 500
+
 /** Repository für Buchungs-Datenoperationen in Firestore */
 @Singleton
 class BookingRepository
@@ -283,7 +285,18 @@ class BookingRepository
                 Result.failure(e)
             }
 
-        /** Batch-Update für mehrere Buchungen */
+        /**
+         * Aktualisiert den Status mehrerer Buchungen in einem Batch
+         * Diese Methode ist nützlich, um mehrere Buchungen gleichzeitig zu aktualisieren,
+         *  z.B. wenn ein Manager mehrere Anfragen gleichzeitig genehmigen oder ablehnen möchte
+         *
+         * @param bookingIds Liste der Buchungs-IDs, die aktualisiert werden sollen
+         * @param status Der neue Status, der auf alle Buchungen angewendet werden soll
+         * @param reviewerId Die ID des Benutzers, der die Buchungen überprüft hat
+         * @return Result<Unit> Erfolgreiche Ausführung oder Fehler
+         * @throws IllegalArgumentException Wenn die Batch-Größe die Firestore-Limitierung überschreitet
+         * @throws Exception Bei anderen Fehlern während der Firestore-Operationen
+         */
         suspend fun updateBookingStatusBatch(
             bookingIds: List<String>,
             status: BookingStatus,
@@ -292,6 +305,10 @@ class BookingRepository
             return try {
                 if (bookingIds.isEmpty()) {
                     return Result.success(Unit)
+                }
+
+                require(bookingIds.size <= FIRESTORE_BATCH_LIMIT) {
+                    "Batch size exceeds Firestore limit of $FIRESTORE_BATCH_LIMIT"
                 }
 
                 val batch = firestore.batch()
