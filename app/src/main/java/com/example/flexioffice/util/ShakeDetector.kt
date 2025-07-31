@@ -14,11 +14,13 @@ class ShakeDetector(
     private val shakeThreshold = 12f
 
     override fun onSensorChanged(event: SensorEvent?) {
-        if (event == null) return
+        if (event == null || event.values.size < 3) return
+
         val x = event.values[0]
         val y = event.values[1]
         val z = event.values[2]
         val now = System.currentTimeMillis()
+
         if (lastTime == 0L) {
             lastTime = now
             lastX = x
@@ -26,9 +28,13 @@ class ShakeDetector(
             lastZ = z
             return
         }
+
         val diffTime = now - lastTime
         if (diffTime > 100) {
-            val speed = kotlin.math.abs(x + y + z - lastX - lastY - lastZ) / diffTime * 10000
+            val deltaX = x - lastX
+            val deltaY = y - lastY
+            val deltaZ = z - lastZ
+            val speed = kotlin.math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) / diffTime * 10000
             if (speed > shakeThreshold) {
                 onShake()
             }
