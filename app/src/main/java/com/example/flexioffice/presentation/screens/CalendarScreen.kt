@@ -173,7 +173,7 @@ fun CalendarScreen(
                 androidx.compose.material3.Button(onClick = { viewModel.hideCancelDialog() }) {
                     androidx.compose.material3.Text("Abbrechen")
                 }
-            }
+            },
         )
     }
 

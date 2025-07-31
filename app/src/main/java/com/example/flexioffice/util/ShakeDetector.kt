@@ -4,7 +4,9 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 
-class ShakeDetector(private val onShake: () -> Unit) : SensorEventListener {
+class ShakeDetector(
+    private val onShake: () -> Unit,
+) : SensorEventListener {
     private var lastTime: Long = 0
     private var lastX: Float = 0f
     private var lastY: Float = 0f
@@ -37,5 +39,8 @@ class ShakeDetector(private val onShake: () -> Unit) : SensorEventListener {
         }
     }
 
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+    override fun onAccuracyChanged(
+        sensor: Sensor?,
+        accuracy: Int,
+    ) {}
 }
