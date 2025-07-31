@@ -416,11 +416,7 @@ class BookingViewModel
                     currentState
                         .userBookings
                         .filter {
-                            it.status != BookingStatus.CANCELLED &&
-                                (
-                                    it.status != BookingStatus.CANCELLED ||
-                                        currentState.showCancelledBookings
-                                )
+                            it.status != BookingStatus.CANCELLED
                         }.map { it.id }
                         .toSet()
                 currentState.copy(selectedBookings = allBookingIds)
