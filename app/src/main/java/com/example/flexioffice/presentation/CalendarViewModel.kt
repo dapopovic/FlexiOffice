@@ -331,19 +331,20 @@ class CalendarViewModel
         }
 
         private fun onShakeDetected() {
-            val state = _uiState.value
-            val selectedDate = state.selectedDate
-            val currentUser = state.currentUser
-            if (selectedDate != null && currentUser != null) {
-                val booking =
-                    state.bookings.find {
-                        it.date == selectedDate && it.userId == currentUser.id &&
-                            it.status != BookingStatus.CANCELLED
-                    }
-                if (booking != null) {
-                    _uiState.value = state.copy(showCancelDialog = true, cancelBookingId = booking.id)
+        val state = _uiState.value
+        if (state.showCancelDialog) return // Dialog ist offen, Shake ignorieren
+        val selectedDate = state.selectedDate
+        val currentUser = state.currentUser
+        if (selectedDate != null && currentUser != null) {
+            val booking =
+                state.bookings.find {
+                    it.date == selectedDate && it.userId == currentUser.id &&
+                        it.status != BookingStatus.CANCELLED
                 }
+            if (booking != null) {
+                _uiState.value = state.copy(showCancelDialog = true, cancelBookingId = booking.id)
             }
+        }
         }
 
         fun hideCancelDialog() {

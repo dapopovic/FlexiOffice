@@ -11,7 +11,17 @@ class ShakeDetector(
     private var lastX: Float = 0f
     private var lastY: Float = 0f
     private var lastZ: Float = 0f
-    private val shakeThreshold = 12f
+    private val shakeThreshold = 13f
+    private val shakeCountThreshold = 2
+    private val shakeWindowMs = 800
+    private var lastShakeTime: Long = 0
+    private var shakeCount = 0
+
+    override fun onAccuracyChanged(
+        sensor: Sensor?,
+        accuracy: Int,
+    ) {
+    }
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event == null || event.sensor.type != Sensor.TYPE_ACCELEROMETER || event.values.size < 3) return
@@ -29,23 +39,34 @@ class ShakeDetector(
         }
 
         val diffTime = now - lastTime
-        if (diffTime > 100) {
+        if (diffTime > 50) {
             val deltaX = x - lastX
             val deltaY = y - lastY
             val deltaZ = z - lastZ
-            val speed = kotlin.math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) / diffTime * 10000
-            if (speed > shakeThreshold) {
+            val maxDelta = maxOf(kotlin.math.abs(deltaX), kotlin.math.abs(deltaY), kotlin.math.abs(deltaZ))
+
+            // Zähle Richtungswechsel, wenn Schwelle überschritten
+            if (maxDelta > shakeThreshold) {
+                if (shakeCount == 0 || (now - lastShakeTime < shakeWindowMs)) {
+                    shakeCount++
+                    lastShakeTime = now
+                } else {
+                    shakeCount = 1
+                    lastShakeTime = now
+                }
+            }
+
+            // Shake nur auslösen, wenn mehrere Richtungswechsel innerhalb des Zeitfensters
+            if (shakeCount >= shakeCountThreshold) {
+                shakeCount = 0
+                lastShakeTime = now
                 onShake()
             }
+
             lastTime = now
             lastX = x
             lastY = y
             lastZ = z
         }
     }
-
-    override fun onAccuracyChanged(
-        sensor: Sensor?,
-        accuracy: Int,
-    ) {}
 }
