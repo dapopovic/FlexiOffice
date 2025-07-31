@@ -124,10 +124,10 @@ class GeofencingService : Service() {
             val today = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
             val lastNotificationDate = sharedPrefs.getString(KEY_LAST_NOTIFICATION_DATE, "")
 
-//            if (lastNotificationDate == today) {
-//                Log.d(TAG, "Heute bereits eine Home Office Notification gesendet - überspringe")
-//                return
-//            }
+            if (lastNotificationDate == today) {
+                Log.d(TAG, "Heute bereits eine Home Office Notification gesendet - überspringe")
+                return
+            }
 
             // Prüfe Netzwerkverbindung
             if (!isNetworkAvailable()) {
