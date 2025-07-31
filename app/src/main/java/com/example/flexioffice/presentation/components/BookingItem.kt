@@ -2,7 +2,7 @@ package com.example.flexioffice.presentation.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,16 +22,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.material.ExperimentalWearMaterialApi
-import androidx.wear.compose.material.FractionalThreshold
-import androidx.wear.compose.material.rememberSwipeableState
-import androidx.wear.compose.material.swipeable
 import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.data.model.BookingStatus
@@ -39,7 +41,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalWearMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun BookingItem(
     booking: Booking,
@@ -56,29 +58,24 @@ fun BookingItem(
             DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.GERMAN)
         }
 
-    // Swipe-Logik: 0 = normal, 1 = links geswiped (cancel), 2 = rechts geswiped (details)
-    val swipeableState = rememberSwipeableState(0)
-    val swipeThreshold = 300f
-    val anchors =
-        mapOf(
-            0f to 0, // Normal position
-            -swipeThreshold to 1, // Left swipe - Cancel
-            swipeThreshold to 2, // Right swipe - Details
-        )
+    // Bildschirmbreite ermitteln für dynamische Swipe-Distanz
+    val configuration = LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp
+    val screenWidthPx = with(LocalDensity.current) { screenWidthDp.dp.toPx() }
 
-    // Reagiere auf Swipe-Aktionen
-    LaunchedEffect(swipeableState.currentValue) {
-        when (swipeableState.currentValue) {
-            1 -> { // Links geswiped - Cancel Dialog
-                if (!isStorniert) {
-                    onCancelClick(booking)
-                }
-                swipeableState.animateTo(0) // Zurück zur normalen Position
-            }
-            2 -> { // Rechts geswiped - Details
-                onClick(booking)
-                swipeableState.animateTo(0) // Zurück zur normalen Position
-            }
+    // Swipe-Logik mit Compose Foundation
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    val swipeThreshold = screenWidthPx / 2f // Hälfte der Bildschirmbreite
+
+    LaunchedEffect(offsetX) {
+        if (offsetX > swipeThreshold) {
+            // Rechts geswiped - Details
+            onClick(booking)
+            offsetX = 0f
+        } else if (offsetX < -swipeThreshold && !isStorniert) {
+            // Links geswiped - Cancel Dialog
+            onCancelClick(booking)
+            offsetX = 0f
         }
     }
 
@@ -87,13 +84,21 @@ fun BookingItem(
             Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp)
-                .swipeable(
-                    state = swipeableState,
-                    anchors = anchors,
-                    thresholds = { _, _ -> FractionalThreshold(0.3f) },
-                    orientation = Orientation.Horizontal,
-                ).offset { IntOffset(swipeableState.offset.value.toInt(), 0) }
-                .combinedClickable(
+                .offset { IntOffset(offsetX.toInt(), 0) }
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragEnd = {
+                            // Zurück zur Ausgangsposition wenn Threshold nicht erreicht
+                            if (kotlin.math.abs(offsetX) < swipeThreshold) {
+                                offsetX = 0f
+                            }
+                        },
+                    ) { _, dragAmount ->
+                        offsetX += dragAmount.x
+                        // Begrenze die Bewegung - maximal ganze Bildschirmbreite
+                        offsetX = offsetX.coerceIn(-screenWidthPx, screenWidthPx)
+                    }
+                }.combinedClickable(
                     onClick = {
                         if (isMultiSelectMode && !isStorniert) {
                             onSelectionChanged(!isSelected)

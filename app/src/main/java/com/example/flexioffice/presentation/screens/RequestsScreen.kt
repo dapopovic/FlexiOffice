@@ -3,11 +3,13 @@ package com.example.flexioffice.presentation.screens
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,12 +36,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.flexioffice.R
@@ -193,10 +201,58 @@ fun RequestItem(
             DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.GERMAN)
         }
 
+    // Bildschirmbreite ermitteln für dynamische Swipe-Distanz
+    val configuration = LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp
+    val screenWidthPx = with(LocalDensity.current) { screenWidthDp.dp.toPx() }
+
+    // Swipe-Logik mit Compose Foundation
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    val swipeThreshold = screenWidthPx / 2f // Hälfte der Bildschirmbreite
+
+    // Farben für visuelles Feedback
+    val approveColor = androidx.compose.ui.graphics.Color(0xFF4CAF50) // Helles Grün
+    val declineColor = androidx.compose.ui.graphics.Color(0xFFFF5722) // Helles Rot
+    val neutralColor = MaterialTheme.colorScheme.surfaceBright // Gleiche graue Farbe wie BookingItems
+
+    // Berechne Hintergrundfarbe basierend auf Swipe-Richtung
+    val backgroundColor = when {
+        offsetX > 50f -> approveColor.copy(alpha = (offsetX / swipeThreshold).coerceAtMost(0.3f))
+        offsetX < -50f -> declineColor.copy(alpha = (-offsetX / swipeThreshold).coerceAtMost(0.3f))
+        else -> neutralColor
+    }
+
+    LaunchedEffect(offsetX) {
+        if (offsetX > swipeThreshold && !isProcessing) {
+            // Rechts geswiped - Genehmigen
+            onApprove()
+            offsetX = 0f
+        } else if (offsetX < -swipeThreshold && !isProcessing) {
+            // Links geswiped - Ablehnen
+            onDecline()
+            offsetX = 0f
+        }
+    }
+
     Card(
         modifier =
             Modifier
                 .fillMaxWidth()
+                .offset { IntOffset(offsetX.toInt(), 0) }
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragEnd = {
+                            // Zurück zur Ausgangsposition wenn Threshold nicht erreicht
+                            if (kotlin.math.abs(offsetX) < swipeThreshold) {
+                                offsetX = 0f
+                            }
+                        }
+                    ) { _, dragAmount ->
+                        offsetX += dragAmount.x
+                        // Begrenze die Bewegung - maximal ganze Bildschirmbreite
+                        offsetX = offsetX.coerceIn(-screenWidthPx, screenWidthPx)
+                    }
+                }
                 .combinedClickable(
                     onClick = {
                         if (isMultiSelectMode) {
@@ -211,7 +267,9 @@ fun RequestItem(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                 )
             } else {
-                CardDefaults.cardColors()
+                CardDefaults.cardColors(
+                    containerColor = backgroundColor,
+                )
             },
     ) {
         Column(modifier = Modifier.padding(16.dp)) {

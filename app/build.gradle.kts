@@ -86,9 +86,6 @@ dependencies {
     // Calendar
     implementation(libs.kizitonwose.calendar.compose)
 
-    // Wear Compose Material für Swipe-Funktionalität
-    implementation("androidx.wear.compose:compose-material:1.4.0")
-
     // LocalBroadcastManager for in-app notifications
     implementation(libs.androidx.localbroadcastmanager)
 
