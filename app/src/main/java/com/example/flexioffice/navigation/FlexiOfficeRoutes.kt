@@ -22,6 +22,8 @@ sealed class FlexiOfficeRoutes(
 
     object Teams : FlexiOfficeRoutes("teams")
 
+    object GeofencingSettings : FlexiOfficeRoutes("geofencing_settings")
+
     companion object {
         /** Standard-Route für neue Benutzer */
         const val DEFAULT_ROUTE = "calendar"

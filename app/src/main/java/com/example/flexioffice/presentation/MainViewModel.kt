@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.UserRepository
 import com.example.flexioffice.data.model.User
+import com.example.flexioffice.geofencing.GeofencingInitializer
 import com.example.flexioffice.navigation.BottomNavigationItem
 import com.example.flexioffice.navigation.BottomNavigationItems
 import com.example.flexioffice.navigation.FlexiOfficeRoutes
@@ -37,6 +38,7 @@ class MainViewModel
     constructor(
         private val authRepository: AuthRepository,
         private val userRepository: UserRepository,
+        private val geofencingInitializer: GeofencingInitializer,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(MainUiState())
         val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
@@ -48,7 +50,8 @@ class MainViewModel
                     .distinctUntilChanged()
                     .flatMapLatest { userId ->
                         if (userId == null) {
-                            // User is logged out, emit the logged-out state.
+                            // User is logged out, clean up geofencing and emit the logged-out state.
+                            geofencingInitializer.cleanupGeofencingOnLogout()
                             flowOf(
                                 MainUiState(isLoading = false, currentUser = null),
                             )
@@ -59,6 +62,10 @@ class MainViewModel
                                     .map { user ->
                                         // Success: We got the user data.
                                         val navItems = BottomNavigationItems.getItemsForUser(user)
+
+                                        // Initialize geofencing for logged-in user
+                                        geofencingInitializer.initializeGeofencingOnAppStart()
+
                                         MainUiState(
                                             isLoading = false,
                                             currentUser = user,
@@ -67,6 +74,10 @@ class MainViewModel
                                     }.getOrElse {
                                         // Failure: Could not get user profile from Firestore.
                                         // Still logged in, but fall back to a default role without team.
+
+                                        // Initialize geofencing even with fallback user data
+                                        geofencingInitializer.initializeGeofencingOnAppStart()
+
                                         val navItems = BottomNavigationItems.getItemsForUser(null)
                                         MainUiState(
                                             isLoading = false,

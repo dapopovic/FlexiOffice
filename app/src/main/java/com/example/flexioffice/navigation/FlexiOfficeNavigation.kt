@@ -12,6 +12,7 @@ import androidx.navigation.compose.composable
 import com.example.flexioffice.presentation.components.TeamAccessRequired
 import com.example.flexioffice.presentation.screens.BookingScreen
 import com.example.flexioffice.presentation.screens.CalendarScreen
+import com.example.flexioffice.presentation.screens.GeofencingSettingsScreen
 import com.example.flexioffice.presentation.screens.LoginScreen
 import com.example.flexioffice.presentation.screens.ProfileScreen
 import com.example.flexioffice.presentation.screens.RequestsScreen
@@ -100,9 +101,18 @@ fun FlexiOfficeNavigation(
         }
 
         // Profile Screen
-        composable(FlexiOfficeRoutes.Profile.route) { ProfileScreen() }
+        composable(FlexiOfficeRoutes.Profile.route) {
+            ProfileScreen(navController = navController)
+        }
 
         // Teams Screen
         composable(FlexiOfficeRoutes.Teams.route) { TeamsScreen() }
+
+        // Geofencing Settings Screen
+        composable(FlexiOfficeRoutes.GeofencingSettings.route) {
+            GeofencingSettingsScreen(hiltViewModel(), navigateBack = {
+                navController.popBackStack()
+            })
+        }
     }
 }

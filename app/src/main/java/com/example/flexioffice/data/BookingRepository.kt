@@ -129,7 +129,7 @@ class BookingRepository
         }
 
         /** Lädt Buchungen eines Benutzers für ein bestimmtes Datum */
-        private suspend fun getUserBookingsForDate(
+        suspend fun getUserBookingsForDate(
             userId: String,
             date: LocalDate,
         ): Result<List<Booking>> =

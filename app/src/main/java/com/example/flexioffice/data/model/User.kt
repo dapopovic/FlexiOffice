@@ -9,9 +9,13 @@ data class User(
     val id: String = "", // Firestore-Dokument-ID, optional
     // Firebase Cloud Messaging Token für Push-Benachrichtigungen
     val fcmToken: String = "",
+    // Home Office Koordinaten für Geofencing
+    val homeLatitude: Double = 0.0,
+    val homeLongitude: Double = 0.0,
+    val hasHomeLocation: Boolean = false,
 ) {
     // Leerer Konstruktor für Firestore
-    constructor() : this("", "", "user", "", "", "")
+    constructor() : this("", "", "user", "", "", "", 0.0, 0.0, false)
 
     companion object {
         // Standard-Rollen
@@ -29,6 +33,9 @@ data class User(
         const val TEAM_ID_FIELD = "teamId"
         const val ID_FIELD = "id"
         const val FCM_TOKEN_FIELD = "fcmToken"
+        const val HOME_LATITUDE_FIELD = "homeLatitude"
+        const val HOME_LONGITUDE_FIELD = "homeLongitude"
+        const val HAS_HOME_LOCATION_FIELD = "hasHomeLocation"
 
         // collection name in Firestore
         const val COLLECTION_NAME = "users"
