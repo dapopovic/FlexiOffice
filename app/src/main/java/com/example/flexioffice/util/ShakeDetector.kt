@@ -14,8 +14,7 @@ class ShakeDetector(
     private val shakeThreshold = 12f
 
     override fun onSensorChanged(event: SensorEvent?) {
-        if (event == null || event.values.size < 3) return
-
+        if (event == null || event.sensor.type != Sensor.TYPE_ACCELEROMETER || event.values.size < 3) return
         val x = event.values[0]
         val y = event.values[1]
         val z = event.values[2]
