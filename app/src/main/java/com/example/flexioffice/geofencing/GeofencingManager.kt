@@ -11,6 +11,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.edit
+import com.example.flexioffice.broadCastReceiver.GeofencingBroadcastReceiver
 import com.example.flexioffice.data.model.User
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient

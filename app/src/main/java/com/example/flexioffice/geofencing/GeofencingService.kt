@@ -17,6 +17,7 @@ import com.example.flexioffice.data.BookingRepository
 import com.example.flexioffice.data.UserRepository
 import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.geofencing.notifications.HomeOfficeNotificationManager
+import com.example.flexioffice.geofencing.GeofencingManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,6 +44,9 @@ class GeofencingService : Service() {
         private const val FOREGROUND_CHANNEL_ID = "geofencing_service_channel"
         private const val NETWORK_TIMEOUT_MS = 10000L // 10 seconds
         private const val MAX_RETRY_COUNT = 3
+        
+        // Action constants
+        const val ACTION_REREGISTER_GEOFENCES = "com.example.flexioffice.action.REREGISTER_GEOFENCES"
     }
 
     @Inject
@@ -56,6 +60,9 @@ class GeofencingService : Service() {
 
     @Inject
     lateinit var notificationManager: HomeOfficeNotificationManager
+
+    @Inject
+    lateinit var geofencingManager: GeofencingManager
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var sharedPrefs: SharedPreferences
@@ -217,22 +224,99 @@ class GeofencingService : Service() {
         }
     }
 
+    /**
+     * Re-registriert Geofences nach einem Geräte-Neustart oder App-Update
+     */
+    private suspend fun reregisterGeofencesAfterBoot() {
+        try {
+            Log.d(TAG, "Re-registriere Geofences nach Boot/Update...")
+
+            // Prüfe ob Geofencing vorher aktiv war
+            if (!geofencingManager.isGeofenceActive()) {
+                Log.d(TAG, "Geofencing war nicht aktiv - keine Re-Registration nötig")
+                return
+            }
+
+            // Prüfe Netzwerkverbindung
+            if (!isNetworkAvailable()) {
+                Log.w(TAG, "Keine Netzwerkverbindung für Geofence Re-Registration")
+                return
+            }
+
+            // Mit Timeout für Netzwerk-Operationen
+            withTimeout(NETWORK_TIMEOUT_MS) {
+                // Hole aktuellen User
+                val currentUser = authRepository.currentUser.first()
+                if (currentUser?.uid == null) {
+                    Log.w(TAG, "Kein angemeldeter User - deaktiviere Geofencing Status")
+                    geofencingManager.removeGeofences()
+                    return@withTimeout
+                }
+
+                val user = userRepository.getUserStream(currentUser.uid).first().getOrNull()
+                if (user == null) {
+                    Log.w(TAG, "User-Daten nicht verfügbar für Geofence Re-Registration")
+                    return@withTimeout
+                }
+
+                // Prüfe ob User noch Home-Koordinaten hat 
+                if (user.hasHomeLocation) {
+                    Log.d(TAG, "Re-registriere Geofence für User: ${user.name}")
+                    
+                    geofencingManager.setupHomeGeofence(user).fold(
+                        onSuccess = {
+                            Log.d(TAG, "Geofence erfolgreich re-registriert nach Boot/Update")
+                        },
+                        onFailure = { error ->
+                            Log.e(TAG, "Fehler beim Re-Registrieren der Geofence", error)
+                            // Setze Status auf inaktiv bei Fehlern
+                            geofencingManager.removeGeofences()
+                        }
+                    )
+                } else {
+                    Log.d(TAG, "User hat keine Home-Location mehr - deaktiviere Geofencing")
+                    geofencingManager.removeGeofences()
+                }
+            }
+
+        } catch (e: TimeoutCancellationException) {
+            Log.w(TAG, "Timeout beim Re-Registrieren der Geofences")
+        } catch (e: UnknownHostException) {
+            Log.w(TAG, "DNS Fehler beim Re-Registrieren der Geofences: ${e.message}")
+        } catch (e: Exception) {
+            Log.e(TAG, "Unerwarteter Fehler beim Re-Registrieren der Geofences", e)
+        }
+    }
+
     override fun onStartCommand(
         intent: Intent?,
         flags: Int,
         startId: Int,
     ): Int {
-        Log.d(TAG, "GeofencingService gestartet")
+        Log.d(TAG, "GeofencingService gestartet mit Action: ${intent?.action}")
 
         // Starte als Foreground Service
         startForeground(FOREGROUND_NOTIFICATION_ID, createForegroundNotification())
 
-        scope.launch {
-            try {
-                checkAndSendHomeOfficeNotification()
-            } finally {
-                // Stoppe Service nach der Arbeit
-                stopSelf()
+        when (intent?.action) {
+            ACTION_REREGISTER_GEOFENCES -> {
+                scope.launch {
+                    try {
+                        reregisterGeofencesAfterBoot()
+                    } finally {
+                        stopSelf()
+                    }
+                }
+            }
+            else -> {
+                // Standard-Aktion: Home Office Status prüfen
+                scope.launch {
+                    try {
+                        checkAndSendHomeOfficeNotification()
+                    } finally {
+                        stopSelf()
+                    }
+                }
             }
         }
 

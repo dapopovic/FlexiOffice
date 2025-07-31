@@ -1,9 +1,10 @@
-package com.example.flexioffice.geofencing
+package com.example.flexioffice.broadCastReceiver
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.example.flexioffice.geofencing.GeofencingService
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
 
@@ -29,6 +30,7 @@ class GeofencingBroadcastReceiver : BroadcastReceiver() {
             Log.e(TAG, "Geofencing error: ${geofencingEvent.errorCode}")
             return
         }
+        Log.d(TAG, "Test")
 
         // Prüfe den Geofence-Übergang
         val geofenceTransition = geofencingEvent.geofenceTransition
