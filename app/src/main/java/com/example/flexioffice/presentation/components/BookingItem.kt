@@ -92,8 +92,7 @@ fun BookingItem(
                     anchors = anchors,
                     thresholds = { _, _ -> FractionalThreshold(0.3f) },
                     orientation = Orientation.Horizontal,
-                )
-                .offset { IntOffset(swipeableState.offset.value.toInt(), 0) }
+                ).offset { IntOffset(swipeableState.offset.value.toInt(), 0) }
                 .combinedClickable(
                     onClick = {
                         if (isMultiSelectMode && !isStorniert) {
