@@ -59,90 +59,88 @@ import kotlinx.coroutines.launch
 
 /** Creates a shimmer effect modifier */
 fun Modifier.customShimmerEffect(
-    isEnabled: Boolean = true,
-    colors: List<Color> =
-        listOf(
-            Color.White.copy(alpha = 0.0f),
-            Color.White.copy(alpha = 0.3f),
-            Color.White.copy(alpha = 0.0f),
-        ),
-): Modifier =
-    composed {
-        if (!isEnabled) return@composed this
+        isEnabled: Boolean = true,
+        colors: List<Color> =
+                listOf(
+                        Color.White.copy(alpha = 0.0f),
+                        Color.White.copy(alpha = 0.3f),
+                        Color.White.copy(alpha = 0.0f),
+                ),
+): Modifier = composed {
+    if (!isEnabled) return@composed this
 
-        val transition = rememberInfiniteTransition(label = "shimmerTransition")
-        val translateAnim =
+    val transition = rememberInfiniteTransition(label = "shimmerTransition")
+    val translateAnim =
             transition.animateFloat(
-                initialValue = 0f,
-                targetValue = 1000f,
-                animationSpec =
-                    infiniteRepeatable(
-                        animation =
-                            tween(
-                                durationMillis = 1200,
-                                easing = FastOutSlowInEasing,
+                    initialValue = 0f,
+                    targetValue = 1000f,
+                    animationSpec =
+                            infiniteRepeatable(
+                                    animation =
+                                            tween(
+                                                    durationMillis = 1200,
+                                                    easing = FastOutSlowInEasing,
+                                            ),
+                                    repeatMode = RepeatMode.Restart,
                             ),
-                        repeatMode = RepeatMode.Restart,
-                    ),
-                label = "shimmerTranslation",
+                    label = "shimmerTranslation",
             )
 
-        background(
+    background(
             brush =
-                Brush.linearGradient(
-                    colors = colors,
-                    start =
-                        Offset(
-                            x = translateAnim.value - 200f,
-                            y = translateAnim.value - 200f,
-                        ),
-                    end = Offset(x = translateAnim.value, y = translateAnim.value),
-                ),
+                    Brush.linearGradient(
+                            colors = colors,
+                            start =
+                                    Offset(
+                                            x = translateAnim.value - 200f,
+                                            y = translateAnim.value - 200f,
+                                    ),
+                            end = Offset(x = translateAnim.value, y = translateAnim.value),
+                    ),
             shape = RoundedCornerShape(12.dp),
-        )
-    }
+    )
+}
 
 /** Creates a pulsing glow effect */
 fun Modifier.customPulseGlow(
-    isEnabled: Boolean = true,
-    glowColor: Color = Color.White.copy(alpha = 0.4f),
-    pulseSpeed: Int = 1000,
-): Modifier =
-    composed {
-        if (!isEnabled) return@composed this
+        isEnabled: Boolean = true,
+        glowColor: Color = Color.White.copy(alpha = 0.4f),
+        pulseSpeed: Int = 1000,
+): Modifier = composed {
+    if (!isEnabled) return@composed this
 
-        val transition = rememberInfiniteTransition(label = "pulseTransition")
-        val alpha =
+    val transition = rememberInfiniteTransition(label = "pulseTransition")
+    val alpha =
             transition.animateFloat(
-                initialValue = 0.2f,
-                targetValue = 0.8f,
-                animationSpec =
-                    infiniteRepeatable(
-                        animation =
-                            tween(
-                                durationMillis = pulseSpeed,
-                                easing = FastOutSlowInEasing,
+                    initialValue = 0.2f,
+                    targetValue = 0.8f,
+                    animationSpec =
+                            infiniteRepeatable(
+                                    animation =
+                                            tween(
+                                                    durationMillis = pulseSpeed,
+                                                    easing = FastOutSlowInEasing,
+                                            ),
+                                    repeatMode = RepeatMode.Reverse,
                             ),
-                        repeatMode = RepeatMode.Reverse,
-                    ),
-                label = "pulseAlpha",
+                    label = "pulseAlpha",
             )
 
-        background(
+    background(
             color = glowColor.copy(alpha = alpha.value),
             shape = RoundedCornerShape(12.dp),
-        )
-    }
+    )
+}
 
 @Composable
 fun InAppNotificationBanner(
-    modifier: Modifier = Modifier,
-    title: String,
-    message: String,
-    type: String? = null,
-    isVisible: Boolean,
-    onDismiss: () -> Unit,
-    onAction: (() -> Unit)? = null,
+        modifier: Modifier = Modifier,
+        title: String,
+        message: String,
+        type: String? = null,
+        isVisible: Boolean,
+        onDismiss: () -> Unit,
+        onAction: (() -> Unit)? = null,
 ) {
     val hapticFeedback = LocalHapticFeedback.current
 
@@ -182,221 +180,220 @@ fun InAppNotificationBanner(
 
     // Animation values
     val slideOffset by
-        animateFloatAsState(
-            targetValue = if (isVisible && !isAnimatingOut) 0f else -100f,
-            animationSpec =
-                spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow,
-                ),
-            label = "slideOffset",
-        )
+            animateFloatAsState(
+                    targetValue = if (isVisible && !isAnimatingOut) 0f else -100f,
+                    animationSpec =
+                            spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessLow,
+                            ),
+                    label = "slideOffset",
+            )
 
     val alpha by
-        animateFloatAsState(
-            targetValue = if (isVisible && !isAnimatingOut) 1f else 0f,
-            animationSpec =
-                tween(
-                    durationMillis = 300,
-                    easing = FastOutSlowInEasing,
-                ),
-            label = "alpha",
-        )
+            animateFloatAsState(
+                    targetValue = if (isVisible && !isAnimatingOut) 1f else 0f,
+                    animationSpec =
+                            tween(
+                                    durationMillis = 300,
+                                    easing = FastOutSlowInEasing,
+                            ),
+                    label = "alpha",
+            )
 
     val scale by
-        animateFloatAsState(
-            targetValue = if (isVisible && !isAnimatingOut) 1f else 0.8f,
-            animationSpec =
-                spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMedium,
-                ),
-            label = "scale",
-        )
+            animateFloatAsState(
+                    targetValue = if (isVisible && !isAnimatingOut) 1f else 0.8f,
+                    animationSpec =
+                            spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessMedium,
+                            ),
+                    label = "scale",
+            )
 
     // Icon bounce animation
     val iconBounce by
-        animateFloatAsState(
-            targetValue = if (isAnimatingIn) 1.2f else 1f,
-            animationSpec =
-                spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy,
-                    stiffness = Spring.StiffnessHigh,
-                ),
-            label = "iconBounce",
-        )
+            animateFloatAsState(
+                    targetValue = if (isAnimatingIn) 1.2f else 1f,
+                    animationSpec =
+                            spring(
+                                    dampingRatio = Spring.DampingRatioLowBouncy,
+                                    stiffness = Spring.StiffnessHigh,
+                            ),
+                    label = "iconBounce",
+            )
 
     AnimatedVisibility(
-        visible = isVisible,
-        enter =
-            slideInVertically(
-                animationSpec =
-                    spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessLow,
-                    ),
-                initialOffsetY = { -it },
-            ) +
-                fadeIn(
-                    animationSpec = tween(300),
-                ),
-        exit =
-            slideOutVertically(
-                animationSpec = tween(300),
-                targetOffsetY = { -it },
-            ) +
-                fadeOut(
-                    animationSpec = tween(300),
-                ),
+            visible = isVisible,
+            enter =
+                    slideInVertically(
+                            animationSpec =
+                                    spring(
+                                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                                            stiffness = Spring.StiffnessLow,
+                                    ),
+                            initialOffsetY = { -it },
+                    ) +
+                            fadeIn(
+                                    animationSpec = tween(300),
+                            ),
+            exit =
+                    slideOutVertically(
+                            animationSpec = tween(300),
+                            targetOffsetY = { -it },
+                    ) +
+                            fadeOut(
+                                    animationSpec = tween(300),
+                            ),
     ) {
         val backgroundColor =
-            when (type) {
-                "booking_status_update" -> MaterialTheme.colorScheme.primaryContainer
-                "new_booking_request" -> MaterialTheme.colorScheme.secondaryContainer
-                else -> MaterialTheme.colorScheme.surfaceVariant
-            }
+                when (type) {
+                    "booking_status_update" -> MaterialTheme.colorScheme.primaryContainer
+                    "new_booking_request" -> MaterialTheme.colorScheme.secondaryContainer
+                    else -> MaterialTheme.colorScheme.surfaceVariant
+                }
 
         val icon =
-            when (type) {
-                "booking_status_update" -> Icons.Default.CheckCircle
-                "new_booking_request" -> Icons.Default.Notifications
-                else -> Icons.Default.Notifications
-            }
-
+                when (type) {
+                    "booking_status_update" -> Icons.Default.CheckCircle
+                    "new_booking_request" -> Icons.Default.Notifications
+                    else -> Icons.Default.Notifications
+                }
         Card(
-            modifier =
-                modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                        this.alpha = alpha
-                        translationY = slideOffset
-                    }.then(
-                        when (type) {
-                            "new_booking_request" -> {
-                                // Add shimmer effect for new booking requests
-                                Modifier.customShimmerEffect(
-                                    isEnabled = true,
-                                    colors =
-                                        listOf(
-                                            Color.White.copy(
-                                                alpha = 0.0f,
-                                            ),
-                                            Color.White.copy(
-                                                alpha = 0.4f,
-                                            ),
-                                            Color.White.copy(
-                                                alpha = 0.0f,
-                                            ),
-                                        ),
-                                )
-                            }
-                            "urgent" -> {
-                                // Add pulse glow for urgent notifications
-                                Modifier.customPulseGlow(
-                                    isEnabled = true,
-                                    glowColor =
-                                        MaterialTheme.colorScheme.error
-                                            .copy(alpha = 0.3f),
-                                    pulseSpeed = 800,
-                                )
-                            }
-                            else -> {
-                                Modifier
-                            }
-                        },
-                    ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = backgroundColor),
+                modifier =
+                        modifier.fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .graphicsLayer {
+                                    scaleX = scale
+                                    scaleY = scale
+                                    this.alpha = alpha
+                                    translationY = slideOffset
+                                }
+                                .then(
+                                        when (type) {
+                                            "new_booking_request" -> {
+                                                // Add shimmer effect for new booking requests
+                                                Modifier.customShimmerEffect(
+                                                        isEnabled = true,
+                                                        colors =
+                                                                listOf(
+                                                                        Color.White.copy(
+                                                                                alpha = 0.0f,
+                                                                        ),
+                                                                        Color.White.copy(
+                                                                                alpha = 0.4f,
+                                                                        ),
+                                                                        Color.White.copy(
+                                                                                alpha = 0.0f,
+                                                                        ),
+                                                                ),
+                                                )
+                                            }
+                                            "urgent" -> {
+                                                // Add pulse glow for urgent notifications
+                                                Modifier.customPulseGlow(
+                                                        isEnabled = true,
+                                                        glowColor =
+                                                                MaterialTheme.colorScheme.error
+                                                                        .copy(alpha = 0.3f),
+                                                        pulseSpeed = 800,
+                                                )
+                                            }
+                                            else -> {
+                                                Modifier
+                                            }
+                                        },
+                                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                colors = CardDefaults.cardColors(containerColor = backgroundColor),
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp).scale(iconBounce),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        imageVector = icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp).scale(iconBounce),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
                 Spacer(modifier = Modifier.width(12.dp))
 
                 Column(
-                    modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f),
                 ) {
                     Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            text = title,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
-                        text = message,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            text = message,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
 
                 if (onAction != null) {
                     // Animated action button
                     val buttonScale by
-                        animateFloatAsState(
-                            targetValue = if (isAnimatingIn) 1.1f else 1f,
-                            animationSpec =
-                                spring(
-                                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                                    stiffness = Spring.StiffnessMedium,
-                                ),
-                            label = "buttonScale",
-                        )
+                            animateFloatAsState(
+                                    targetValue = if (isAnimatingIn) 1.1f else 1f,
+                                    animationSpec =
+                                            spring(
+                                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                                    stiffness = Spring.StiffnessMedium,
+                                            ),
+                                    label = "buttonScale",
+                            )
 
                     TextButton(
-                        onClick = {
-                            hapticFeedback.performHapticFeedback(
-                                HapticFeedbackType.TextHandleMove,
-                            )
-                            isAnimatingOut = true
-                            onAction()
-                        },
-                        modifier = Modifier.scale(buttonScale),
-                        colors =
-                            ButtonDefaults.textButtonColors(
-                                contentColor = MaterialTheme.colorScheme.primary,
-                            ),
+                            onClick = {
+                                hapticFeedback.performHapticFeedback(
+                                        HapticFeedbackType.TextHandleMove,
+                                )
+                                isAnimatingOut = true
+                                onAction()
+                            },
+                            modifier = Modifier.scale(buttonScale),
+                            colors =
+                                    ButtonDefaults.textButtonColors(
+                                            contentColor = MaterialTheme.colorScheme.primary,
+                                    ),
                     ) { Text("Ansehen") }
                 }
 
                 // Animated close button
                 val closeButtonRotation by
-                    animateFloatAsState(
-                        targetValue = if (isAnimatingOut) 180f else 0f,
-                        animationSpec = tween(300),
-                        label = "closeButtonRotation",
-                    )
+                        animateFloatAsState(
+                                targetValue = if (isAnimatingOut) 180f else 0f,
+                                animationSpec = tween(300),
+                                label = "closeButtonRotation",
+                        )
 
                 IconButton(
-                    onClick = {
-                        hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        isAnimatingOut = true
-                        // Small delay to show animation before dismissing
-                        MainScope().launch {
-                            delay(150)
-                            onDismiss()
-                        }
-                    },
-                    modifier =
-                        Modifier.size(24.dp).graphicsLayer {
-                            rotationZ = closeButtonRotation
+                        onClick = {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            isAnimatingOut = true
+                            // Small delay to show animation before dismissing
+                            MainScope().launch {
+                                delay(150)
+                                onDismiss()
+                            }
                         },
+                        modifier =
+                                Modifier.size(24.dp).graphicsLayer {
+                                    rotationZ = closeButtonRotation
+                                },
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Schließen",
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Schließen",
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
