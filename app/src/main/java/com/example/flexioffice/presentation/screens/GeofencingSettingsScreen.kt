@@ -104,7 +104,15 @@ fun GeofencingSettingsScreen(
             LocationPermissionCard(
                 hasLocationPermissions = uiState.hasLocationPermissions,
                 hasBackgroundPermission = uiState.hasBackgroundLocationPermission,
-                onRequestPermissions = {
+                onRequestLocationPermissions = {
+                    val permissions =
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                        )
+                    locationPermissionLauncher.launch(permissions)
+                },
+                onRequestBackgroundPermissions = {
                     val permissions =
                         arrayOf(
                             Manifest.permission.ACCESS_BACKGROUND_LOCATION,
@@ -115,23 +123,12 @@ fun GeofencingSettingsScreen(
 
             // Home Location Card
             HomeLocationCard(
+                hasLocationPermissions = uiState.hasLocationPermissions,
                 hasHomeLocation = uiState.user?.hasHomeLocation == true,
                 homeLatitude = uiState.user?.homeLatitude ?: 0.0,
                 homeLongitude = uiState.user?.homeLongitude ?: 0.0,
                 isLoading = uiState.isSettingHomeLocation,
-                onSetCurrentLocation = {
-                    if (uiState.hasLocationPermissions) {
-                        viewModel.setCurrentLocationAsHome()
-                    } else {
-                        // Request permissions first
-                        val permissions =
-                            arrayOf(
-                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                Manifest.permission.ACCESS_COARSE_LOCATION,
-                            )
-                        locationPermissionLauncher.launch(permissions)
-                    }
-                },
+                onSetCurrentLocation = viewModel::setCurrentLocationAsHome,
             )
 
             // Geofencing Toggle Card
@@ -196,7 +193,8 @@ private fun GeofencingSettingsHeader(onBackPressed: () -> Unit = {}) {
 private fun LocationPermissionCard(
     hasLocationPermissions: Boolean,
     hasBackgroundPermission: Boolean,
-    onRequestPermissions: () -> Unit,
+    onRequestLocationPermissions: () -> Unit,
+    onRequestBackgroundPermissions: () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -245,13 +243,26 @@ private fun LocationPermissionCard(
                 style = MaterialTheme.typography.bodyMedium,
             )
 
-            if (!hasLocationPermissions || !hasBackgroundPermission) {
+            if (!hasLocationPermissions) {
                 Button(
-                    onClick = onRequestPermissions,
+                    onClick = onRequestLocationPermissions,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text("Berechtigungen erteilen")
                 }
+            } else if (!hasBackgroundPermission) {
+                Button(
+                    onClick = onRequestBackgroundPermissions,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Hintergrund-Berechtigung erteilen")
+                }
+            } else {
+                Text(
+                    text = "Alle erforderlichen Berechtigungen sind erteilt.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
@@ -259,6 +270,7 @@ private fun LocationPermissionCard(
 
 @Composable
 private fun HomeLocationCard(
+    hasLocationPermissions: Boolean,
     hasHomeLocation: Boolean,
     homeLatitude: Double,
     homeLongitude: Double,
@@ -313,7 +325,7 @@ private fun HomeLocationCard(
 
             Button(
                 onClick = onSetCurrentLocation,
-                enabled = !isLoading,
+                enabled = !isLoading && hasLocationPermissions,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 if (isLoading) {

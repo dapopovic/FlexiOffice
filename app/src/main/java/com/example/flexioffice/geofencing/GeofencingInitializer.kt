@@ -51,6 +51,7 @@ class GeofencingInitializer
                 // Prüfe Berechtigungen
                 if (!locationPermissionManager.hasAllRequiredPermissions()) {
                     Log.d(TAG, "Missing location permissions, skipping geofencing")
+                    cleanupGeofencingOnLogout()
                     return
                 }
 
