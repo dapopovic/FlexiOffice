@@ -47,8 +47,8 @@ fun BookingScreenHeader(
             )
             EnterMultiSelectModeButton(
                 isMultiselectMode = isMultiselectMode,
-                isBookingListEmpty = isBookingListEmpty,
-                onToggleMultiSelectView = onToggleMultiSelectView,
+                isListEmpty = isBookingListEmpty,
+                onEnterMultiSelectMode = onToggleMultiSelectView,
             )
         }
         Text(

@@ -98,8 +98,8 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
                 Text(text = "Buchungsanfragen", style = MaterialTheme.typography.headlineMedium)
                 EnterMultiSelectModeButton(
                     isMultiselectMode = uiState.isMultiSelectMode,
-                    onToggleMultiSelectView = viewModel::startMultiSelectMode,
-                    isBookingListEmpty = uiState.pendingRequests.isEmpty(),
+                    onEnterMultiSelectMode = viewModel::startMultiSelectMode,
+                    isListEmpty = uiState.pendingRequests.isEmpty(),
                 )
             }
 
@@ -223,7 +223,7 @@ fun RequestItem(
                 if (isMultiSelectMode) {
                     Checkbox(
                         checked = isSelected,
-                        onCheckedChange = { onSelectionChanged(it) },
+                        onCheckedChange = onSelectionChanged,
                         modifier = Modifier.padding(end = 12.dp),
                     )
                 }

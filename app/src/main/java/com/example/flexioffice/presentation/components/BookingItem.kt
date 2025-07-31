@@ -91,7 +91,7 @@ fun BookingItem(
             if (isMultiSelectMode && !isStorniert) {
                 Checkbox(
                     checked = isSelected,
-                    onCheckedChange = { onSelectionChanged(it) },
+                    onCheckedChange = onSelectionChanged,
                     modifier = Modifier.padding(end = 8.dp),
                 )
             }

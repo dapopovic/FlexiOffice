@@ -16,15 +16,15 @@ import com.example.flexioffice.data.model.Booking
 @Composable
 fun EnterMultiSelectModeButton(
     isMultiselectMode: Boolean,
-    isBookingListEmpty: Boolean,
-    onToggleMultiSelectView: (booking: Booking?) -> Unit,
+    isListEmpty: Boolean,
+    onEnterMultiSelectMode: (booking: Booking?) -> Unit,
 ) {
-    if (!isMultiselectMode && !isBookingListEmpty) {
+    if (!isMultiselectMode && !isListEmpty) {
         Row(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Spacer(modifier = Modifier.weight(1f))
-            IconButton(onClick = { onToggleMultiSelectView(null) }) {
+            IconButton(onClick = { onEnterMultiSelectMode(null) }) {
                 Icon(
                     ImageVector.vectorResource(R.drawable.done_all_24px),
                     contentDescription = "Multi-Select View",
