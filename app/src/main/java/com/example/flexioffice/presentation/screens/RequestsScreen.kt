@@ -281,11 +281,12 @@ fun RequestItem(
                 ),
         colors =
             CardDefaults.cardColors(
-                containerColor = if (isSelected) {
-                    MaterialTheme.colorScheme.primaryContainer
-                } else {
-                    backgroundColor
-                }
+                containerColor =
+                    if (isSelected) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        backgroundColor
+                    },
             ),
         elevation =
             CardDefaults.cardElevation(
