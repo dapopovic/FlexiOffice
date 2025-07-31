@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -64,18 +65,27 @@ fun BookingItem(
     val screenWidthPx = with(LocalDensity.current) { screenWidthDp.dp.toPx() }
 
     // Swipe-Logik mit Compose Foundation
-    var offsetX by remember { mutableFloatStateOf(0f) }
+    var offsetX by remember(booking.id) { mutableFloatStateOf(0f) }
+    var isSwipeProcessing by remember(booking.id) { mutableStateOf(false) }
     val swipeThreshold = screenWidthPx / 2f // Hälfte der Bildschirmbreite
 
     LaunchedEffect(offsetX) {
+        if (isSwipeProcessing) return@LaunchedEffect
+        
         if (offsetX > swipeThreshold) {
             // Rechts geswiped - Details
+            isSwipeProcessing = true
             onClick(booking)
+            kotlinx.coroutines.delay(500) // Kurze Verzögerung um versehentliche weitere Swipes zu verhindern
             offsetX = 0f
+            isSwipeProcessing = false
         } else if (offsetX < -swipeThreshold && !isStorniert) {
             // Links geswiped - Cancel Dialog
+            isSwipeProcessing = true
             onCancelClick(booking)
+            kotlinx.coroutines.delay(500) // Kurze Verzögerung um versehentliche weitere Swipes zu verhindern
             offsetX = 0f
+            isSwipeProcessing = false
         }
     }
 
@@ -85,7 +95,8 @@ fun BookingItem(
                 .fillMaxWidth()
                 .padding(vertical = 4.dp)
                 .offset { IntOffset(offsetX.toInt(), 0) }
-                .pointerInput(Unit) {
+                .pointerInput(booking.id, isSwipeProcessing) {
+                    if (isSwipeProcessing) return@pointerInput
                     detectDragGestures(
                         onDragEnd = {
                             // Zurück zur Ausgangsposition wenn Threshold nicht erreicht
@@ -94,9 +105,11 @@ fun BookingItem(
                             }
                         },
                     ) { _, dragAmount ->
-                        offsetX += dragAmount.x
-                        // Begrenze die Bewegung - maximal ganze Bildschirmbreite
-                        offsetX = offsetX.coerceIn(-screenWidthPx, screenWidthPx)
+                        if (!isSwipeProcessing) {
+                            offsetX += dragAmount.x
+                            // Begrenze die Bewegung - maximal ganze Bildschirmbreite
+                            offsetX = offsetX.coerceIn(-screenWidthPx, screenWidthPx)
+                        }
                     }
                 }.combinedClickable(
                     onClick = {

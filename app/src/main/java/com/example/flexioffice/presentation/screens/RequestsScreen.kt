@@ -37,6 +37,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -207,30 +208,44 @@ fun RequestItem(
     val screenWidthPx = with(LocalDensity.current) { screenWidthDp.dp.toPx() }
 
     // Swipe-Logik mit Compose Foundation
-    var offsetX by remember { mutableFloatStateOf(0f) }
+    var offsetX by remember(booking.id) { mutableFloatStateOf(0f) }
+    var isSwipeProcessing by remember(booking.id) { mutableStateOf(false) }
     val swipeThreshold = screenWidthPx / 2f // Hälfte der Bildschirmbreite
 
     // Farben für visuelles Feedback
-    val approveColor = androidx.compose.ui.graphics.Color(0xFF4CAF50) // Helles Grün
-    val declineColor = androidx.compose.ui.graphics.Color(0xFFFF5722) // Helles Rot
+    val approveColor =
+        androidx.compose.ui.graphics
+            .Color(0xFF4CAF50) // Helles Grün
+    val declineColor =
+        androidx.compose.ui.graphics
+            .Color(0xFFFF5722) // Helles Rot
     val neutralColor = MaterialTheme.colorScheme.surfaceBright // Gleiche graue Farbe wie BookingItems
 
     // Berechne Hintergrundfarbe basierend auf Swipe-Richtung
-    val backgroundColor = when {
-        offsetX > 50f -> approveColor.copy(alpha = (offsetX / swipeThreshold).coerceAtMost(0.3f))
-        offsetX < -50f -> declineColor.copy(alpha = (-offsetX / swipeThreshold).coerceAtMost(0.3f))
-        else -> neutralColor
-    }
+    val backgroundColor =
+        when {
+            offsetX > 50f -> approveColor.copy(alpha = (offsetX / swipeThreshold).coerceAtMost(0.3f))
+            offsetX < -50f -> declineColor.copy(alpha = (-offsetX / swipeThreshold).coerceAtMost(0.3f))
+            else -> neutralColor
+        }
 
     LaunchedEffect(offsetX) {
+        if (isSwipeProcessing) return@LaunchedEffect
+
         if (offsetX > swipeThreshold && !isProcessing) {
             // Rechts geswiped - Genehmigen
+            isSwipeProcessing = true
             onApprove()
+            kotlinx.coroutines.delay(800) // Längere Verzögerung für Request-Verarbeitung
             offsetX = 0f
+            isSwipeProcessing = false
         } else if (offsetX < -swipeThreshold && !isProcessing) {
             // Links geswiped - Ablehnen
+            isSwipeProcessing = true
             onDecline()
+            kotlinx.coroutines.delay(800) // Längere Verzögerung für Request-Verarbeitung
             offsetX = 0f
+            isSwipeProcessing = false
         }
     }
 
@@ -238,22 +253,25 @@ fun RequestItem(
         modifier =
             Modifier
                 .fillMaxWidth()
+                .padding(vertical = 4.dp)
                 .offset { IntOffset(offsetX.toInt(), 0) }
-                .pointerInput(Unit) {
+                .pointerInput(booking.id, isSwipeProcessing, isProcessing) {
+                    if (isSwipeProcessing || isProcessing) return@pointerInput
                     detectDragGestures(
                         onDragEnd = {
                             // Zurück zur Ausgangsposition wenn Threshold nicht erreicht
                             if (kotlin.math.abs(offsetX) < swipeThreshold) {
                                 offsetX = 0f
                             }
-                        }
+                        },
                     ) { _, dragAmount ->
-                        offsetX += dragAmount.x
-                        // Begrenze die Bewegung - maximal ganze Bildschirmbreite
-                        offsetX = offsetX.coerceIn(-screenWidthPx, screenWidthPx)
+                        if (!isSwipeProcessing && !isProcessing) {
+                            offsetX += dragAmount.x
+                            // Begrenze die Bewegung - maximal ganze Bildschirmbreite
+                            offsetX = offsetX.coerceIn(-screenWidthPx, screenWidthPx)
+                        }
                     }
-                }
-                .combinedClickable(
+                }.combinedClickable(
                     onClick = {
                         if (isMultiSelectMode) {
                             onSelectionChanged(!isSelected)
@@ -262,15 +280,17 @@ fun RequestItem(
                     onLongClick = { onLongClick() },
                 ),
         colors =
-            if (isSelected) {
-                CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                )
-            } else {
-                CardDefaults.cardColors(
-                    containerColor = backgroundColor,
-                )
-            },
+            CardDefaults.cardColors(
+                containerColor = if (isSelected) {
+                    MaterialTheme.colorScheme.primaryContainer
+                } else {
+                    backgroundColor
+                }
+            ),
+        elevation =
+            CardDefaults.cardElevation(
+                defaultElevation = 4.dp,
+            ),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
