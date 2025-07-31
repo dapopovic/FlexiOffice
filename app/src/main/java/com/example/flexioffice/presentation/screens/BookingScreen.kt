@@ -6,17 +6,27 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.flexioffice.R
 import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.presentation.BookingViewModel
 import com.example.flexioffice.presentation.components.BookingDatePickerDialog
@@ -63,20 +73,40 @@ fun BookingScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        floatingActionButton = {
-            BookingFloatingActionButton(
-                onCreateBookingClick = { viewModel.showBookingDialog() },
-            )
+        topBar = {
+            if (uiState.isMultiSelectMode) {
+                MultiSelectTopBar(
+                    selectedCount = uiState.selectedBookings.size,
+                    onExitMultiSelect = { viewModel.exitMultiSelectMode() },
+                    onSelectAll = { viewModel.selectAllBookings() },
+                    onClearSelection = { viewModel.clearSelection() },
+                    onBatchCancel = { viewModel.batchCancelBookings() },
+                    isBatchProcessing = uiState.isBatchProcessing,
+                )
+            }
         },
-    ) { _ ->
+        floatingActionButton = {
+            if (!uiState.isMultiSelectMode) {
+                BookingFloatingActionButton(
+                    onCreateBookingClick = { viewModel.showBookingDialog() },
+                )
+            }
+        },
+    ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             item {
                 BookingScreenHeader(
                     showCancelledBookings = uiState.showCancelledBookings,
                     onToggleCancelledBookings = { viewModel.toggleCancelledBookings() },
+                    onToggleMultiSelectView = { viewModel.startMultiSelectMode() },
+                    isMultiselectMode = uiState.isMultiSelectMode,
+                    isBookingListEmpty =
+                        uiState.userBookings.none { booking ->
+                            booking.status != BookingStatus.CANCELLED
+                        },
                 )
             }
 
@@ -94,6 +124,10 @@ fun BookingScreen(
                         booking = booking,
                         onClick = { viewModel.showDetailsSheet(it) },
                         onCancelClick = { viewModel.showCancelDialog(it) },
+                        onLongClick = { viewModel.startMultiSelectMode(booking) },
+                        isMultiSelectMode = uiState.isMultiSelectMode,
+                        isSelected = uiState.selectedBookings.contains(booking.id),
+                        onSelectionChanged = { viewModel.toggleBookingSelection(booking.id) },
                     )
                 }
             }
@@ -126,6 +160,51 @@ fun BookingScreen(
         showDatePicker = uiState.showDatePicker,
         selectedDate = uiState.selectedDate,
         onDismiss = { viewModel.hideDatePicker() },
-        onDateSelected = { selectedDate -> viewModel.updateSelectedDate(selectedDate) },
+        onDateSelected = { date -> viewModel.updateSelectedDate(date) },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MultiSelectTopBar(
+    selectedCount: Int,
+    onExitMultiSelect: () -> Unit,
+    onSelectAll: () -> Unit,
+    onClearSelection: () -> Unit,
+    onBatchCancel: () -> Unit,
+    isBatchProcessing: Boolean,
+) {
+    TopAppBar(
+        title = { Text("$selectedCount ausgewählt") },
+        navigationIcon = {
+            IconButton(onClick = onExitMultiSelect) {
+                Icon(Icons.Default.Close, contentDescription = "Multi-Select beenden")
+            }
+        },
+        actions = {
+            if (selectedCount > 0) {
+                IconButton(
+                    onClick = onBatchCancel,
+                    enabled = !isBatchProcessing,
+                ) {
+                    Icon(
+                        ImageVector.vectorResource(R.drawable.cancel_24px),
+                        contentDescription = "Ausgewählte stornieren",
+                    )
+                }
+                IconButton(onClick = onClearSelection) {
+                    Icon(
+                        ImageVector.vectorResource(R.drawable.check_box_outline_blank_24px),
+                        contentDescription = "Auswahl aufheben",
+                    )
+                }
+            }
+            IconButton(onClick = onSelectAll) {
+                Icon(
+                    ImageVector.vectorResource(R.drawable.check_box_24px),
+                    contentDescription = "Alle auswählen",
+                )
+            }
+        },
     )
 }

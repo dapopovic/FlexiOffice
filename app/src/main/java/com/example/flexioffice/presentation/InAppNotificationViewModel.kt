@@ -1,15 +1,9 @@
 package com.example.flexioffice.presentation
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.flexioffice.fcm.InAppNotificationManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,53 +35,30 @@ data class NotificationItem(
 @HiltViewModel
 class InAppNotificationViewModel
     @Inject
-    constructor(
-        @ApplicationContext private val context: Context,
-    ) : ViewModel() {
+    constructor() : ViewModel() {
         private val _notificationState = MutableStateFlow(InAppNotificationState())
         val notificationState: StateFlow<InAppNotificationState> = _notificationState.asStateFlow()
 
         private val notificationQueue = mutableListOf<NotificationItem>()
         private var isShowingNotification = false
 
-        private val notificationReceiver =
-            object : BroadcastReceiver() {
-                override fun onReceive(
-                    context: Context?,
-                    intent: Intent?,
-                ) {
-                    intent?.let { receivedIntent ->
-                        val title =
-                            receivedIntent.getStringExtra(InAppNotificationManager.EXTRA_TITLE)
-                                ?: ""
-                        val body =
-                            receivedIntent.getStringExtra(InAppNotificationManager.EXTRA_BODY)
-                                ?: ""
-                        val type =
-                            receivedIntent.getStringExtra(InAppNotificationManager.EXTRA_TYPE)
-                        val bookingId =
-                            receivedIntent.getStringExtra(
-                                InAppNotificationManager.EXTRA_BOOKING_ID,
-                            )
-                        val userName =
-                            receivedIntent.getStringExtra(
-                                InAppNotificationManager.EXTRA_USER_NAME,
-                            )
-                        val date =
-                            receivedIntent.getStringExtra(InAppNotificationManager.EXTRA_DATE)
-
-                        showNotification(title, body, type, bookingId, userName, date)
-                    }
-                }
-            }
-
         init {
-            registerReceiver()
+            observeNotifications()
         }
 
-        private fun registerReceiver() {
-            val filter = IntentFilter(InAppNotificationManager.ACTION_IN_APP_NOTIFICATION)
-            LocalBroadcastManager.getInstance(context).registerReceiver(notificationReceiver, filter)
+        private fun observeNotifications() {
+            viewModelScope.launch {
+                InAppNotificationManager.notificationFlow.collect { notification ->
+                    showNotification(
+                        title = notification.title,
+                        message = notification.body,
+                        type = notification.type,
+                        bookingId = notification.bookingId,
+                        userName = notification.userName,
+                        date = notification.date,
+                    )
+                }
+            }
         }
 
         private fun showNotification(
@@ -148,10 +119,5 @@ class InAppNotificationViewModel
                     displayNotification(nextNotification)
                 }
             }
-        }
-
-        override fun onCleared() {
-            super.onCleared()
-            LocalBroadcastManager.getInstance(context).unregisterReceiver(notificationReceiver)
         }
     }

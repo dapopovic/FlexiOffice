@@ -1,9 +1,12 @@
 package com.example.flexioffice.presentation.screens
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,9 +45,12 @@ fun MainAppScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (uiState.availableNavItems.isNotEmpty()) {
-                NavigationBar {
+                NavigationBar(
+                    modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
+                ) {
                     uiState.availableNavItems.forEach { item ->
                         val isSelected =
                             currentDestination?.hierarchy?.any { it.route == item.route } ==
@@ -111,9 +117,19 @@ fun MainAppScreen(
             }
         },
     ) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding)) {
-            // In-App Notification Banner
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Main Navigation Content
+            Box(modifier = Modifier.padding(innerPadding)) {
+                FlexiOfficeNavigation(
+                    navController = navController,
+                    startDestination = mainViewModel.getDefaultRoute(),
+                    mainViewModel = mainViewModel,
+                )
+            }
+
+            // In-App Notification Banner - positioned as overlay
             InAppNotificationBanner(
+                modifier = Modifier.statusBarsPadding(),
                 title = notificationState.title,
                 message = notificationState.message,
                 type = notificationState.type,
@@ -138,15 +154,6 @@ fun MainAppScreen(
                     inAppNotificationViewModel.dismissNotification()
                 },
             )
-
-            // Main Navigation Content
-            Box(modifier = Modifier.weight(1f)) {
-                FlexiOfficeNavigation(
-                    navController = navController,
-                    startDestination = mainViewModel.getDefaultRoute(),
-                    mainViewModel = mainViewModel,
-                )
-            }
         }
     }
 }

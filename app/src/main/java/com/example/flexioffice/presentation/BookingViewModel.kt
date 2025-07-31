@@ -43,6 +43,10 @@ data class BookingUiState(
     val userBookings: List<Booking> = emptyList(),
     val approverName: String? = null,
     val isWeekView: Boolean = false, // Neue Property für Kalenderansicht
+    // Multi-select properties
+    val isMultiSelectMode: Boolean = false,
+    val selectedBookings: Set<String> = emptySet(), // Booking IDs
+    val isBatchProcessing: Boolean = false,
 )
 
 @HiltViewModel
@@ -116,8 +120,7 @@ class BookingViewModel
                             }
                         }
                     }.catch { e ->
-                        _uiState.value =
-                            _uiState.value.copy(error = e.message, isLoading = false)
+                        _uiState.value = _uiState.value.copy(error = e.message, isLoading = false)
                     }.collect { state -> _uiState.update { state } }
             }
         }
@@ -194,16 +197,13 @@ class BookingViewModel
 
             // Prüfe, ob das ausgewählte Datum in der Vergangenheit liegt
             if (currentState.selectedDate.isBefore(LocalDate.now())) {
-                _uiState.update {
-                    it.copy(error = "Buchungen für vergangene Tage sind nicht möglich")
-                }
+                _uiState.update { it.copy(error = "Buchungen für vergangene Tage sind nicht möglich") }
                 return
             }
             // Prüfe, ob bereits eine aktive Buchung für dieses Datum existiert
             val existingBooking =
                 currentState.userBookings.find {
-                    it.date == currentState.selectedDate &&
-                        it.status != BookingStatus.CANCELLED
+                    it.date == currentState.selectedDate && it.status != BookingStatus.CANCELLED
                 }
             if (existingBooking != null) {
                 _uiState.update {
@@ -248,7 +248,9 @@ class BookingViewModel
                             dateString = currentState.selectedDate.toString(),
                             type = BookingType.HOME_OFFICE,
                             status =
-                                if (user.role == User.ROLE_MANAGER || team.managerId == userId) {
+                                if (user.role == User.ROLE_MANAGER ||
+                                    team.managerId == userId
+                                ) {
                                     BookingStatus.APPROVED
                                 } else {
                                     BookingStatus.PENDING
@@ -266,9 +268,7 @@ class BookingViewModel
                                 booking,
                                 team.managerId,
                             )
-                        } catch (
-                            e: Exception,
-                        ) {
+                        } catch (e: Exception) {
                             Log.e(
                                 "BookingViewModel",
                                 "Fehler beim Senden der Benachrichtigung",
@@ -280,7 +280,8 @@ class BookingViewModel
                     Log.e("BookingViewModel", "Fehler beim Erstellen der Buchung", e)
                     _uiState.update {
                         it.copy(
-                            error = "Die Buchung konnte nicht erstellt werden. Bitte versuchen Sie es später erneut.",
+                            error =
+                                "Die Buchung konnte nicht erstellt werden. Bitte versuchen Sie es später erneut.",
                         )
                     }
                 } finally {
@@ -350,8 +351,7 @@ class BookingViewModel
                 try {
                     _uiState.update { it.copy(isLoading = true) }
                     val currentUserId =
-                        auth.currentUser?.uid
-                            ?: throw Exception("Benutzer nicht eingeloggt")
+                        auth.currentUser?.uid ?: throw Exception("Benutzer nicht eingeloggt")
                     bookingRepository.updateBookingStatus(
                         booking.id,
                         BookingStatus.CANCELLED,
@@ -368,5 +368,107 @@ class BookingViewModel
 
         fun toggleCancelledBookings() {
             _uiState.update { it.copy(showCancelledBookings = !it.showCancelledBookings) }
+        }
+
+        // Multi-select functions
+        fun startMultiSelectMode(booking: Booking? = null) {
+            if (booking != null) {
+                _uiState.update {
+                    it.copy(
+                        isMultiSelectMode = true,
+                        selectedBookings = setOf(booking.id),
+                    )
+                }
+                return
+            }
+            _uiState.update {
+                it.copy(
+                    isMultiSelectMode = true,
+                    selectedBookings = emptySet(),
+                )
+            }
+        }
+
+        fun exitMultiSelectMode() {
+            _uiState.update {
+                it.copy(
+                    isMultiSelectMode = false,
+                    selectedBookings = emptySet(),
+                )
+            }
+        }
+
+        fun toggleBookingSelection(bookingId: String) {
+            _uiState.update { currentState ->
+                val selectedBookings = currentState.selectedBookings.toMutableSet()
+                if (selectedBookings.contains(bookingId)) {
+                    selectedBookings.remove(bookingId)
+                } else {
+                    selectedBookings.add(bookingId)
+                }
+                currentState.copy(selectedBookings = selectedBookings)
+            }
+        }
+
+        fun selectAllBookings() {
+            _uiState.update { currentState ->
+                val allBookingIds =
+                    currentState
+                        .userBookings
+                        .filter {
+                            it.status != BookingStatus.CANCELLED
+                        }.map { it.id }
+                        .toSet()
+                currentState.copy(selectedBookings = allBookingIds)
+            }
+        }
+
+        fun clearSelection() {
+            _uiState.update { it.copy(selectedBookings = emptySet()) }
+        }
+
+        fun batchCancelBookings() {
+            val selectedIds = _uiState.value.selectedBookings
+            if (selectedIds.isEmpty()) return
+
+            val currentUserId = auth.currentUser?.uid ?: return
+
+            viewModelScope.launch {
+                try {
+                    _uiState.update { it.copy(isBatchProcessing = true) }
+
+                    bookingRepository
+                        .updateBookingStatusBatch(
+                            bookingIds = selectedIds.toList(),
+                            status = BookingStatus.CANCELLED,
+                            reviewerId = currentUserId,
+                        ).fold(
+                            onSuccess = {
+                                _uiState.update {
+                                    it.copy(
+                                        selectedBookings = emptySet(),
+                                        isMultiSelectMode = false,
+                                        isBatchProcessing = false,
+                                    )
+                                }
+                            },
+                            onFailure = { e: Throwable ->
+                                _uiState.update {
+                                    it.copy(
+                                        error = "Fehler beim Batch-Update: ${e.message}",
+                                        isBatchProcessing = false,
+                                    )
+                                }
+                            },
+                        )
+                } catch (e: Exception) {
+                    _uiState.update {
+                        it.copy(
+                            error = "Unerwarteter Fehler: ${e.message}",
+                            isBatchProcessing = false,
+                        )
+                    }
+                }
+            }
         }
     }

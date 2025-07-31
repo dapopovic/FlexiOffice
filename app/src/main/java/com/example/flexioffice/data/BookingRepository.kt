@@ -15,6 +15,8 @@ import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
 
+private const val FIRESTORE_BATCH_LIMIT = 500
+
 /** Repository für Buchungs-Datenoperationen in Firestore */
 @Singleton
 class BookingRepository
@@ -61,7 +63,9 @@ class BookingRepository
             return try {
                 // Validiere das Datum
                 if (date.isBefore(LocalDate.now())) {
-                    return Result.failure(IllegalArgumentException("Buchungen für vergangene Tage sind nicht möglich"))
+                    return Result.failure(
+                        IllegalArgumentException("Buchungen für vergangene Tage sind nicht möglich"),
+                    )
                 }
 
                 // Prüfe auf existierende Buchungen
@@ -71,7 +75,9 @@ class BookingRepository
                     }
                 if (existingBooking != null) {
                     return Result.failure(
-                        IllegalArgumentException("Sie haben bereits eine aktive Buchung für diesen Tag"),
+                        IllegalArgumentException(
+                            "Sie haben bereits eine aktive Buchung für diesen Tag",
+                        ),
                     )
                 }
 
@@ -85,14 +91,23 @@ class BookingRepository
                                 .get()
                                 .await()
                         teamDoc.toObject(Team::class.java)
-                            ?: return Result.failure(IllegalArgumentException("Team nicht gefunden"))
+                            ?: return Result.failure(
+                                IllegalArgumentException("Team nicht gefunden"),
+                            )
                     } catch (e: Exception) {
-                        return Result.failure(IllegalArgumentException("Fehler beim Laden des Teams: ${e.message}", e))
+                        return Result.failure(
+                            IllegalArgumentException(
+                                "Fehler beim Laden des Teams: ${e.message}",
+                                e,
+                            ),
+                        )
                     }
 
                 // Prüfe ob das Team einen Manager hat
                 if (team.managerId.isNullOrEmpty()) {
-                    return Result.failure(IllegalArgumentException("Das Team hat keinen Manager zugewiesen"))
+                    return Result.failure(
+                        IllegalArgumentException("Das Team hat keinen Manager zugewiesen"),
+                    )
                 }
 
                 val booking =
@@ -270,6 +285,51 @@ class BookingRepository
                 Result.failure(e)
             }
 
+        /**
+         * Aktualisiert den Status mehrerer Buchungen in einem Batch
+         * Diese Methode ist nützlich, um mehrere Buchungen gleichzeitig zu aktualisieren,
+         *  z.B. wenn ein Manager mehrere Anfragen gleichzeitig genehmigen oder ablehnen möchte
+         *
+         * @param bookingIds Liste der Buchungs-IDs, die aktualisiert werden sollen
+         * @param status Der neue Status, der auf alle Buchungen angewendet werden soll
+         * @param reviewerId Die ID des Benutzers, der die Buchungen überprüft hat
+         * @return Result<Unit> Erfolgreiche Ausführung oder Fehler
+         * @throws IllegalArgumentException Wenn die Batch-Größe die Firestore-Limitierung überschreitet
+         * @throws Exception Bei anderen Fehlern während der Firestore-Operationen
+         */
+        suspend fun updateBookingStatusBatch(
+            bookingIds: List<String>,
+            status: BookingStatus,
+            reviewerId: String,
+        ): Result<Unit> {
+            return try {
+                if (bookingIds.isEmpty()) {
+                    return Result.success(Unit)
+                }
+
+                require(bookingIds.size <= FIRESTORE_BATCH_LIMIT) {
+                    "Batch size exceeds Firestore limit of $FIRESTORE_BATCH_LIMIT"
+                }
+
+                val batch = firestore.batch()
+                val updates =
+                    mapOf(
+                        Booking.STATUS_FIELD to status,
+                        Booking.REVIEWER_ID_FIELD to reviewerId,
+                    )
+
+                bookingIds.forEach { bookingId ->
+                    val docRef = firestore.collection(Booking.COLLECTION_NAME).document(bookingId)
+                    batch.update(docRef, updates)
+                }
+
+                batch.commit().await()
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
         /** Erstellt Demo-Buchungen für Testing */
         suspend fun createDemoBookings(teamId: String): Result<Unit> =
             try {
@@ -287,7 +347,10 @@ class BookingRepository
                             type = BookingType.HOME_OFFICE,
                             status = BookingStatus.APPROVED,
                             comment = "Home Office Tag",
-                            createdAt = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
+                            createdAt =
+                                LocalDate
+                                    .now()
+                                    .format(DateTimeFormatter.ISO_LOCAL_DATE),
                         ),
                         Booking(
                             userId = "demo_user_2",
@@ -300,7 +363,10 @@ class BookingRepository
                             type = BookingType.HOME_OFFICE,
                             status = BookingStatus.APPROVED,
                             comment = "Remote Work",
-                            createdAt = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
+                            createdAt =
+                                LocalDate
+                                    .now()
+                                    .format(DateTimeFormatter.ISO_LOCAL_DATE),
                         ),
                         Booking(
                             userId = "demo_user_3",
@@ -313,7 +379,10 @@ class BookingRepository
                             type = BookingType.HOME_OFFICE,
                             status = BookingStatus.APPROVED,
                             comment = "Home Office",
-                            createdAt = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
+                            createdAt =
+                                LocalDate
+                                    .now()
+                                    .format(DateTimeFormatter.ISO_LOCAL_DATE),
                         ),
                     )
 

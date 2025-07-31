@@ -32,6 +32,10 @@ data class RequestsUiState(
     val selectedBooking: Booking? = null,
     val isApprovingRequest: Boolean = false,
     val isDecliningRequest: Boolean = false,
+    // Multi-select properties
+    val isMultiSelectMode: Boolean = false,
+    val selectedRequests: Set<String> = emptySet(), // Booking IDs
+    val isBatchProcessing: Boolean = false,
 )
 
 @HiltViewModel
@@ -173,7 +177,11 @@ class RequestsViewModel
                                 }
                             },
                             onFailure = { exception ->
-                                Log.e("RequestsViewModel", "Fehler beim $actionError", exception)
+                                Log.e(
+                                    "RequestsViewModel",
+                                    "Fehler beim $actionError",
+                                    exception,
+                                )
                                 _uiState.update {
                                     it.copy(
                                         error =
@@ -226,5 +234,143 @@ class RequestsViewModel
             val state = _uiState.value
             return (state.isApprovingRequest || state.isDecliningRequest) &&
                 state.selectedBooking?.id == bookingId
+        }
+
+        // Multi-select functions
+        fun startMultiSelectMode(booking: Booking? = null) {
+            if (booking != null) {
+                _uiState.update {
+                    it.copy(
+                        isMultiSelectMode = true,
+                        selectedRequests = setOf(booking.id),
+                    )
+                }
+                return
+            }
+            _uiState.update {
+                it.copy(
+                    isMultiSelectMode = true,
+                    selectedRequests = emptySet(),
+                )
+            }
+        }
+
+        fun exitMultiSelectMode() {
+            _uiState.update {
+                it.copy(
+                    isMultiSelectMode = false,
+                    selectedRequests = emptySet(),
+                )
+            }
+        }
+
+        fun toggleRequestSelection(requestId: String) {
+            _uiState.update { currentState ->
+                val selectedRequests = currentState.selectedRequests.toMutableSet()
+                if (selectedRequests.contains(requestId)) {
+                    selectedRequests.remove(requestId)
+                } else {
+                    selectedRequests.add(requestId)
+                }
+                currentState.copy(selectedRequests = selectedRequests)
+            }
+        }
+
+        fun selectAllRequests() {
+            _uiState.update { currentState ->
+                val allRequestIds = currentState.pendingRequests.map { it.id }.toSet()
+                currentState.copy(selectedRequests = allRequestIds)
+            }
+        }
+
+        fun clearSelection() {
+            _uiState.update { it.copy(selectedRequests = emptySet()) }
+        }
+
+        fun batchApproveRequests() {
+            processBatchRequests(BookingStatus.APPROVED)
+        }
+
+        fun batchDeclineRequests() {
+            processBatchRequests(BookingStatus.DECLINED)
+        }
+
+        private fun processBatchRequests(newStatus: BookingStatus) {
+            val selectedIds = _uiState.value.selectedRequests
+            if (selectedIds.isEmpty()) return
+
+            val currentUserId = auth.currentUser?.uid ?: return
+
+            viewModelScope.launch {
+                try {
+                    _uiState.update { it.copy(isBatchProcessing = true) }
+
+                    bookingRepository
+                        .updateBookingStatusBatch(
+                            bookingIds = selectedIds.toList(),
+                            status = newStatus,
+                            reviewerId = currentUserId,
+                        ).fold(
+                            onSuccess = {
+                                // Send notifications for batch operations
+                                sendBatchNotifications(selectedIds, newStatus)
+
+                                _uiState.update {
+                                    it.copy(
+                                        selectedRequests = emptySet(),
+                                        isMultiSelectMode = false,
+                                        isBatchProcessing = false,
+                                    )
+                                }
+                            },
+                            onFailure = { e: Throwable ->
+                                _uiState.update {
+                                    it.copy(
+                                        error = "Fehler beim Batch-Update: ${e.message}",
+                                        isBatchProcessing = false,
+                                    )
+                                }
+                            },
+                        )
+                } catch (e: Exception) {
+                    _uiState.update {
+                        it.copy(
+                            error = "Unerwarteter Fehler: ${e.message}",
+                            isBatchProcessing = false,
+                        )
+                    }
+                }
+            }
+        }
+
+        private fun sendBatchNotifications(
+            selectedIds: Set<String>,
+            newStatus: BookingStatus,
+        ) {
+            viewModelScope.launch {
+                try {
+                    val bookingsToNotify =
+                        _uiState.value.pendingRequests.filter { selectedIds.contains(it.id) }
+
+                    bookingsToNotify.forEach { booking ->
+                        try {
+                            notificationRepository.sendBookingStatusNotification(
+                                booking = booking,
+                                newStatus = newStatus,
+                                reviewerName = _uiState.value.currentUser?.name ?: "Manager",
+                            )
+                        } catch (e: Exception) {
+                            Log.e(
+                                "RequestsViewModel",
+                                "Fehler beim Senden der Batch-Notification für ${booking.id}",
+                                e,
+                            )
+                        }
+                    }
+                    Log.d("RequestsViewModel", "Batch-Notifications erfolgreich gesendet")
+                } catch (e: Exception) {
+                    Log.e("RequestsViewModel", "Fehler beim Senden der Batch-Notifications", e)
+                }
+            }
         }
     }

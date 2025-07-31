@@ -109,12 +109,13 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
         // If app is in foreground, send in-app notification instead
         if (isAppInForeground()) {
             Log.d(TAG, "App is in foreground, sending in-app notification")
-            InAppNotificationManager.sendInAppNotification(
-                context = this,
-                title = title ?: "FlexiOffice",
-                body = body ?: "Sie haben eine neue Nachricht",
-                bookingId = bookingId,
-            )
+            serviceScope.launch {
+                InAppNotificationManager.sendInAppNotification(
+                    title = title ?: "FlexiOffice",
+                    body = body ?: "Sie haben eine neue Nachricht",
+                    bookingId = bookingId,
+                )
+            }
             return
         }
 
@@ -163,15 +164,16 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
         // If app is in foreground, send in-app notification instead
         if (isAppInForeground()) {
             Log.d(TAG, "App is in foreground, sending in-app notification")
-            InAppNotificationManager.sendInAppNotification(
-                context = this,
-                title = title ?: "FlexiOffice",
-                body = body ?: "Sie haben eine neue Nachricht",
-                type = type,
-                bookingId = bookingId,
-                userName = userName,
-                date = date,
-            )
+            serviceScope.launch {
+                InAppNotificationManager.sendInAppNotification(
+                    title = title ?: "FlexiOffice",
+                    body = body ?: "Sie haben eine neue Nachricht",
+                    type = type,
+                    bookingId = bookingId,
+                    userName = userName,
+                    date = date,
+                )
+            }
             return
         }
 

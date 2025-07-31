@@ -262,7 +262,6 @@ fun InAppNotificationBanner(
                 "new_booking_request" -> Icons.Default.Notifications
                 else -> Icons.Default.Notifications
             }
-
         Card(
             modifier =
                 modifier
