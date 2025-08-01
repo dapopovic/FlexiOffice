@@ -54,4 +54,38 @@
     <string name="manage_team_and_invite">Verwalten Sie Ihr Team und laden Sie Mitglieder ein</string>
     <string name="my_team">Mein Team</string>
     <string name="team_members_count">Teammitglieder (%1$d)</string>
+    
+    <!-- Profile Screen -->
+    <string name="profile_title">Profil</string>
+    <string name="user_information">Benutzerinformationen</string>
+    <string name="team_status">Team-Status</string>
+    <string name="no_team_assigned_status">Kein Team zugewiesen</string>
+    <string name="team_manager">Team-Manager</string>
+    <string name="team_member">Team-Mitglied</string>
+    <string name="name_label">Name</string>
+    <string name="email_address_label">E-Mail</string>
+    <string name="role_label">Rolle</string>
+    <string name="not_specified">Nicht angegeben</string>
+    <string name="not_available">Nicht verfügbar</string>
+    <string name="role_admin">Administrator</string>
+    <string name="role_manager">Manager/Lead</string>
+    <string name="role_user">Benutzer</string>
+    <string name="app_information">App-Informationen</string>
+    <string name="app_version">Version 1.0.0</string>
+    <string name="app_description">Bürobuchungs- und Verwaltungsapp</string>
+    <string name="home_office_reminders">Home Office Erinnerungen</string>
+    <string name="logout_button">Abmelden</string>
+    <string name="footer_text">Entwickelt für flexibles Arbeiten</string>
+    
+    <!-- Login Screen -->
+    <string name="login_email_label">E-Mail</string>
+    <string name="login_email_content_desc">E-Mail</string>
+    <string name="login_password_label">Passwort</string>
+    <string name="login_password_content_desc">Passwort</string>
+    <string name="password_visibility_show">👁️</string>
+    <string name="password_visibility_hide">🙈</string>
+    <string name="login_button">Anmelden</string>
+    <string name="register_button">Registrieren</string>
+    <string name="register_switch_text">Noch kein Konto? Hier registrieren</string>
+    <string name="login_switch_text">Bereits ein Konto? Hier anmelden</string>
 </resources>
