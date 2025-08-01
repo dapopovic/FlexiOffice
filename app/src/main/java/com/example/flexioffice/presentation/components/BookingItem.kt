@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
@@ -152,7 +153,7 @@ fun BookingItem(
                                 R.drawable.cancel_24px
                         },
                     ),
-                contentDescription = "Status",
+                contentDescription = stringResource(R.string.booking_item_status_icon_desc),
                 tint =
                     when (booking.status) {
                         BookingStatus.APPROVED ->
@@ -228,13 +229,13 @@ fun BookingItem(
                             text =
                                 when (booking.status) {
                                     BookingStatus.APPROVED ->
-                                        "Genehmigt"
+                                        stringResource(R.string.booking_item_status_approved)
                                     BookingStatus.PENDING ->
-                                        "Ausstehend"
+                                        stringResource(R.string.booking_item_status_pending)
                                     BookingStatus.DECLINED ->
-                                        "Abgelehnt"
+                                        stringResource(R.string.booking_item_status_declined)
                                     BookingStatus.CANCELLED ->
-                                        "Storniert"
+                                        stringResource(R.string.booking_item_status_cancelled)
                                 },
                             style = MaterialTheme.typography.labelSmall,
                             color =
@@ -284,7 +285,7 @@ fun BookingItem(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.cancel_24px),
-                        contentDescription = "Buchung stornieren",
+                        contentDescription = stringResource(R.string.booking_item_cancel_desc),
                         tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(20.dp),
                     )

@@ -51,8 +51,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.flexioffice.R
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -365,7 +367,7 @@ fun InAppNotificationBanner(
                             ButtonDefaults.textButtonColors(
                                 contentColor = MaterialTheme.colorScheme.primary,
                             ),
-                    ) { Text("Ansehen") }
+                    ) { Text(stringResource(R.string.in_app_notification_action_button)) }
                 }
 
                 // Animated close button
@@ -393,7 +395,7 @@ fun InAppNotificationBanner(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Schließen",
+                        contentDescription = stringResource(R.string.in_app_notification_close),
                         modifier = Modifier.size(16.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

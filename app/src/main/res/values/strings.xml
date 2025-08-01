@@ -117,4 +117,67 @@
     <string name="calendar_home_office_requests">Home Office Anträge</string>
     <string name="calendar_empty_day_indicator">—</string>
     <string name="calendar_more_events">+%1$d</string>
+
+    <!-- BookingDetailsSheet -->
+    <string name="booking_details_title">Details zum Home Office</string>
+    <string name="booking_details_date_label">Datum</string>
+    <string name="booking_details_status_label">Status</string>
+    <string name="booking_details_status_approved">✓ Genehmigt</string>
+    <string name="booking_details_status_pending">⏳ Ausstehend</string>
+    <string name="booking_details_status_declined">✗ Abgelehnt</string>
+    <string name="booking_details_status_cancelled">⊘ Storniert</string>
+    <string name="booking_details_requester_label">Antragsteller</string>
+    <string name="booking_details_approver_label">Genehmigt durch</string>
+    <string name="booking_details_loading">Wird geladen…</string>
+    <string name="booking_details_comment_label">Kommentar</string>
+
+    <!-- BookingDialog -->
+    <string name="booking_dialog_title">Home Office Antrag</string>
+    <string name="booking_dialog_subtitle">Erstellen Sie einen neuen Antrag</string>
+    <string name="booking_dialog_date_label">Datum auswählen</string>
+    <string name="booking_dialog_selected_date_label">Ausgewähltes Datum</string>
+    <string name="booking_dialog_date_placeholder">Tippen Sie hier, um ein Datum zu wählen</string>
+    <string name="booking_dialog_date_icon_desc">Datum auswählen</string>
+    <string name="booking_dialog_comment_label">Kommentar (Optional)</string>
+    <string name="booking_dialog_comment_placeholder">Fügen Sie einen Kommentar zu Ihrem Antrag hinzu…</string>
+    <string name="booking_dialog_comment_icon_desc">Kommentar</string>
+    <string name="booking_dialog_work_type_home_office">Home Office</string>
+    <string name="booking_dialog_work_type_description">Vollzeit von zu Hause arbeiten</string>
+    <string name="booking_dialog_create">Antrag einreichen</string>
+    <string name="booking_dialog_create_loading">Antrag wird erstellt…</string>
+
+    <!-- BookingFloatingActionButton -->
+    <string name="booking_fab_content_description">Neuer Home Office Antrag</string>
+    <string name="booking_fab_text">Antrag erstellen</string>
+
+    <!-- BookingScreenHeader -->
+    <string name="booking_header_icon_desc">Anträge Icon</string>
+    <string name="booking_header_title">Home Office Anträge</string>
+    <string name="booking_header_subtitle">Hier können Sie Ihre Home Office Anträge verwalten.</string>
+    <string name="booking_header_show_cancelled">Stornierte Anträge anzeigen</string>
+
+    <!-- CancelBookingDialog -->
+    <string name="cancel_booking_dialog_title">Buchung stornieren</string>
+    <string name="cancel_booking_dialog_message">Möchten Sie diese Buchung wirklich stornieren?</string>
+    <!-- (the confirm-button text “Stornieren” can reuse existing “calendar_cancel_button”) -->
+
+    <!-- EmptyBookingsCard -->
+    <string name="empty_bookings_title">Keine Anträge vorhanden</string>
+    <string name="empty_bookings_description">Erstellen Sie einen neuen Home Office Antrag mit dem + Button</string>
+
+    <!-- EnterMultiSelectModeButton -->
+    <string name="multi_select_view_desc">Mehrfachauswahl-Modus</string>
+
+    <!-- BookingItem -->
+    <string name="booking_item_status_icon_desc">Status</string>
+    <string name="booking_item_status_approved">Genehmigt</string>
+    <string name="booking_item_status_pending">Ausstehend</string>
+    <string name="booking_item_status_declined">Abgelehnt</string>
+    <string name="booking_item_status_cancelled">Storniert</string>
+    <string name="booking_item_cancel_desc">Buchung stornieren</string>
+
+    <!-- InAppNotificationBanner -->
+    <string name="in_app_notification_action_button">Ansehen</string>
+    <string name="in_app_notification_close">Schließen</string>
+    <string name="booking_dialog_chosen_icon_desc">Ausgewählt</string>
 </resources>
