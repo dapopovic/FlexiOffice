@@ -64,10 +64,11 @@ fun BookingItem(
     val declineColor = MaterialTheme.colorScheme.error
     val neutralColor = MaterialTheme.colorScheme.surfaceBright
     var swipeBackgroundColor by remember { mutableStateOf(neutralColor) }
-    
-    val swipeAlpha: (Float, Float) -> Float = remember { 
-        { offset, threshold -> (kotlin.math.abs(offset) / threshold).coerceAtMost(0.3f) }
-    }
+
+    val swipeAlpha: (Float, Float) -> Float =
+        remember {
+            { offset, threshold -> (kotlin.math.abs(offset) / threshold).coerceAtMost(0.3f) }
+        }
 
     Card(
         modifier =
@@ -79,14 +80,17 @@ fun BookingItem(
                     onSwipeRight = { onClick(booking) },
                     swipeThresholdFraction = 0.5f,
                     onOffsetChange = { offsetX, threshold ->
-                        swipeBackgroundColor = when {
-                            offsetX > 50f -> approveColor.copy(alpha = swipeAlpha(offsetX, threshold))
-                            offsetX < -50f && !isStorniert -> declineColor.copy(alpha = swipeAlpha(offsetX, threshold))
-                            else -> neutralColor
-                        }
-                    }
-                )
-                .combinedClickable(
+                        swipeBackgroundColor =
+                            when {
+                                offsetX > 50f -> approveColor.copy(alpha = swipeAlpha(offsetX, threshold))
+                                offsetX < -50f && !isStorniert ->
+                                    declineColor.copy(
+                                        alpha = swipeAlpha(offsetX, threshold),
+                                    )
+                                else -> neutralColor
+                            }
+                    },
+                ).combinedClickable(
                     onClick = {
                         if (isMultiSelectMode && !isStorniert) {
                             onSelectionChanged(!isSelected)
