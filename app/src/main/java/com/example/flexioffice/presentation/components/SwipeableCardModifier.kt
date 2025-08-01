@@ -34,81 +34,84 @@ fun Modifier.swipeableCard(
     swipeThresholdFraction: Float = 0.5f,
     onOffsetChange: ((Float, Float) -> Unit)? = null,
     animationDurationMs: Int = 200,
-): Modifier = composed {
-    val configuration = LocalConfiguration.current
-    val screenWidthPx = with(LocalDensity.current) { configuration.screenWidthDp.dp.toPx() }
-    val swipeThreshold = screenWidthPx * swipeThresholdFraction
-    
-    val offsetX = remember { Animatable(0f) }
-    var isProcessing by remember { mutableStateOf(false) }
-    var isDragging by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
+): Modifier =
+    composed {
+        val configuration = LocalConfiguration.current
+        val screenWidthPx = with(LocalDensity.current) { configuration.screenWidthDp.dp.toPx() }
+        val swipeThreshold = screenWidthPx * swipeThresholdFraction
 
-    // Trigger offset change callback whenever offset changes
-    LaunchedEffect(offsetX.value) {
-        onOffsetChange?.invoke(offsetX.value, swipeThreshold)
-    }
+        val offsetX = remember { Animatable(0f) }
+        var isProcessing by remember { mutableStateOf(false) }
+        var isDragging by remember { mutableStateOf(false) }
+        val scope = rememberCoroutineScope()
 
-    this
-        .offset { IntOffset(offsetX.value.roundToInt(), 0) }
-        .pointerInput(isEnabled, isProcessing) {
-            if (!isEnabled || isProcessing) return@pointerInput
-            detectDragGestures(
-                onDragStart = {
-                    isDragging = true
-                    scope.launch {
-                        offsetX.stop() // Stop any ongoing animation
-                    }
-                },
-                onDragEnd = {
-                    isDragging = false
-                    scope.launch {
-                        if (abs(offsetX.value) >= swipeThreshold) {
-                            isProcessing = true
-                            
-                            // Animate to completion first for visual feedback
-                            val targetX = if (offsetX.value > 0) screenWidthPx else -screenWidthPx
-                            offsetX.animateTo(
-                                targetValue = targetX,
-                                animationSpec = tween(durationMillis = 150)
-                            )
-                            
-                            // Trigger callback
-                            if (offsetX.value > 0) onSwipeRight() else onSwipeLeft()
-                            
-                            // Reset and delay to prevent rapid successive swipes
-                            offsetX.snapTo(0f)
-                            kotlinx.coroutines.delay(300)
-                            isProcessing = false
-                        } else {
-                            // Smooth spring-back animation
+        // Trigger offset change callback whenever offset changes
+        LaunchedEffect(offsetX.value) {
+            onOffsetChange?.invoke(offsetX.value, swipeThreshold)
+        }
+
+        this
+            .offset { IntOffset(offsetX.value.roundToInt(), 0) }
+            .pointerInput(isEnabled, isProcessing) {
+                if (!isEnabled || isProcessing) return@pointerInput
+                detectDragGestures(
+                    onDragStart = {
+                        isDragging = true
+                        scope.launch {
+                            offsetX.stop() // Stop any ongoing animation
+                        }
+                    },
+                    onDragEnd = {
+                        isDragging = false
+                        scope.launch {
+                            if (abs(offsetX.value) >= swipeThreshold) {
+                                isProcessing = true
+
+                                // Animate to completion first for visual feedback
+                                val targetX = if (offsetX.value > 0) screenWidthPx else -screenWidthPx
+                                offsetX.animateTo(
+                                    targetValue = targetX,
+                                    animationSpec = tween(durationMillis = 150),
+                                )
+
+                                // Trigger callback
+                                if (offsetX.value > 0) onSwipeRight() else onSwipeLeft()
+
+                                // Reset and delay to prevent rapid successive swipes
+                                offsetX.snapTo(0f)
+                                kotlinx.coroutines.delay(300)
+                                isProcessing = false
+                            } else {
+                                // Smooth spring-back animation
+                                offsetX.animateTo(
+                                    targetValue = 0f,
+                                    animationSpec =
+                                        tween(
+                                            durationMillis = animationDurationMs,
+                                            easing = EaseOutQuart,
+                                        ),
+                                )
+                            }
+                        }
+                    },
+                    onDragCancel = {
+                        isDragging = false
+                        scope.launch {
                             offsetX.animateTo(
                                 targetValue = 0f,
-                                animationSpec = tween(
-                                    durationMillis = animationDurationMs,
-                                    easing = EaseOutQuart
-                                )
+                                animationSpec = tween(durationMillis = animationDurationMs),
                             )
                         }
-                    }
-                },
-                onDragCancel = {
-                    isDragging = false
-                    scope.launch {
-                        offsetX.animateTo(
-                            targetValue = 0f,
-                            animationSpec = tween(durationMillis = animationDurationMs)
-                        )
-                    }
-                }
-            ) { _, dragAmount ->
-                if (!isProcessing && isDragging) {
-                    scope.launch {
-                        val newValue = (offsetX.value + dragAmount.x)
-                            .coerceIn(-screenWidthPx * 0.8f, screenWidthPx * 0.8f) // Slight resistance at edges
-                        offsetX.snapTo(newValue)
+                    },
+                ) { _, dragAmount ->
+                    if (!isProcessing && isDragging) {
+                        scope.launch {
+                            val newValue =
+                                (offsetX.value + dragAmount.x)
+                                    .coerceIn(-screenWidthPx * 0.8f, screenWidthPx * 0.8f) // Slight resistance at edges
+                            offsetX.snapTo(newValue)
+                        }
                     }
                 }
             }
-        }
-}
+    }
