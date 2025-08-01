@@ -227,8 +227,8 @@ fun RequestItem(
                     onOffsetChange = { offsetX, threshold ->
                         swipeBackgroundColor =
                             when {
-                                offsetX > 50f -> approveColor.copy(alpha = swipeAlpha(offsetX, threshold))
-                                offsetX < -50f -> declineColor.copy(alpha = swipeAlpha(offsetX, threshold))
+                                offsetX > 0f -> approveColor.copy(alpha = swipeAlpha(offsetX, threshold))
+                                offsetX < 0f -> declineColor.copy(alpha = swipeAlpha(offsetX, threshold))
                                 else -> neutralColor
                             }
                     },

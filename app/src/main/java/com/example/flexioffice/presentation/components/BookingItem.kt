@@ -82,8 +82,8 @@ fun BookingItem(
                     onOffsetChange = { offsetX, threshold ->
                         swipeBackgroundColor =
                             when {
-                                offsetX > 50f -> approveColor.copy(alpha = swipeAlpha(offsetX, threshold))
-                                offsetX < -50f && !isStorniert ->
+                                offsetX > 0f -> approveColor.copy(alpha = swipeAlpha(offsetX, threshold))
+                                offsetX < 0f && !isStorniert ->
                                     declineColor.copy(
                                         alpha = swipeAlpha(offsetX, threshold),
                                     )
