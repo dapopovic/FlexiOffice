@@ -458,7 +458,7 @@ class BookingViewModel
                                         error = "Fehler beim Batch-Update: ${e.message}",
                                         isBatchProcessing = false,
                                     )
-                                } 
+                                }
                             },
                         )
                 } catch (e: Exception) {

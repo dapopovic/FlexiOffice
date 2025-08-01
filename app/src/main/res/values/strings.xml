@@ -180,4 +180,83 @@
     <string name="in_app_notification_action_button">Ansehen</string>
     <string name="in_app_notification_close">Schließen</string>
     <string name="booking_dialog_chosen_icon_desc">Ausgewählt</string>
+
+    <!-- BookingScreen / Multi-Select TopBar -->
+    <string name="selected_count">%1$d ausgewählt</string>
+    <string name="multi_select_exit">Multi-Select beenden</string>
+    <string name="batch_cancel_selected">Ausgewählte stornieren</string>
+    <string name="batch_clear_selection">Auswahl aufheben</string>
+    <string name="select_all">Alle auswählen</string>
+
+    <!-- BookingScreenHeader -->
+    <string name="booking_screen_header_title">Home Office Anträge</string>
+    <string name="booking_screen_header_subtitle">Hier können Sie Ihre Home Office Anträge verwalten.</string>
+
+    <string name="booking_dialog_work_type_title">Home Office</string>
+    <string name="booking_dialog_work_type_desc">Vollzeit von zu Hause arbeiten</string>
+    <string name="booking_dialog_confirm">Antrag einreichen</string>
+    <string name="booking_dialog_confirm_loading">Antrag wird erstellt…</string>
+    <string name="booking_dialog_dismiss">Abbrechen</string>
+
+    <!-- FAB on BookingScreen -->
+    <string name="fab_booking_desc">Neuer Home Office Antrag</string>
+    <string name="fab_booking_text">Antrag erstellen</string>
+
+    <!-- GeofencingSettingsScreen -->
+    <string name="geofencing_back_desc">Zurück</string>
+    <string name="geofencing_location_icon_desc">Standort-Icon</string>
+    <string name="geofencing_subtitle">Automatische Benachrichtigungen beim Verlassen des Zuhauses</string>
+
+    <!-- LocationPermissionCard -->
+    <string name="location_permissions_icon_desc">Berechtigungen-Icon</string>
+    <string name="location_permissions_title">Standort-Berechtigungen</string>
+    <string name="location_permissions_granted">✅ Alle erforderlichen Berechtigungen erteilt</string>
+    <string name="location_permissions_required">❌ Standort-Berechtigungen erforderlich für Home Office Erinnerungen</string>
+    <string name="location_permissions_request">Berechtigungen erteilen</string>
+    <string name="location_background_permission_request">Hintergrund-Berechtigung erteilen</string>
+    <string name="location_permissions_all_granted_info">Alle erforderlichen Berechtigungen sind erteilt.</string>
+
+    <!-- HomeLocationCard -->
+    <string name="home_location_icon_desc">Zuhause-Icon</string>
+    <string name="home_location_title">Zuhause-Standort</string>
+    <string name="home_location_configured">✅ Zuhause-Standort konfiguriert</string>
+    <string name="home_location_coordinates">Koordinaten: %1$s, %2$s</string>
+    <string name="home_location_not_configured">Kein Zuhause-Standort konfiguriert</string>
+    <string name="home_location_update">Zuhause-Standort aktualisieren</string>
+    <string name="home_location_set">Aktuellen Standort als Zuhause festlegen</string>
+
+    <!-- GeofencingToggleCard -->
+    <string name="geofencing_icon_desc">Geofencing-Icon</string>
+    <string name="geofencing_enabled_desc">Sie erhalten eine Benachrichtigung, wenn Sie bei geplantem Home Office das Zuhause verlassen.</string>
+    <string name="geofencing_disabled_desc">Aktivieren Sie Erinnerungen für Home Office Tage.</string>
+    <string name="switch_on">Aktiviert</string>
+    <string name="switch_off">Deaktiviert</string>
+    <string name="geofencing_toggle_warning">⚠️ Berechtigungen und Zuhause-Standort erforderlich</string>
+    <string name="geofencing_toggle_title">Erinnerungen</string>
+
+    <!-- GeofencingInfoCard -->
+    <string name="info_icon_desc">Info-Icon</string>
+    <string name="geofencing_info_title">Wie funktioniert es?</string>
+    <string name="geofencing_info_body">
+• Die App überwacht einen 200-Meter-Radius um Ihr Zuhause\n
+• Bei geplantem Home Office erhalten Sie eine Erinnerung, wenn Sie das Zuhause verlassen\n
+• Die Benachrichtigung wird nur einmal pro Tag\n
+• Ihre Standortdaten werden nur lokal auf dem Gerät gespeichert
+    </string>
+
+    <!-- RequestsScreen -->
+    <string name="requests_icon_desc">Buchungsanfragen-Icon</string>
+    <string name="requests_title">Buchungsanfragen</string>
+    <string name="requests_subtitle">Genehmigen oder lehnen Sie Buchungsanfragen ab</string>
+    <string name="requests_loading">Lade Anfragen…</string>
+    <string name="requests_empty_title">Keine ausstehenden Anfragen</string>
+    <string name="requests_empty_subtitle">Alle Buchungsanfragen wurden bereits bearbeitet</string>
+    <string name="request_item_date">Home Office am %s</string>
+    <string name="request_item_comment">Kommentar: %s</string>
+    <string name="requests_action_processing">Verarbeite…</string>
+    <string name="requests_action_approve">Genehmigen</string>
+    <string name="requests_action_decline">Ablehnen</string>
+    <string name="batch_approve_selected">Ausgewählte genehmigen</string>
+    <string name="batch_decline_selected">Ausgewählte ablehnen</string>
+    <string name="geofencing_title">Erinnerungen</string>
 </resources>

@@ -36,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -43,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.flexioffice.R
 import com.example.flexioffice.presentation.GeofencingSettingsViewModel
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -164,24 +164,24 @@ private fun GeofencingSettingsHeader(onBackPressed: () -> Unit = {}) {
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
+                contentDescription = stringResource(R.string.geofencing_back_desc),
                 tint = MaterialTheme.colorScheme.onSurface,
             )
         }
         Icon(
             imageVector = Icons.Default.LocationOn,
-            contentDescription = "Location Icon",
+            contentDescription = stringResource(R.string.geofencing_location_icon_desc),
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(32.dp),
         )
         Column {
             Text(
-                text = "Home Office Erinnerungen",
+                text = stringResource(R.string.geofencing_title),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "Automatische Benachrichtigungen beim Verlassen des Zuhauses",
+                text = stringResource(R.string.geofencing_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -218,7 +218,7 @@ private fun LocationPermissionCard(
             ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.security_24px),
-                    contentDescription = "Berechtigungen",
+                    contentDescription = stringResource(R.string.location_permissions_icon_desc),
                     tint =
                         if (hasLocationPermissions && hasBackgroundPermission) {
                             MaterialTheme.colorScheme.onPrimaryContainer
@@ -227,7 +227,7 @@ private fun LocationPermissionCard(
                         },
                 )
                 Text(
-                    text = "Standort-Berechtigungen",
+                    text = stringResource(R.string.location_permissions_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                 )
@@ -236,9 +236,9 @@ private fun LocationPermissionCard(
             Text(
                 text =
                     if (hasLocationPermissions && hasBackgroundPermission) {
-                        "✅ Alle erforderlichen Berechtigungen erteilt"
+                        stringResource(R.string.location_permissions_granted)
                     } else {
-                        "❌ Standort-Berechtigungen erforderlich für Home Office Erinnerungen"
+                        stringResource(R.string.location_permissions_required)
                     },
                 style = MaterialTheme.typography.bodyMedium,
             )
@@ -248,18 +248,18 @@ private fun LocationPermissionCard(
                     onClick = onRequestLocationPermissions,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("Berechtigungen erteilen")
+                    Text(stringResource(R.string.location_permissions_request))
                 }
             } else if (!hasBackgroundPermission) {
                 Button(
                     onClick = onRequestBackgroundPermissions,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("Hintergrund-Berechtigung erteilen")
+                    Text(stringResource(R.string.location_background_permission_request))
                 }
             } else {
                 Text(
-                    text = "Alle erforderlichen Berechtigungen sind erteilt.",
+                    text = stringResource(R.string.location_permissions_all_granted_info),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -290,11 +290,11 @@ private fun HomeLocationCard(
             ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.home_work_24px),
-                    contentDescription = "Zuhause",
+                    contentDescription = stringResource(R.string.home_location_icon_desc),
                     tint = MaterialTheme.colorScheme.primary,
                 )
                 Text(
-                    text = "Zuhause-Standort",
+                    text = stringResource(R.string.home_location_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                 )
@@ -302,16 +302,17 @@ private fun HomeLocationCard(
 
             if (hasHomeLocation) {
                 Text(
-                    text = "✅ Zuhause-Standort konfiguriert",
+                    text = stringResource(R.string.home_location_configured),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary,
                 )
                 Text(
-                    text = "Koordinaten: ${String.format(
-                        Locale.getDefault(),
-                        "%.6f",
-                        homeLatitude,
-                    )}, ${String.format(Locale.getDefault(), "%.6f", homeLongitude)}",
+//                    text = "Koordinaten: ${String.format(
+//                        Locale.getDefault(),
+//                        "%.6f",
+//                        homeLatitude,
+//                    )}, ${String.format(Locale.getDefault(), "%.6f", homeLongitude)}",
+                    text = stringResource(R.string.home_location_coordinates, homeLatitude, homeLongitude),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -374,7 +375,7 @@ private fun GeofencingToggleCard(
                                 R.drawable.notifications_off_24px
                             },
                         ),
-                    contentDescription = "Geofencing",
+                    contentDescription = stringResource(R.string.geofencing_icon_desc),
                     tint =
                         if (isGeofencingEnabled) {
                             MaterialTheme.colorScheme.primary
@@ -383,7 +384,7 @@ private fun GeofencingToggleCard(
                         },
                 )
                 Text(
-                    text = "Home Office Erinnerungen",
+                    text = stringResource(R.string.geofencing_toggle_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                 )
@@ -392,9 +393,9 @@ private fun GeofencingToggleCard(
             Text(
                 text =
                     if (isGeofencingEnabled) {
-                        "Sie erhalten eine Benachrichtigung, wenn Sie bei geplantem Home Office das Zuhause verlassen."
+                        stringResource(R.string.geofencing_enabled_desc)
                     } else {
-                        "Aktivieren Sie Erinnerungen für Home Office Tage."
+                        stringResource(R.string.geofencing_disabled_desc)
                     },
                 style = MaterialTheme.typography.bodyMedium,
             )
@@ -405,7 +406,14 @@ private fun GeofencingToggleCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = if (isGeofencingEnabled) "Aktiviert" else "Deaktiviert",
+                    text =
+                        if (isGeofencingEnabled) {
+                            stringResource(
+                                R.string.switch_on,
+                            )
+                        } else {
+                            stringResource(R.string.switch_off)
+                        },
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                 )
@@ -426,7 +434,7 @@ private fun GeofencingToggleCard(
 
             if (!canEnableGeofencing) {
                 Text(
-                    text = "⚠️ Berechtigungen und Zuhause-Standort erforderlich",
+                    text = stringResource(R.string.geofencing_toggle_warning),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                 )
@@ -454,24 +462,18 @@ private fun GeofencingInfoCard() {
             ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.info_24px),
-                    contentDescription = "Information",
+                    contentDescription = stringResource(R.string.info_icon_desc),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
-                    text = "Wie funktioniert es?",
+                    text = stringResource(R.string.geofencing_info_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                 )
             }
 
             Text(
-                text =
-                    """
-                    • Die App überwacht einen 200-Meter-Radius um Ihr Zuhause
-                    • Bei geplantem Home Office erhalten Sie eine Erinnerung, wenn Sie das Zuhause verlassen
-                    • Die Benachrichtigung wird nur einmal pro Tag gesendet
-                    • Ihre Standortdaten werden nur lokal auf dem Gerät gespeichert
-                    """.trimIndent(),
+                text = stringResource(R.string.geofencing_info_body).trimIndent(),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Start,
             )
