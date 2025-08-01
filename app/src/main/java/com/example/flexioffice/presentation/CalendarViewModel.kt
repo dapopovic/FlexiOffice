@@ -338,7 +338,8 @@ class CalendarViewModel
             if (selectedDate != null && currentUser != null) {
                 val booking =
                     state.bookings.find {
-                        it.date == selectedDate && it.userId == currentUser.id &&
+                        it.date == selectedDate &&
+                            it.userId == currentUser.id &&
                             it.status != BookingStatus.CANCELLED
                     }
                 if (booking != null) {
