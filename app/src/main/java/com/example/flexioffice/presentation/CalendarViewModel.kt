@@ -1,6 +1,5 @@
 package com.example.flexioffice.presentation
 
-import android.hardware.SensorManager
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -75,7 +74,7 @@ class CalendarViewModel
                         } else {
                             userRepository.getUserStream(userId).flatMapLatest { userResult ->
                                 val user = userResult.getOrNull()
-                                if (user?.teamId.isNullOrEmpty() || user?.teamId == User.NO_TEAM) {
+                                if (user?.teamId.isNullOrEmpty() || user.teamId == User.NO_TEAM) {
                                     // User has no team, show empty calendar
                                     flowOf(
                                         CalendarUiState(
@@ -338,7 +337,8 @@ class CalendarViewModel
             if (selectedDate != null && currentUser != null) {
                 val booking =
                     state.bookings.find {
-                        it.date == selectedDate && it.userId == currentUser.id &&
+                        it.date == selectedDate &&
+                            it.userId == currentUser.id &&
                             it.status != BookingStatus.CANCELLED
                     }
                 if (booking != null) {
