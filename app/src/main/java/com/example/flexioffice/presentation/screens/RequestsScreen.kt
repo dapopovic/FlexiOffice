@@ -4,13 +4,11 @@ import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -37,7 +35,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -45,17 +42,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
-import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.presentation.RequestsViewModel
 import com.example.flexioffice.presentation.components.EnterMultiSelectModeButton
 import com.example.flexioffice.presentation.components.swipeableCard
@@ -209,7 +201,7 @@ fun RequestItem(
     // Swipe-Feedback-Logik
     val approveColor = MaterialTheme.colorScheme.primary
     val declineColor = MaterialTheme.colorScheme.error
-    val neutralColor = MaterialTheme.colorScheme.surfaceContainer
+    val neutralColor = MaterialTheme.colorScheme.surfaceVariant
     var swipeBackgroundColor by remember { mutableStateOf<Color?>(neutralColor) }
 
     val swipeAlpha: (Float, Float) -> Float =
@@ -232,7 +224,10 @@ fun RequestItem(
                             when {
                                 offsetX > 0f -> approveColor.copy(alpha = swipeAlpha(offsetX, threshold))
                                 offsetX < 0f -> declineColor.copy(alpha = swipeAlpha(offsetX, threshold))
-                                else -> neutralColor
+                                else ->
+                                    neutralColor.copy(
+                                        alpha = swipeAlpha(offsetX, threshold),
+                                    )
                             }
                     },
                 ).combinedClickable(
@@ -248,7 +243,7 @@ fun RequestItem(
                 containerColor =
                     when {
                         isSelected -> MaterialTheme.colorScheme.primaryContainer
-                        else -> MaterialTheme.colorScheme.surface
+                        else -> neutralColor
                     },
             ),
         elevation =
@@ -257,13 +252,16 @@ fun RequestItem(
             ),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp).then(
-                if (swipeBackgroundColor != null && swipeBackgroundColor != neutralColor) {
-                    Modifier.background(swipeBackgroundColor!!)
-                } else {
-                    Modifier
-                },
-            )
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .then(
+                        if (swipeBackgroundColor != null) {
+                            Modifier.background(swipeBackgroundColor!!)
+                        } else {
+                            Modifier
+                        },
+                    ).padding(20.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
