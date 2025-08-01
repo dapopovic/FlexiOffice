@@ -1,6 +1,7 @@
 package com.example.flexioffice.presentation.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -62,8 +64,7 @@ fun BookingItem(
     // Swipe-Feedback-Logik
     val approveColor = MaterialTheme.colorScheme.primary
     val declineColor = MaterialTheme.colorScheme.error
-    val neutralColor = MaterialTheme.colorScheme.surfaceBright
-    var swipeBackgroundColor by remember { mutableStateOf(neutralColor) }
+    var swipeBackgroundColor by remember { mutableStateOf<Color?>(null) }
 
     val swipeAlpha: (Float, Float) -> Float =
         remember {
@@ -87,7 +88,7 @@ fun BookingItem(
                                     declineColor.copy(
                                         alpha = swipeAlpha(offsetX, threshold),
                                     )
-                                else -> neutralColor
+                                else -> null
                             }
                     },
                 ).combinedClickable(
@@ -107,12 +108,11 @@ fun BookingItem(
         colors =
             CardDefaults.cardColors(
                 containerColor =
-                    if (booking.status == BookingStatus.CANCELLED) {
-                        MaterialTheme.colorScheme.surfaceContainerLow
-                    } else if (isSelected) {
-                        MaterialTheme.colorScheme.primaryContainer
-                    } else {
-                        swipeBackgroundColor
+                    when {
+                        booking.status == BookingStatus.CANCELLED -> MaterialTheme.colorScheme.surfaceContainerLow
+                        isSelected -> MaterialTheme.colorScheme.primaryContainer
+                        swipeBackgroundColor != null -> MaterialTheme.colorScheme.surface
+                        else -> MaterialTheme.colorScheme.surface
                     },
             ),
         elevation =
@@ -121,7 +121,16 @@ fun BookingItem(
             ),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .then(
+                        if (swipeBackgroundColor != null) {
+                            Modifier.background(swipeBackgroundColor!!)
+                        } else {
+                            Modifier
+                        },
+                    ).padding(20.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // Multi-select Checkbox
