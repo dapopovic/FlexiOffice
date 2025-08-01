@@ -36,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -53,6 +54,8 @@ import com.example.flexioffice.presentation.components.MonthCalendar
 import com.example.flexioffice.presentation.components.TeamHomeOfficeSummary
 import com.example.flexioffice.presentation.components.WeekCalendar
 import java.time.YearMonth
+
+private const val TAG = "CalendarScreen"
 
 @Composable
 private fun CalendarViewWithLoading(
@@ -105,7 +108,7 @@ private fun CalendarViewWithLoading(
                                 strokeWidth = 2.dp,
                             )
                             Text(
-                                text = "Lade Kalenderdaten...",
+                                text = stringResource(R.string.calendar_loading_data),
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                         }
@@ -137,7 +140,7 @@ fun CalendarScreen(
     // Show error messages
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { message ->
-            Log.e("CalendarScreen", "Error: $message")
+            Log.e(TAG, "Error: $message")
             snackbarHostState.showSnackbar(message)
             viewModel.clearErrorMessage()
         }
@@ -162,16 +165,16 @@ fun CalendarScreen(
     if (uiState.showCancelDialog) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { viewModel.hideCancelDialog() },
-            title = { androidx.compose.material3.Text("Buchung stornieren?") },
-            text = { androidx.compose.material3.Text("Möchtest du die Buchung wirklich stornieren?") },
+            title = { androidx.compose.material3.Text(stringResource(R.string.calendar_cancel_booking_title)) },
+            text = { androidx.compose.material3.Text(stringResource(R.string.calendar_cancel_booking_message)) },
             confirmButton = {
                 androidx.compose.material3.Button(onClick = { viewModel.confirmCancelBooking() }) {
-                    androidx.compose.material3.Text("Stornieren")
+                    androidx.compose.material3.Text(stringResource(R.string.calendar_cancel_button))
                 }
             },
             dismissButton = {
                 androidx.compose.material3.Button(onClick = { viewModel.hideCancelDialog() }) {
-                    androidx.compose.material3.Text("Abbrechen")
+                    androidx.compose.material3.Text(stringResource(R.string.cancel))
                 }
             },
         )
@@ -271,11 +274,11 @@ private fun CalendarHeader(
                     ImageVector.vectorResource(
                         R.drawable.calendar_month_24px_filled,
                     ), // Using existing icon as placeholder
-                contentDescription = "Kalender Icon",
+                contentDescription = stringResource(R.string.calendar_icon_content_desc),
                 tint = MaterialTheme.colorScheme.primary,
             )
             Text(
-                text = "Kalender",
+                text = stringResource(R.string.calendar_title),
                 style = MaterialTheme.typography.headlineMedium,
             )
         }
@@ -288,13 +291,13 @@ private fun CalendarHeader(
             FilterChip(
                 selected = !isWeekView,
                 onClick = { if (isWeekView) onToggleView() },
-                label = { Text("Monat") },
+                label = { Text(stringResource(R.string.calendar_month_view)) },
                 leadingIcon = {
                     Icon(
                         ImageVector.vectorResource(
                             R.drawable.calendar_view_month_24px_filled,
                         ),
-                        contentDescription = "Monatsansicht",
+                        contentDescription = stringResource(R.string.calendar_month_view_content_desc),
                     )
                 },
             )
@@ -302,13 +305,13 @@ private fun CalendarHeader(
             FilterChip(
                 selected = isWeekView,
                 onClick = { if (!isWeekView) onToggleView() },
-                label = { Text("Woche") },
+                label = { Text(stringResource(R.string.calendar_week_view)) },
                 leadingIcon = {
                     Icon(
                         ImageVector.vectorResource(
                             R.drawable.calendar_view_week_24px_filled,
                         ),
-                        contentDescription = "Wochenansicht",
+                        contentDescription = stringResource(R.string.calendar_week_view_content_desc),
                     )
                 },
             )
@@ -323,7 +326,7 @@ private fun CalendarHeader(
                 } else {
                     Icon(
                         Icons.Default.Refresh,
-                        contentDescription = "Aktualisieren",
+                        contentDescription = stringResource(R.string.calendar_refresh_content_desc),
                     )
                 }
             }
@@ -343,33 +346,32 @@ private fun EmptyStateOrDemoButton(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                text = "📅",
+                text = stringResource(R.string.calendar_empty_state_icon),
                 style = MaterialTheme.typography.displayMedium,
             )
 
             if (!hasTeam) {
                 Text(
-                    text = "Kein Team zugewiesen",
+                    text = stringResource(R.string.calendar_no_team_assigned),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                 )
                 Text(
-                    text =
-                        "Sie müssen einem Team beitreten, um Team-Home-Office-Tage zu sehen.",
+                    text = stringResource(R.string.calendar_no_team_message),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                 )
             } else {
                 Text(
-                    text = "Keine Events gefunden",
+                    text = stringResource(R.string.calendar_no_events_found),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                 )
                 Text(
-                    text = "Es sind noch keine Home-Office-Tage für Ihr Team geplant.",
+                    text = stringResource(R.string.calendar_no_events_message),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -388,7 +390,7 @@ private fun EmptyStateOrDemoButton(
                             restoreState = true
                         }
                     },
-                ) { Text("Home-Office buchen") }
+                ) { Text(stringResource(R.string.calendar_book_home_office)) }
             }
         }
     }

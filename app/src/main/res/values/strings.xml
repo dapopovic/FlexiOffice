@@ -88,4 +88,33 @@
     <string name="register_button">Registrieren</string>
     <string name="register_switch_text">Noch kein Konto? Hier registrieren</string>
     <string name="login_switch_text">Bereits ein Konto? Hier anmelden</string>
+    
+    <!-- Calendar Screen -->
+    <string name="calendar_loading_data">Lade Kalenderdaten...</string>
+    <string name="calendar_cancel_booking_title">Buchung stornieren?</string>
+    <string name="calendar_cancel_booking_message">Möchtest du die Buchung wirklich stornieren?</string>
+    <string name="calendar_cancel_button">Stornieren</string>
+    <string name="calendar_title">Kalender</string>
+    <string name="calendar_icon_content_desc">Kalender Icon</string>
+    <string name="calendar_month_view">Monat</string>
+    <string name="calendar_month_view_content_desc">Monatsansicht</string>
+    <string name="calendar_week_view">Woche</string>
+    <string name="calendar_week_view_content_desc">Wochenansicht</string>
+    <string name="calendar_refresh_content_desc">Aktualisieren</string>
+    <string name="calendar_empty_state_icon">📅</string>
+    <string name="calendar_no_team_assigned">Kein Team zugewiesen</string>
+    <string name="calendar_no_team_message">Sie müssen einem Team beitreten, um Team-Home-Office-Tage zu sehen.</string>
+    <string name="calendar_no_events_found">Keine Events gefunden</string>
+    <string name="calendar_no_events_message">Es sind noch keine Home-Office-Tage für Ihr Team geplant.</string>
+    <string name="calendar_book_home_office">Home-Office buchen</string>
+    
+    <!-- Calendar Components -->
+    <string name="calendar_previous_month_content_desc">Vorheriger Monat</string>
+    <string name="calendar_next_month_content_desc">Nächster Monat</string>
+    <string name="calendar_previous_week_content_desc">Vorherige Woche</string>
+    <string name="calendar_next_week_content_desc">Nächste Woche</string>
+    <string name="calendar_day_header">Tag</string>
+    <string name="calendar_home_office_requests">Home Office Anträge</string>
+    <string name="calendar_empty_day_indicator">—</string>
+    <string name="calendar_more_events">+%1$d</string>
 </resources>

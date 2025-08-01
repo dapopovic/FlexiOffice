@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -51,6 +52,8 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
+
+private const val TAG = "CalendarComponents"
 
 @Composable
 fun MonthCalendar(
@@ -120,7 +123,7 @@ private fun MonthHeader(
         IconButton(onClick = onPreviousMonth) {
             Icon(
                 ImageVector.vectorResource(R.drawable.chevron_left_24px_filled),
-                contentDescription = "Vorheriger Monat",
+                contentDescription = stringResource(R.string.calendar_previous_month_content_desc),
             )
         }
 
@@ -135,7 +138,7 @@ private fun MonthHeader(
         IconButton(onClick = onNextMonth) {
             Icon(
                 ImageVector.vectorResource(R.drawable.chevron_right_24px_filled),
-                contentDescription = "Nächster Monat",
+                contentDescription = stringResource(R.string.calendar_next_month_content_desc),
             )
         }
     }
@@ -312,7 +315,7 @@ private fun WeekHeader(
         IconButton(onClick = onPreviousWeek) {
             Icon(
                 ImageVector.vectorResource(R.drawable.chevron_left_24px_filled),
-                contentDescription = "Vorherige Woche",
+                contentDescription = stringResource(R.string.calendar_previous_week_content_desc),
             )
         }
 
@@ -325,7 +328,7 @@ private fun WeekHeader(
         IconButton(onClick = onNextWeek) {
             Icon(
                 ImageVector.vectorResource(R.drawable.chevron_right_24px_filled),
-                contentDescription = "Nächste Woche",
+                contentDescription = stringResource(R.string.calendar_next_week_content_desc),
             )
         }
     }
@@ -346,7 +349,7 @@ private fun WeekTableHeader() {
     ) {
         // Day column header
         Text(
-            text = "Tag",
+            text = stringResource(R.string.calendar_day_header),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -368,7 +371,7 @@ private fun WeekTableHeader() {
 
         // Bookings column header
         Text(
-            text = "Home Office Anträge",
+            text = stringResource(R.string.calendar_home_office_requests),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -540,7 +543,7 @@ private fun WeekDayRow(
                     contentAlignment = Alignment.CenterStart,
                 ) {
                     Text(
-                        text = "—",
+                        text = stringResource(R.string.calendar_empty_day_indicator),
                         style = MaterialTheme.typography.bodyMedium,
                         color =
                             MaterialTheme.colorScheme.onSurfaceVariant
@@ -654,7 +657,7 @@ private fun OverflowIndicator(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = "+$count",
+                text = stringResource(R.string.calendar_more_events, count),
                 style = MaterialTheme.typography.labelSmall,
                 color =
                     when {
