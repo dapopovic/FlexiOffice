@@ -2,6 +2,7 @@ package com.example.flexioffice.presentation.screens
 
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
@@ -53,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
+import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.presentation.RequestsViewModel
 import com.example.flexioffice.presentation.components.EnterMultiSelectModeButton
 import com.example.flexioffice.presentation.components.swipeableCard
@@ -206,8 +209,8 @@ fun RequestItem(
     // Swipe-Feedback-Logik
     val approveColor = MaterialTheme.colorScheme.primary
     val declineColor = MaterialTheme.colorScheme.error
-    val neutralColor = MaterialTheme.colorScheme.surfaceBright
-    var swipeBackgroundColor by remember { mutableStateOf(neutralColor) }
+    val neutralColor = MaterialTheme.colorScheme.surfaceContainer
+    var swipeBackgroundColor by remember { mutableStateOf<Color?>(neutralColor) }
 
     val swipeAlpha: (Float, Float) -> Float =
         remember {
@@ -243,10 +246,9 @@ fun RequestItem(
         colors =
             CardDefaults.cardColors(
                 containerColor =
-                    if (isSelected) {
-                        MaterialTheme.colorScheme.primaryContainer
-                    } else {
-                        swipeBackgroundColor
+                    when {
+                        isSelected -> MaterialTheme.colorScheme.primaryContainer
+                        else -> MaterialTheme.colorScheme.surface
                     },
             ),
         elevation =
@@ -254,7 +256,15 @@ fun RequestItem(
                 defaultElevation = 4.dp,
             ),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier.padding(16.dp).then(
+                if (swipeBackgroundColor != null && swipeBackgroundColor != neutralColor) {
+                    Modifier.background(swipeBackgroundColor!!)
+                } else {
+                    Modifier
+                },
+            )
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
