@@ -55,6 +55,7 @@ import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.presentation.RequestsViewModel
 import com.example.flexioffice.presentation.components.EnterMultiSelectModeButton
+import com.example.flexioffice.presentation.components.swipeableCard
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
@@ -202,53 +203,14 @@ fun RequestItem(
             DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.GERMAN)
         }
 
-    // Bildschirmbreite ermitteln für dynamische Swipe-Distanz
-    val configuration = LocalConfiguration.current
-    val screenWidthDp = configuration.screenWidthDp
-    val screenWidthPx = with(LocalDensity.current) { screenWidthDp.dp.toPx() }
-
-    // Swipe-Logik mit Compose Foundation
-    var offsetX by remember(booking.id) { mutableFloatStateOf(0f) }
-    var isSwipeProcessing by remember(booking.id) { mutableStateOf(false) }
-    val swipeThreshold = screenWidthPx / 2f // Hälfte der Bildschirmbreite
-
-    // Farben für visuelles Feedback
-    val approveColor = MaterialTheme.colorScheme.primary // typisches Theme-Grün
-    val declineColor = MaterialTheme.colorScheme.error // z.B. Rot aus Theme
-    val neutralColor = MaterialTheme.colorScheme.surfaceBright // Gleiche graue Farbe wie BookingItems
-
-    // Hilfsfunktion für Alpha-Berechnung
-    fun swipeAlpha(
-        offset: Float,
-        threshold: Float,
-    ): Float = (kotlin.math.abs(offset) / threshold).coerceAtMost(0.3f)
-
-    // Berechne Hintergrundfarbe basierend auf Swipe-Richtung
-    val backgroundColor =
-        when {
-            offsetX > 50f -> approveColor.copy(alpha = swipeAlpha(offsetX, swipeThreshold))
-            offsetX < -50f -> declineColor.copy(alpha = swipeAlpha(offsetX, swipeThreshold))
-            else -> neutralColor
-        }
-
-    LaunchedEffect(offsetX) {
-        if (isSwipeProcessing) return@LaunchedEffect
-
-        if (offsetX > swipeThreshold && !isProcessing) {
-            // Rechts geswiped - Genehmigen
-            isSwipeProcessing = true
-            onApprove()
-            kotlinx.coroutines.delay(800) // Längere Verzögerung für Request-Verarbeitung
-            offsetX = 0f
-            isSwipeProcessing = false
-        } else if (offsetX < -swipeThreshold && !isProcessing) {
-            // Links geswiped - Ablehnen
-            isSwipeProcessing = true
-            onDecline()
-            kotlinx.coroutines.delay(800) // Längere Verzögerung für Request-Verarbeitung
-            offsetX = 0f
-            isSwipeProcessing = false
-        }
+    // Swipe-Feedback-Logik
+    val approveColor = MaterialTheme.colorScheme.primary
+    val declineColor = MaterialTheme.colorScheme.error
+    val neutralColor = MaterialTheme.colorScheme.surfaceBright
+    var swipeBackgroundColor by remember { mutableStateOf(neutralColor) }
+    
+    val swipeAlpha: (Float, Float) -> Float = remember { 
+        { offset, threshold -> (kotlin.math.abs(offset) / threshold).coerceAtMost(0.3f) }
     }
 
     Card(
@@ -256,24 +218,20 @@ fun RequestItem(
             Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp)
-                .offset { IntOffset(offsetX.toInt(), 0) }
-                .pointerInput(booking.id, isSwipeProcessing, isProcessing) {
-                    if (isSwipeProcessing || isProcessing) return@pointerInput
-                    detectDragGestures(
-                        onDragEnd = {
-                            // Zurück zur Ausgangsposition wenn Threshold nicht erreicht
-                            if (kotlin.math.abs(offsetX) < swipeThreshold) {
-                                offsetX = 0f
-                            }
-                        },
-                    ) { _, dragAmount ->
-                        if (!isSwipeProcessing && !isProcessing) {
-                            offsetX += dragAmount.x
-                            // Begrenze die Bewegung - maximal ganze Bildschirmbreite
-                            offsetX = offsetX.coerceIn(-screenWidthPx, screenWidthPx)
+                .swipeableCard(
+                    onSwipeLeft = { if (!isProcessing) onDecline() },
+                    onSwipeRight = { if (!isProcessing) onApprove() },
+                    swipeThresholdFraction = 0.5f,
+                    isEnabled = !isProcessing,
+                    onOffsetChange = { offsetX, threshold ->
+                        swipeBackgroundColor = when {
+                            offsetX > 50f -> approveColor.copy(alpha = swipeAlpha(offsetX, threshold))
+                            offsetX < -50f -> declineColor.copy(alpha = swipeAlpha(offsetX, threshold))
+                            else -> neutralColor
                         }
                     }
-                }.combinedClickable(
+                )
+                .combinedClickable(
                     onClick = {
                         if (isMultiSelectMode) {
                             onSelectionChanged(!isSelected)
@@ -287,7 +245,7 @@ fun RequestItem(
                     if (isSelected) {
                         MaterialTheme.colorScheme.primaryContainer
                     } else {
-                        backgroundColor
+                        swipeBackgroundColor
                     },
             ),
         elevation =

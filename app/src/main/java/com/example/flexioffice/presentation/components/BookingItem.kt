@@ -59,34 +59,14 @@ fun BookingItem(
             DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.GERMAN)
         }
 
-    // Bildschirmbreite ermitteln für dynamische Swipe-Distanz
-    val configuration = LocalConfiguration.current
-    val screenWidthDp = configuration.screenWidthDp
-    val screenWidthPx = with(LocalDensity.current) { screenWidthDp.dp.toPx() }
-
-    // Swipe-Logik mit Compose Foundation
-    var offsetX by remember(booking.id) { mutableFloatStateOf(0f) }
-    var isSwipeProcessing by remember(booking.id) { mutableStateOf(false) }
-    val swipeThreshold = screenWidthPx / 2f // Hälfte der Bildschirmbreite
-
-    LaunchedEffect(offsetX) {
-        if (isSwipeProcessing) return@LaunchedEffect
-
-        if (offsetX > swipeThreshold) {
-            // Rechts geswiped - Details
-            isSwipeProcessing = true
-            onClick(booking)
-            kotlinx.coroutines.delay(500) // Kurze Verzögerung um versehentliche weitere Swipes zu verhindern
-            offsetX = 0f
-            isSwipeProcessing = false
-        } else if (offsetX < -swipeThreshold && !isStorniert) {
-            // Links geswiped - Cancel Dialog
-            isSwipeProcessing = true
-            onCancelClick(booking)
-            kotlinx.coroutines.delay(500) // Kurze Verzögerung um versehentliche weitere Swipes zu verhindern
-            offsetX = 0f
-            isSwipeProcessing = false
-        }
+    // Swipe-Feedback-Logik
+    val approveColor = MaterialTheme.colorScheme.primary
+    val declineColor = MaterialTheme.colorScheme.error
+    val neutralColor = MaterialTheme.colorScheme.surfaceBright
+    var swipeBackgroundColor by remember { mutableStateOf(neutralColor) }
+    
+    val swipeAlpha: (Float, Float) -> Float = remember { 
+        { offset, threshold -> (kotlin.math.abs(offset) / threshold).coerceAtMost(0.3f) }
     }
 
     Card(
@@ -94,24 +74,19 @@ fun BookingItem(
             Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp)
-                .offset { IntOffset(offsetX.toInt(), 0) }
-                .pointerInput(booking.id, isSwipeProcessing) {
-                    if (isSwipeProcessing) return@pointerInput
-                    detectDragGestures(
-                        onDragEnd = {
-                            // Zurück zur Ausgangsposition wenn Threshold nicht erreicht
-                            if (kotlin.math.abs(offsetX) < swipeThreshold) {
-                                offsetX = 0f
-                            }
-                        },
-                    ) { _, dragAmount ->
-                        if (!isSwipeProcessing) {
-                            offsetX += dragAmount.x
-                            // Begrenze die Bewegung - maximal ganze Bildschirmbreite
-                            offsetX = offsetX.coerceIn(-screenWidthPx, screenWidthPx)
+                .swipeableCard(
+                    onSwipeLeft = { if (!isStorniert) onCancelClick(booking) },
+                    onSwipeRight = { onClick(booking) },
+                    swipeThresholdFraction = 0.5f,
+                    onOffsetChange = { offsetX, threshold ->
+                        swipeBackgroundColor = when {
+                            offsetX > 50f -> approveColor.copy(alpha = swipeAlpha(offsetX, threshold))
+                            offsetX < -50f && !isStorniert -> declineColor.copy(alpha = swipeAlpha(offsetX, threshold))
+                            else -> neutralColor
                         }
                     }
-                }.combinedClickable(
+                )
+                .combinedClickable(
                     onClick = {
                         if (isMultiSelectMode && !isStorniert) {
                             onSelectionChanged(!isSelected)
@@ -133,7 +108,7 @@ fun BookingItem(
                     } else if (isSelected) {
                         MaterialTheme.colorScheme.primaryContainer
                     } else {
-                        MaterialTheme.colorScheme.surfaceBright
+                        swipeBackgroundColor
                     },
             ),
         elevation =
