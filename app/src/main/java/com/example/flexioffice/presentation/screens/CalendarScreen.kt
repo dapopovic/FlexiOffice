@@ -15,6 +15,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -160,18 +162,18 @@ fun CalendarScreen(
 
     // Storno-Dialog bei Shake
     if (uiState.showCancelDialog) {
-        androidx.compose.material3.AlertDialog(
+        AlertDialog(
             onDismissRequest = { viewModel.hideCancelDialog() },
-            title = { androidx.compose.material3.Text("Buchung stornieren?") },
-            text = { androidx.compose.material3.Text("Möchtest du die Buchung wirklich stornieren?") },
+            title = { Text("Buchung stornieren?") },
+            text = { Text("Möchtest du die Buchung wirklich stornieren?") },
             confirmButton = {
-                androidx.compose.material3.Button(onClick = { viewModel.confirmCancelBooking() }) {
-                    androidx.compose.material3.Text("Stornieren")
+                Button(onClick = { viewModel.confirmCancelBooking() }) {
+                    Text("Stornieren")
                 }
             },
             dismissButton = {
-                androidx.compose.material3.Button(onClick = { viewModel.hideCancelDialog() }) {
-                    androidx.compose.material3.Text("Abbrechen")
+                Button(onClick = { viewModel.hideCancelDialog() }) {
+                    Text("Abbrechen")
                 }
             },
         )
