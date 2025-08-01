@@ -64,7 +64,8 @@ fun BookingItem(
     // Swipe-Feedback-Logik
     val approveColor = MaterialTheme.colorScheme.primary
     val declineColor = MaterialTheme.colorScheme.error
-    var swipeBackgroundColor by remember { mutableStateOf<Color?>(null) }
+    val neutralColor = MaterialTheme.colorScheme.surfaceContainer
+    var swipeBackgroundColor by remember { mutableStateOf<Color?>(neutralColor) }
 
     val swipeAlpha: (Float, Float) -> Float =
         remember {
@@ -88,7 +89,10 @@ fun BookingItem(
                                     declineColor.copy(
                                         alpha = swipeAlpha(offsetX, threshold),
                                     )
-                                else -> null
+                                else ->
+                                    neutralColor.copy(
+                                        alpha = swipeAlpha(offsetX, threshold),
+                                    )
                             }
                     },
                 ).combinedClickable(
@@ -111,8 +115,8 @@ fun BookingItem(
                     when {
                         booking.status == BookingStatus.CANCELLED -> MaterialTheme.colorScheme.surfaceContainerLow
                         isSelected -> MaterialTheme.colorScheme.primaryContainer
-                        swipeBackgroundColor != null -> MaterialTheme.colorScheme.surface
-                        else -> MaterialTheme.colorScheme.surface
+                        swipeBackgroundColor != null -> neutralColor
+                        else -> neutralColor
                     },
             ),
         elevation =
