@@ -2,6 +2,7 @@ package com.example.flexioffice.presentation.screens
 
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -34,9 +35,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
@@ -46,6 +50,7 @@ import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.presentation.RequestsViewModel
 import com.example.flexioffice.presentation.components.EnterMultiSelectModeButton
+import com.example.flexioffice.presentation.components.swipeableCard
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
@@ -193,11 +198,39 @@ fun RequestItem(
             DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.GERMAN)
         }
 
+    // Swipe-Feedback-Logik
+    val approveColor = MaterialTheme.colorScheme.primary
+    val declineColor = MaterialTheme.colorScheme.error
+    val neutralColor = MaterialTheme.colorScheme.surfaceVariant
+    var swipeBackgroundColor by remember { mutableStateOf<Color?>(neutralColor) }
+
+    val swipeAlpha: (Float, Float) -> Float =
+        remember {
+            { offset, threshold -> (kotlin.math.abs(offset) / threshold).coerceAtMost(0.3f) }
+        }
+
     Card(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .combinedClickable(
+                .padding(vertical = 4.dp)
+                .swipeableCard(
+                    onSwipeLeft = { if (!isProcessing) onDecline() },
+                    onSwipeRight = { if (!isProcessing) onApprove() },
+                    swipeThresholdFraction = 0.5f,
+                    isEnabled = !isProcessing,
+                    onOffsetChange = { offsetX, threshold ->
+                        swipeBackgroundColor =
+                            when {
+                                offsetX > 0f -> approveColor.copy(alpha = swipeAlpha(offsetX, threshold))
+                                offsetX < 0f -> declineColor.copy(alpha = swipeAlpha(offsetX, threshold))
+                                else ->
+                                    neutralColor.copy(
+                                        alpha = swipeAlpha(offsetX, threshold),
+                                    )
+                            }
+                    },
+                ).combinedClickable(
                     onClick = {
                         if (isMultiSelectMode) {
                             onSelectionChanged(!isSelected)
@@ -206,15 +239,30 @@ fun RequestItem(
                     onLongClick = { onLongClick() },
                 ),
         colors =
-            if (isSelected) {
-                CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                )
-            } else {
-                CardDefaults.cardColors()
-            },
+            CardDefaults.cardColors(
+                containerColor =
+                    when {
+                        isSelected -> MaterialTheme.colorScheme.primaryContainer
+                        else -> neutralColor
+                    },
+            ),
+        elevation =
+            CardDefaults.cardElevation(
+                defaultElevation = 4.dp,
+            ),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .then(
+                        if (swipeBackgroundColor != null) {
+                            Modifier.background(swipeBackgroundColor!!)
+                        } else {
+                            Modifier
+                        },
+                    ).padding(20.dp),
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,

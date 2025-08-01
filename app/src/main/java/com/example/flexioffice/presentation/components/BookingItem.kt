@@ -1,6 +1,7 @@
 package com.example.flexioffice.presentation.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,9 +20,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.flexioffice.R
@@ -48,12 +53,41 @@ fun BookingItem(
             DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.GERMAN)
         }
 
+    // Swipe-Feedback-Logik
+    val approveColor = MaterialTheme.colorScheme.primary
+    val declineColor = MaterialTheme.colorScheme.error
+    val neutralColor = MaterialTheme.colorScheme.surfaceVariant
+    var swipeBackgroundColor by remember { mutableStateOf<Color?>(neutralColor) }
+
+    val swipeAlpha: (Float, Float) -> Float =
+        remember {
+            { offset, threshold -> (kotlin.math.abs(offset) / threshold).coerceAtMost(0.3f) }
+        }
+
     Card(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp)
-                .combinedClickable(
+                .swipeableCard(
+                    onSwipeLeft = { if (!isStorniert) onCancelClick(booking) },
+                    onSwipeRight = { onClick(booking) },
+                    swipeThresholdFraction = 0.5f,
+                    onOffsetChange = { offsetX, threshold ->
+                        swipeBackgroundColor =
+                            when {
+                                offsetX > 0f -> approveColor.copy(alpha = swipeAlpha(offsetX, threshold))
+                                offsetX < 0f && !isStorniert ->
+                                    declineColor.copy(
+                                        alpha = swipeAlpha(offsetX, threshold),
+                                    )
+                                else ->
+                                    neutralColor.copy(
+                                        alpha = swipeAlpha(offsetX, threshold),
+                                    )
+                            }
+                    },
+                ).combinedClickable(
                     onClick = {
                         if (isMultiSelectMode && !isStorniert) {
                             onSelectionChanged(!isSelected)
@@ -70,12 +104,10 @@ fun BookingItem(
         colors =
             CardDefaults.cardColors(
                 containerColor =
-                    if (booking.status == BookingStatus.CANCELLED) {
-                        MaterialTheme.colorScheme.surfaceContainerLow
-                    } else if (isSelected) {
-                        MaterialTheme.colorScheme.primaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.surfaceBright
+                    when {
+                        booking.status == BookingStatus.CANCELLED -> MaterialTheme.colorScheme.surfaceContainerLow
+                        isSelected -> MaterialTheme.colorScheme.primaryContainer
+                        else -> neutralColor
                     },
             ),
         elevation =
@@ -84,7 +116,16 @@ fun BookingItem(
             ),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .then(
+                        if (swipeBackgroundColor != null) {
+                            Modifier.background(swipeBackgroundColor!!)
+                        } else {
+                            Modifier
+                        },
+                    ).padding(20.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // Multi-select Checkbox
