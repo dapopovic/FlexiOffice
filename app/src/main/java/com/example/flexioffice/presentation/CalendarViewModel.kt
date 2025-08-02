@@ -1,6 +1,6 @@
 package com.example.flexioffice.presentation
 
-import android.hardware.SensorManager
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,6 +13,7 @@ import com.example.flexioffice.data.model.CalendarEvent
 import com.example.flexioffice.data.model.EventType
 import com.example.flexioffice.data.model.User
 import com.example.flexioffice.util.ShakeDetector
+import com.google.android.datatransport.BuildConfig
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,7 +65,35 @@ class CalendarViewModel
         val uiState: StateFlow<CalendarUiState> = _uiState.asStateFlow()
 
         companion object {
+            private const val TAG = "CalendarViewModel"
             private const val HOME_OFFICE_COLOR = 0xFF4CAF50L // Green
+
+            // Production-safe logging methods
+            private fun logDebug(message: String) {
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, message)
+                }
+            }
+
+            private fun logVerbose(message: String) {
+                if (BuildConfig.DEBUG) {
+                    Log.v(TAG, message)
+                }
+            }
+
+            private fun logWarning(
+                message: String,
+                throwable: Throwable? = null,
+            ) {
+                Log.w(TAG, message, throwable)
+            }
+
+            private fun logError(
+                message: String,
+                throwable: Throwable? = null,
+            ) {
+                Log.e(TAG, message, throwable)
+            }
         }
 
         init {
@@ -121,13 +150,18 @@ class CalendarViewModel
                             )
                     }.collect { state ->
                         _uiState.value = state
-                        // Team-Mitglieder laden wenn User ein Team hat
+                        // Load team members if user has a team
                         if (!state.currentUser?.teamId.isNullOrEmpty() && state.currentUser?.teamId != User.NO_TEAM) {
-                            android.util.Log.d(
-                                "CalendarViewModel",
-                                "Loading team members for teamId: ${state.currentUser?.teamId}",
-                            )
-                            loadTeamMembers()
+                            logDebug("Loading team members for teamId: ${state.currentUser?.teamId}")
+                            try {
+                                loadTeamMembers()
+                            } catch (e: Exception) {
+                                logError("Failed to load team members", e)
+                                _uiState.value =
+                                    _uiState.value.copy(
+                                        errorMessage = "Failed to load team members: ${e.message}",
+                                    )
+                            }
                         }
                     }
             }
@@ -348,7 +382,7 @@ class CalendarViewModel
                     _uiState.value =
                         _uiState.value.copy(
                             isLoadingMonthData = false,
-                            errorMessage = e.message ?: "Fehler beim Laden der Buchungen",
+                            errorMessage = e.message ?: "Error loading bookings",
                         )
                 }
             }
@@ -358,20 +392,25 @@ class CalendarViewModel
             val teamId = _uiState.value.currentUser?.teamId
             if (teamId.isNullOrEmpty() || teamId == User.NO_TEAM) return
 
-            android.util.Log.d("CalendarViewModel", "loadTeamMembers called for teamId: $teamId")
+            logDebug("loadTeamMembers called for teamId: $teamId")
             viewModelScope.launch {
                 try {
                     userRepository.getTeamMembersStream(teamId).collect { teamMembersResult ->
                         val teamMembers = teamMembersResult.getOrNull() ?: emptyList()
-                        android.util.Log.d("CalendarViewModel", "Loaded ${teamMembers.size} team members")
-                        teamMembers.forEach { member ->
-                            android.util.Log.d("CalendarViewModel", "Team member: ${member.name} (${member.id})")
+                        logDebug("Loaded ${teamMembers.size} team members")
+
+                        // Only log detailed member info in debug builds to avoid verbose output
+                        if (BuildConfig.DEBUG && teamMembers.isNotEmpty()) {
+                            teamMembers.forEach { member ->
+                                logVerbose("Team member: ${member.name} (${member.id})")
+                            }
                         }
+
                         _uiState.value = _uiState.value.copy(teamMembers = teamMembers)
                     }
                 } catch (e: Exception) {
-                    // Team-Mitglieder-Fehler sind nicht kritisch, aber loggen wir es
-                    android.util.Log.w("CalendarViewModel", "Fehler beim Laden der Team-Mitglieder: ${e.message}")
+                    // Team member loading errors are not critical, but we should log them
+                    logWarning("Error loading team members: ${e.message}", e)
                 }
             }
         }
