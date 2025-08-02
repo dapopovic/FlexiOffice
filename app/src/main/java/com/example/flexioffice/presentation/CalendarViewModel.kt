@@ -40,10 +40,10 @@ data class CalendarUiState(
     val isWeekView: Boolean = false,
     val events: List<CalendarEvent> = emptyList(),
     val bookings: List<Booking> = emptyList(),
-    val allBookings: List<Booking> = emptyList(), // Ungefilterte Buchungen
+    val allBookings: List<Booking> = emptyList(), // Unfiltered bookings
     val teamMembers: List<User> = emptyList(),
-    val selectedTeamMember: String? = null, // Filter für Teammitglied
-    val selectedStatus: BookingStatus? = null, // Filter für Status
+    val selectedTeamMember: String? = null, // Filter for team member
+    val selectedStatus: BookingStatus? = null, // Filter for booking status
     val showBookingDialog: Boolean = false,
     val bookingDialogDate: LocalDate? = null,
     val bookingComment: String = "",
@@ -207,7 +207,7 @@ class CalendarViewModel
             loadBookingsForMonth(_uiState.value.currentMonth)
         }
 
-        // Filter-Funktionen
+        // Filter functions
         fun setTeamMemberFilter(userId: String?) {
             _uiState.value = _uiState.value.copy(selectedTeamMember = userId)
             applyFilters()
@@ -231,7 +231,7 @@ class CalendarViewModel
             val state = _uiState.value
             var filteredBookings = state.allBookings
 
-            // Filter nach Teammitglied
+            // Filter by team member
             state.selectedTeamMember?.let { userId ->
                 filteredBookings =
                     filteredBookings.filter { booking ->
@@ -239,7 +239,7 @@ class CalendarViewModel
                     }
             }
 
-            // Filter nach Status
+            // Filter by status
             state.selectedStatus?.let { status ->
                 filteredBookings =
                     filteredBookings.filter { booking ->
