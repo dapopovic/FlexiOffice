@@ -1,7 +1,7 @@
 package com.example.flexioffice.util
 
 import android.util.Log
-import com.google.android.datatransport.BuildConfig
+import com.example.flexioffice.BuildConfig
 
 /**
  * Custom logger that provides Timber-like functionality
