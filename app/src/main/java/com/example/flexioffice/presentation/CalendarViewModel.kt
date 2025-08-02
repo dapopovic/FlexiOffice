@@ -1,6 +1,6 @@
 package com.example.flexioffice.presentation
 
-import android.util.Log
+import android.hardware.SensorManager
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,6 +12,7 @@ import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.data.model.CalendarEvent
 import com.example.flexioffice.data.model.EventType
 import com.example.flexioffice.data.model.User
+import com.example.flexioffice.util.Logger
 import com.example.flexioffice.util.ShakeDetector
 import com.google.android.datatransport.BuildConfig
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -67,33 +68,6 @@ class CalendarViewModel
         companion object {
             private const val TAG = "CalendarViewModel"
             private const val HOME_OFFICE_COLOR = 0xFF4CAF50L // Green
-
-            // Production-safe logging methods
-            private fun logDebug(message: String) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, message)
-                }
-            }
-
-            private fun logVerbose(message: String) {
-                if (BuildConfig.DEBUG) {
-                    Log.v(TAG, message)
-                }
-            }
-
-            private fun logWarning(
-                message: String,
-                throwable: Throwable? = null,
-            ) {
-                Log.w(TAG, message, throwable)
-            }
-
-            private fun logError(
-                message: String,
-                throwable: Throwable? = null,
-            ) {
-                Log.e(TAG, message, throwable)
-            }
         }
 
         init {
@@ -152,11 +126,11 @@ class CalendarViewModel
                         _uiState.value = state
                         // Load team members if user has a team
                         if (!state.currentUser?.teamId.isNullOrEmpty() && state.currentUser?.teamId != User.NO_TEAM) {
-                            logDebug("Loading team members for teamId: ${state.currentUser?.teamId}")
+                            Logger.d(TAG, "Loading team members for teamId: ${state.currentUser?.teamId}")
                             try {
                                 loadTeamMembers()
                             } catch (e: Exception) {
-                                logError("Failed to load team members", e)
+                                Logger.e(TAG, "Failed to load team members", e)
                                 _uiState.value =
                                     _uiState.value.copy(
                                         errorMessage = "Failed to load team members: ${e.message}",
@@ -392,17 +366,17 @@ class CalendarViewModel
             val teamId = _uiState.value.currentUser?.teamId
             if (teamId.isNullOrEmpty() || teamId == User.NO_TEAM) return
 
-            logDebug("loadTeamMembers called for teamId: $teamId")
+            Logger.d(TAG, "loadTeamMembers called for teamId: $teamId")
             viewModelScope.launch {
                 try {
                     userRepository.getTeamMembersStream(teamId).collect { teamMembersResult ->
                         val teamMembers = teamMembersResult.getOrNull() ?: emptyList()
-                        logDebug("Loaded ${teamMembers.size} team members")
+                        Logger.d(TAG, "Loaded ${teamMembers.size} team members")
 
                         // Only log detailed member info in debug builds to avoid verbose output
                         if (BuildConfig.DEBUG && teamMembers.isNotEmpty()) {
                             teamMembers.forEach { member ->
-                                logVerbose("Team member: ${member.name} (${member.id})")
+                                Logger.v(TAG, "Team member: ${member.name} (${member.id})")
                             }
                         }
 
@@ -410,7 +384,7 @@ class CalendarViewModel
                     }
                 } catch (e: Exception) {
                     // Team member loading errors are not critical, but we should log them
-                    logWarning("Error loading team members: ${e.message}", e)
+                    Logger.w(TAG, "Error loading team members: ${e.message}", e)
                 }
             }
         }
