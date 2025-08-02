@@ -3,13 +3,11 @@ package com.example.flexioffice.presentation.screens
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -36,25 +34,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.presentation.RequestsViewModel
 import com.example.flexioffice.presentation.components.EnterMultiSelectModeButton
+import com.example.flexioffice.presentation.components.RequestsFilters
 import com.example.flexioffice.presentation.components.swipeableCard
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -117,13 +111,26 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
                 text = "Genehmigen oder lehnen Sie Buchungsanfragen ab",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 24.dp),
+                modifier = Modifier.padding(bottom = 16.dp),
             )
+
+            // Filter nur für Manager anzeigen
+            if (uiState.currentUser?.role == com.example.flexioffice.data.model.User.ROLE_MANAGER &&
+                uiState.teamMembers.isNotEmpty()
+            ) {
+                RequestsFilters(
+                    teamMembers = uiState.teamMembers,
+                    selectedTeamMember = uiState.selectedTeamMember,
+                    onTeamMemberFilterChange = { viewModel.setTeamMemberFilter(it) },
+                    onClearFilters = { viewModel.clearFilters() },
+                    modifier = Modifier.padding(bottom = 16.dp),
+                )
+            }
 
             if (uiState.isLoading) {
                 // Loading state
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -138,7 +145,7 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
             } else if (uiState.pendingRequests.isEmpty()) {
                 // Empty state
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 ) {
                     Column(
                         modifier = Modifier.padding(24.dp).fillMaxWidth(),
@@ -165,7 +172,10 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
                 }
             } else {
                 // List of pending requests
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                LazyColumn(
+                    modifier = Modifier.padding(top = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     items(uiState.pendingRequests) { booking ->
                         RequestItem(
                             booking = booking,

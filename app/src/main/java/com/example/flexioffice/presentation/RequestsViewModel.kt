@@ -115,7 +115,7 @@ class RequestsViewModel
                         }
                     }.catch { e ->
                         _uiState.value = _uiState.value.copy(error = e.message, isLoading = false)
-                    }.collect { state -> 
+                    }.collect { state ->
                         _uiState.update { state }
                         // Team-Mitglieder laden wenn User Manager ist
                         if (state.currentUser?.role == User.ROLE_MANAGER) {
@@ -142,9 +142,10 @@ class RequestsViewModel
 
             // Filter nach Teammitglied
             state.selectedTeamMember?.let { userId ->
-                filteredRequests = filteredRequests.filter { request ->
-                    request.userId == userId
-                }
+                filteredRequests =
+                    filteredRequests.filter { request ->
+                        request.userId == userId
+                    }
             }
 
             _uiState.update { it.copy(pendingRequests = filteredRequests) }
