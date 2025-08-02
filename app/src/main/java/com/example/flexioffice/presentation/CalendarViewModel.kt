@@ -39,6 +39,10 @@ data class CalendarUiState(
     val isWeekView: Boolean = false,
     val events: List<CalendarEvent> = emptyList(),
     val bookings: List<Booking> = emptyList(),
+    val allBookings: List<Booking> = emptyList(), // Ungefilterte Buchungen
+    val teamMembers: List<User> = emptyList(),
+    val selectedTeamMember: String? = null, // Filter für Teammitglied
+    val selectedStatus: BookingStatus? = null, // Filter für Status
     val showBookingDialog: Boolean = false,
     val bookingDialogDate: LocalDate? = null,
     val bookingComment: String = "",
@@ -93,14 +97,15 @@ class CalendarViewModel
                                             currentMonth.year,
                                             currentMonth.monthValue,
                                         ).map { bookingsResult ->
-                                            val bookings =
-                                                (bookingsResult.getOrNull() ?: emptyList())
-                                                    .filter { it.status != BookingStatus.CANCELLED }
+                                            val allBookings = bookingsResult.getOrNull() ?: emptyList()
+                                            val bookings = allBookings.filter { it.status != BookingStatus.CANCELLED }
                                             CalendarUiState(
                                                 isLoading = false,
                                                 currentUser = user,
                                                 currentMonth = currentMonth,
                                                 bookings = bookings,
+                                                allBookings = allBookings,
+                                                teamMembers = emptyList(), // Wird später geladen
                                                 events = mapBookingsToEvents(bookings),
                                                 errorMessage = bookingsResult.exceptionOrNull()?.message,
                                             )
@@ -114,7 +119,14 @@ class CalendarViewModel
                                 errorMessage = e.message,
                                 isLoading = false,
                             )
-                    }.collect { state -> _uiState.value = state }
+                    }.collect { state -> 
+                        _uiState.value = state
+                        // Team-Mitglieder laden wenn User ein Team hat
+                        if (!state.currentUser?.teamId.isNullOrEmpty() && state.currentUser?.teamId != User.NO_TEAM) {
+                            android.util.Log.d("CalendarViewModel", "Loading team members for teamId: ${state.currentUser?.teamId}")
+                            loadTeamMembers()
+                        }
+                    }
             }
         }
 
@@ -156,6 +168,49 @@ class CalendarViewModel
 
         fun refresh() {
             loadBookingsForMonth(_uiState.value.currentMonth)
+        }
+
+        // Filter-Funktionen
+        fun setTeamMemberFilter(userId: String?) {
+            _uiState.value = _uiState.value.copy(selectedTeamMember = userId)
+            applyFilters()
+        }
+
+        fun setStatusFilter(status: BookingStatus?) {
+            _uiState.value = _uiState.value.copy(selectedStatus = status)
+            applyFilters()
+        }
+
+        fun clearFilters() {
+            _uiState.value = _uiState.value.copy(
+                selectedTeamMember = null,
+                selectedStatus = null
+            )
+            applyFilters()
+        }
+
+        private fun applyFilters() {
+            val state = _uiState.value
+            var filteredBookings = state.allBookings
+
+            // Filter nach Teammitglied
+            state.selectedTeamMember?.let { userId ->
+                filteredBookings = filteredBookings.filter { booking ->
+                    booking.userId == userId
+                }
+            }
+
+            // Filter nach Status
+            state.selectedStatus?.let { status ->
+                filteredBookings = filteredBookings.filter { booking ->
+                    booking.status == status
+                }
+            }
+
+            _uiState.value = state.copy(
+                bookings = filteredBookings,
+                events = mapBookingsToEvents(filteredBookings)
+            )
         }
 
         fun showBookingDialog(
@@ -266,20 +321,48 @@ class CalendarViewModel
             viewModelScope.launch {
                 _uiState.value = _uiState.value.copy(isLoadingMonthData = true)
 
-                bookingRepository
-                    .getTeamBookingsStream(teamId, month.year, month.monthValue)
-                    .collect { result ->
-                        val bookings =
-                            (result.getOrNull() ?: emptyList())
-                                .filter { it.status != BookingStatus.CANCELLED }
-                        _uiState.value =
-                            _uiState.value.copy(
+                try {
+                    // Buchungen laden
+                    bookingRepository.getTeamBookingsStream(teamId, month.year, month.monthValue)
+                        .collect { bookingsResult ->
+                            val allBookings = bookingsResult.getOrNull() ?: emptyList()
+                            
+                            _uiState.value = _uiState.value.copy(
                                 isLoadingMonthData = false,
-                                bookings = bookings,
-                                events = mapBookingsToEvents(bookings),
-                                errorMessage = result.exceptionOrNull()?.message,
+                                allBookings = allBookings,
+                                errorMessage = bookingsResult.exceptionOrNull()?.message
                             )
+                            
+                            applyFilters()
+                        }
+                } catch (e: Exception) {
+                    _uiState.value = _uiState.value.copy(
+                        isLoadingMonthData = false,
+                        errorMessage = e.message ?: "Fehler beim Laden der Buchungen"
+                    )
+                }
+            }
+        }
+
+        fun loadTeamMembers() {
+            val teamId = _uiState.value.currentUser?.teamId
+            if (teamId.isNullOrEmpty() || teamId == User.NO_TEAM) return
+
+            android.util.Log.d("CalendarViewModel", "loadTeamMembers called for teamId: $teamId")
+            viewModelScope.launch {
+                try {
+                    userRepository.getTeamMembersStream(teamId).collect { teamMembersResult ->
+                        val teamMembers = teamMembersResult.getOrNull() ?: emptyList()
+                        android.util.Log.d("CalendarViewModel", "Loaded ${teamMembers.size} team members")
+                        teamMembers.forEach { member ->
+                            android.util.Log.d("CalendarViewModel", "Team member: ${member.name} (${member.id})")
+                        }
+                        _uiState.value = _uiState.value.copy(teamMembers = teamMembers)
                     }
+                } catch (e: Exception) {
+                    // Team-Mitglieder-Fehler sind nicht kritisch, aber loggen wir es
+                    android.util.Log.w("CalendarViewModel", "Fehler beim Laden der Team-Mitglieder: ${e.message}")
+                }
             }
         }
 

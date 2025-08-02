@@ -28,6 +28,9 @@ data class RequestsUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val pendingRequests: List<Booking> = emptyList(),
+    val allPendingRequests: List<Booking> = emptyList(), // Ungefilterte Anfragen
+    val teamMembers: List<User> = emptyList(),
+    val selectedTeamMember: String? = null, // Filter für Teammitglied
     val currentUser: User? = null,
     val selectedBooking: Booking? = null,
     val isApprovingRequest: Boolean = false,
@@ -100,6 +103,7 @@ class RequestsViewModel
                                                 isLoading = false,
                                                 currentUser = user,
                                                 pendingRequests = requests,
+                                                allPendingRequests = requests,
                                                 error =
                                                     requestsResult
                                                         .exceptionOrNull()
@@ -111,7 +115,54 @@ class RequestsViewModel
                         }
                     }.catch { e ->
                         _uiState.value = _uiState.value.copy(error = e.message, isLoading = false)
-                    }.collect { state -> _uiState.update { state } }
+                    }.collect { state -> 
+                        _uiState.update { state }
+                        // Team-Mitglieder laden wenn User Manager ist
+                        if (state.currentUser?.role == User.ROLE_MANAGER) {
+                            loadTeamMembers()
+                        }
+                    }
+            }
+        }
+
+        // Filter-Funktionen
+        fun setTeamMemberFilter(userId: String?) {
+            _uiState.update { it.copy(selectedTeamMember = userId) }
+            applyFilters()
+        }
+
+        fun clearFilters() {
+            _uiState.update { it.copy(selectedTeamMember = null) }
+            applyFilters()
+        }
+
+        private fun applyFilters() {
+            val state = _uiState.value
+            var filteredRequests = state.allPendingRequests
+
+            // Filter nach Teammitglied
+            state.selectedTeamMember?.let { userId ->
+                filteredRequests = filteredRequests.filter { request ->
+                    request.userId == userId
+                }
+            }
+
+            _uiState.update { it.copy(pendingRequests = filteredRequests) }
+        }
+
+        private fun loadTeamMembers() {
+            val teamId = _uiState.value.currentUser?.teamId
+            if (teamId.isNullOrEmpty() || teamId == User.NO_TEAM) return
+
+            viewModelScope.launch {
+                try {
+                    userRepository.getTeamMembersStream(teamId).collect { teamMembersResult ->
+                        val teamMembers = teamMembersResult.getOrNull() ?: emptyList()
+                        _uiState.update { it.copy(teamMembers = teamMembers) }
+                    }
+                } catch (e: Exception) {
+                    // Team-Mitglieder-Fehler sind nicht kritisch
+                }
             }
         }
 
