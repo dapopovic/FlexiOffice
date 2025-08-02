@@ -50,6 +50,8 @@ import com.example.flexioffice.navigation.FlexiOfficeRoutes
 import com.example.flexioffice.presentation.CalendarUiState
 import com.example.flexioffice.presentation.CalendarViewModel
 import com.example.flexioffice.presentation.components.BookingDialog
+import com.example.flexioffice.presentation.components.BookingLegend
+import com.example.flexioffice.presentation.components.CalendarFilters
 import com.example.flexioffice.presentation.components.EventsList
 import com.example.flexioffice.presentation.components.MonthCalendar
 import com.example.flexioffice.presentation.components.TeamHomeOfficeSummary
@@ -206,6 +208,20 @@ fun CalendarScreen(
                     isLoadingDemoData = uiState.isLoadingDemoData,
                 )
 
+                // Filter (nur anzeigen wenn Team vorhanden)
+                if (!uiState.currentUser?.teamId.isNullOrEmpty() &&
+                    uiState.currentUser?.teamId != com.example.flexioffice.data.model.User.NO_TEAM
+                ) {
+                    CalendarFilters(
+                        teamMembers = uiState.teamMembers,
+                        selectedTeamMember = uiState.selectedTeamMember,
+                        selectedStatus = uiState.selectedStatus,
+                        onTeamMemberFilterChange = viewModel::setTeamMemberFilter,
+                        onStatusFilterChange = viewModel::setStatusFilter,
+                        onClearFilters = viewModel::clearFilters,
+                    )
+                }
+
                 // Calendar View with loading indicator
                 CalendarViewWithLoading(
                     uiState = uiState,
@@ -239,6 +255,13 @@ fun CalendarScreen(
                     selectedDate = uiState.selectedDate,
                     events = uiState.events,
                 )
+
+                // Legende (nur anzeigen wenn Team vorhanden)
+                if (!uiState.currentUser?.teamId.isNullOrEmpty() &&
+                    uiState.currentUser?.teamId != com.example.flexioffice.data.model.User.NO_TEAM
+                ) {
+                    BookingLegend()
+                }
 
                 if (uiState.events.isEmpty()) {
                     // Show empty state if no events but has team
