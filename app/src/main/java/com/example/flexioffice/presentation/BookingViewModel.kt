@@ -145,9 +145,10 @@ class BookingViewModel
 
             // Filter nach Status
             state.selectedStatus?.let { status ->
-                filteredBookings = filteredBookings.filter { booking ->
-                    booking.status == status
-                }
+                filteredBookings =
+                    filteredBookings.filter { booking ->
+                        booking.status == status
+                    }
             }
 
             _uiState.update { it.copy(userBookings = filteredBookings) }
