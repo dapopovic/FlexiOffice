@@ -57,9 +57,10 @@ fun CalendarFilters(
                 onClick = { showTeamMemberDropdown = true },
                 label = {
                     Text(
-                        text = selectedTeamMember?.let { userId ->
-                            teamMembers.find { it.id == userId }?.name ?: "Teammitglied"
-                        } ?: "Alle Mitglieder"
+                        text =
+                            selectedTeamMember?.let { userId ->
+                                teamMembers.find { it.id == userId }?.name ?: "Teammitglied"
+                            } ?: "Alle Mitglieder",
                     )
                 },
                 selected = selectedTeamMember != null,
@@ -67,21 +68,21 @@ fun CalendarFilters(
                     Icon(
                         imageVector = Icons.Default.ArrowDropDown,
                         contentDescription = null,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(18.dp),
                     )
-                }
+                },
             )
 
             DropdownMenu(
                 expanded = showTeamMemberDropdown,
-                onDismissRequest = { showTeamMemberDropdown = false }
+                onDismissRequest = { showTeamMemberDropdown = false },
             ) {
                 DropdownMenuItem(
                     text = { Text("Alle Mitglieder") },
                     onClick = {
                         onTeamMemberFilterChange(null)
                         showTeamMemberDropdown = false
-                    }
+                    },
                 )
                 teamMembers.forEach { member ->
                     DropdownMenuItem(
@@ -89,7 +90,7 @@ fun CalendarFilters(
                         onClick = {
                             onTeamMemberFilterChange(member.id)
                             showTeamMemberDropdown = false
-                        }
+                        },
                     )
                 }
             }
@@ -101,7 +102,7 @@ fun CalendarFilters(
                 onClick = { showStatusDropdown = true },
                 label = {
                     Text(
-                        text = selectedStatus?.let { getStatusDisplayName(it) } ?: "Alle Status"
+                        text = selectedStatus?.let { getStatusDisplayName(it) } ?: "Alle Status",
                     )
                 },
                 selected = selectedStatus != null,
@@ -109,21 +110,21 @@ fun CalendarFilters(
                     Icon(
                         imageVector = Icons.Default.ArrowDropDown,
                         contentDescription = null,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(18.dp),
                     )
-                }
+                },
             )
 
             DropdownMenu(
                 expanded = showStatusDropdown,
-                onDismissRequest = { showStatusDropdown = false }
+                onDismissRequest = { showStatusDropdown = false },
             ) {
                 DropdownMenuItem(
                     text = { Text("Alle Status") },
                     onClick = {
                         onStatusFilterChange(null)
                         showStatusDropdown = false
-                    }
+                    },
                 )
                 BookingStatus.values().forEach { status ->
                     DropdownMenuItem(
@@ -131,7 +132,7 @@ fun CalendarFilters(
                         onClick = {
                             onStatusFilterChange(status)
                             showStatusDropdown = false
-                        }
+                        },
                     )
                 }
             }
@@ -141,23 +142,22 @@ fun CalendarFilters(
         if (selectedTeamMember != null || selectedStatus != null) {
             IconButton(
                 onClick = onClearFilters,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(32.dp),
             ) {
                 Icon(
                     imageVector = Icons.Default.Clear,
                     contentDescription = "Filter zurücksetzen",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
     }
 }
 
-private fun getStatusDisplayName(status: BookingStatus): String {
-    return when (status) {
+private fun getStatusDisplayName(status: BookingStatus): String =
+    when (status) {
         BookingStatus.PENDING -> "Ausstehend"
         BookingStatus.APPROVED -> "Genehmigt"
         BookingStatus.DECLINED -> "Abgelehnt"
         BookingStatus.CANCELLED -> "Storniert"
     }
-}

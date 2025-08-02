@@ -119,11 +119,14 @@ class CalendarViewModel
                                 errorMessage = e.message,
                                 isLoading = false,
                             )
-                    }.collect { state -> 
+                    }.collect { state ->
                         _uiState.value = state
                         // Team-Mitglieder laden wenn User ein Team hat
                         if (!state.currentUser?.teamId.isNullOrEmpty() && state.currentUser?.teamId != User.NO_TEAM) {
-                            android.util.Log.d("CalendarViewModel", "Loading team members for teamId: ${state.currentUser?.teamId}")
+                            android.util.Log.d(
+                                "CalendarViewModel",
+                                "Loading team members for teamId: ${state.currentUser?.teamId}",
+                            )
                             loadTeamMembers()
                         }
                     }
@@ -182,10 +185,11 @@ class CalendarViewModel
         }
 
         fun clearFilters() {
-            _uiState.value = _uiState.value.copy(
-                selectedTeamMember = null,
-                selectedStatus = null
-            )
+            _uiState.value =
+                _uiState.value.copy(
+                    selectedTeamMember = null,
+                    selectedStatus = null,
+                )
             applyFilters()
         }
 
@@ -195,22 +199,25 @@ class CalendarViewModel
 
             // Filter nach Teammitglied
             state.selectedTeamMember?.let { userId ->
-                filteredBookings = filteredBookings.filter { booking ->
-                    booking.userId == userId
-                }
+                filteredBookings =
+                    filteredBookings.filter { booking ->
+                        booking.userId == userId
+                    }
             }
 
             // Filter nach Status
             state.selectedStatus?.let { status ->
-                filteredBookings = filteredBookings.filter { booking ->
-                    booking.status == status
-                }
+                filteredBookings =
+                    filteredBookings.filter { booking ->
+                        booking.status == status
+                    }
             }
 
-            _uiState.value = state.copy(
-                bookings = filteredBookings,
-                events = mapBookingsToEvents(filteredBookings)
-            )
+            _uiState.value =
+                state.copy(
+                    bookings = filteredBookings,
+                    events = mapBookingsToEvents(filteredBookings),
+                )
         }
 
         fun showBookingDialog(
@@ -323,23 +330,26 @@ class CalendarViewModel
 
                 try {
                     // Buchungen laden
-                    bookingRepository.getTeamBookingsStream(teamId, month.year, month.monthValue)
+                    bookingRepository
+                        .getTeamBookingsStream(teamId, month.year, month.monthValue)
                         .collect { bookingsResult ->
                             val allBookings = bookingsResult.getOrNull() ?: emptyList()
-                            
-                            _uiState.value = _uiState.value.copy(
-                                isLoadingMonthData = false,
-                                allBookings = allBookings,
-                                errorMessage = bookingsResult.exceptionOrNull()?.message
-                            )
-                            
+
+                            _uiState.value =
+                                _uiState.value.copy(
+                                    isLoadingMonthData = false,
+                                    allBookings = allBookings,
+                                    errorMessage = bookingsResult.exceptionOrNull()?.message,
+                                )
+
                             applyFilters()
                         }
                 } catch (e: Exception) {
-                    _uiState.value = _uiState.value.copy(
-                        isLoadingMonthData = false,
-                        errorMessage = e.message ?: "Fehler beim Laden der Buchungen"
-                    )
+                    _uiState.value =
+                        _uiState.value.copy(
+                            isLoadingMonthData = false,
+                            errorMessage = e.message ?: "Fehler beim Laden der Buchungen",
+                        )
                 }
             }
         }

@@ -207,14 +207,16 @@ fun CalendarScreen(
                 )
 
                 // Filter (nur anzeigen wenn Team vorhanden)
-                if (!uiState.currentUser?.teamId.isNullOrEmpty() && uiState.currentUser?.teamId != com.example.flexioffice.data.model.User.NO_TEAM) {
+                if (!uiState.currentUser?.teamId.isNullOrEmpty() &&
+                    uiState.currentUser?.teamId != com.example.flexioffice.data.model.User.NO_TEAM
+                ) {
                     CalendarFilters(
                         teamMembers = uiState.teamMembers,
                         selectedTeamMember = uiState.selectedTeamMember,
                         selectedStatus = uiState.selectedStatus,
                         onTeamMemberFilterChange = viewModel::setTeamMemberFilter,
                         onStatusFilterChange = viewModel::setStatusFilter,
-                        onClearFilters = viewModel::clearFilters
+                        onClearFilters = viewModel::clearFilters,
                     )
                 }
 
@@ -253,7 +255,9 @@ fun CalendarScreen(
                 )
 
                 // Legende (nur anzeigen wenn Team vorhanden)
-                if (!uiState.currentUser?.teamId.isNullOrEmpty() && uiState.currentUser?.teamId != com.example.flexioffice.data.model.User.NO_TEAM) {
+                if (!uiState.currentUser?.teamId.isNullOrEmpty() &&
+                    uiState.currentUser?.teamId != com.example.flexioffice.data.model.User.NO_TEAM
+                ) {
                     BookingLegend()
                 }
 
