@@ -1,6 +1,7 @@
 package com.example.flexioffice.presentation.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -32,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -62,8 +65,8 @@ fun BookingItem(
     // Swipe-Feedback-Logik
     val approveColor = MaterialTheme.colorScheme.primary
     val declineColor = MaterialTheme.colorScheme.error
-    val neutralColor = MaterialTheme.colorScheme.surfaceBright
-    var swipeBackgroundColor by remember { mutableStateOf(neutralColor) }
+    val neutralColor = MaterialTheme.colorScheme.surfaceVariant
+    var swipeBackgroundColor by remember { mutableStateOf<Color?>(neutralColor) }
 
     val swipeAlpha: (Float, Float) -> Float =
         remember {
@@ -87,7 +90,10 @@ fun BookingItem(
                                     declineColor.copy(
                                         alpha = swipeAlpha(offsetX, threshold),
                                     )
-                                else -> neutralColor
+                                else ->
+                                    neutralColor.copy(
+                                        alpha = swipeAlpha(offsetX, threshold),
+                                    )
                             }
                     },
                 ).combinedClickable(
@@ -107,12 +113,10 @@ fun BookingItem(
         colors =
             CardDefaults.cardColors(
                 containerColor =
-                    if (booking.status == BookingStatus.CANCELLED) {
-                        MaterialTheme.colorScheme.surfaceContainerLow
-                    } else if (isSelected) {
-                        MaterialTheme.colorScheme.primaryContainer
-                    } else {
-                        swipeBackgroundColor
+                    when {
+                        booking.status == BookingStatus.CANCELLED -> MaterialTheme.colorScheme.surfaceContainerLow
+                        isSelected -> MaterialTheme.colorScheme.primaryContainer
+                        else -> neutralColor
                     },
             ),
         elevation =
@@ -121,7 +125,16 @@ fun BookingItem(
             ),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .then(
+                        if (swipeBackgroundColor != null) {
+                            Modifier.background(swipeBackgroundColor!!)
+                        } else {
+                            Modifier
+                        },
+                    ).padding(20.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // Multi-select Checkbox

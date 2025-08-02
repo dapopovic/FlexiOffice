@@ -2,6 +2,7 @@ package com.example.flexioffice.presentation.screens
 
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
@@ -216,9 +218,8 @@ fun RequestItem(
     // Swipe-Feedback-Logik
     val approveColor = MaterialTheme.colorScheme.primary
     val declineColor = MaterialTheme.colorScheme.error
-    val neutralColor = MaterialTheme.colorScheme.surfaceBright
-    var swipeBackgroundColor by remember { mutableStateOf(neutralColor) }
-
+    val neutralColor = MaterialTheme.colorScheme.surfaceVariant
+    var swipeBackgroundColor by remember { mutableStateOf<Color?>(neutralColor) }
     val swipeAlpha: (Float, Float) -> Float =
         remember {
             { offset, threshold -> (kotlin.math.abs(offset) / threshold).coerceAtMost(0.3f) }
@@ -239,7 +240,10 @@ fun RequestItem(
                             when {
                                 offsetX > 0f -> approveColor.copy(alpha = swipeAlpha(offsetX, threshold))
                                 offsetX < 0f -> declineColor.copy(alpha = swipeAlpha(offsetX, threshold))
-                                else -> neutralColor
+                                else ->
+                                    neutralColor.copy(
+                                        alpha = swipeAlpha(offsetX, threshold),
+                                    )
                             }
                     },
                 ).combinedClickable(
@@ -253,10 +257,9 @@ fun RequestItem(
         colors =
             CardDefaults.cardColors(
                 containerColor =
-                    if (isSelected) {
-                        MaterialTheme.colorScheme.primaryContainer
-                    } else {
-                        swipeBackgroundColor
+                    when {
+                        isSelected -> MaterialTheme.colorScheme.primaryContainer
+                        else -> neutralColor
                     },
             ),
         elevation =
@@ -264,7 +267,18 @@ fun RequestItem(
                 defaultElevation = 4.dp,
             ),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .then(
+                        if (swipeBackgroundColor != null) {
+                            Modifier.background(swipeBackgroundColor!!)
+                        } else {
+                            Modifier
+                        },
+                    ).padding(20.dp),
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
