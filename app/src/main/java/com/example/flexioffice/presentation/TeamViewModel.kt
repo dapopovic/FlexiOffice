@@ -174,7 +174,7 @@ class TeamViewModel
             }
         }
 
-        /** Loads the current user's team */
+        /** Loads the members of the specified team */
         private fun loadTeamMembers(teamId: String) {
             viewModelScope.launch {
                 val members = mutableListOf<User>()

@@ -223,8 +223,6 @@ class GeofencingService : Service() {
             val newRetryCount = currentRetryCount + 1
             sharedPrefs.edit { putInt(KEY_RETRY_COUNT, newRetryCount) }
 
-            Log.d(TAG, "Scheduling retry $newRetryCount/$MAX_RETRY_COUNT for later")
-
             val delayMs = 30000L * (1 shl (newRetryCount - 1))
 
             Log.d(TAG, "Scheduling retry $newRetryCount/$MAX_RETRY_COUNT in ${delayMs / 1000}s")
