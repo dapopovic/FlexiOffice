@@ -303,7 +303,7 @@ class CalendarViewModel
             }
         }
 
-        // Shake-Erkennung
+        // Shake-to-cancel functionality
         private var sensorManager: android.hardware.SensorManager? = null
         private var shakeDetector: ShakeDetector? = null
 
@@ -331,7 +331,7 @@ class CalendarViewModel
 
         private fun onShakeDetected() {
             val state = _uiState.value
-            if (state.showCancelDialog) return // Dialog ist offen, Shake ignorieren
+            if (state.showCancelDialog) return // Dialog is open, ignore shake
             val selectedDate = state.selectedDate
             val currentUser = state.currentUser
             if (selectedDate != null && currentUser != null) {

@@ -30,7 +30,7 @@ class AuthViewModel
         val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
         init {
-            // Überwachung des Authentifizierungsstatus
+            // monitoring the authentication status
             viewModelScope.launch {
                 authRepository.currentUser.collect { user ->
                     _uiState.value =
@@ -43,7 +43,7 @@ class AuthViewModel
             }
         }
 
-        /** Anmeldung mit E-Mail und Passwort */
+        /** Login with E-Mail and Password */
         fun signInWithEmailAndPassword(
             email: String,
             password: String,
@@ -79,7 +79,7 @@ class AuthViewModel
             }
         }
 
-        /** Registrierung mit E-Mail und Passwort */
+        /** Registration with E-Mail and Password */
         fun createUserWithEmailAndPassword(
             email: String,
             password: String,
@@ -104,8 +104,8 @@ class AuthViewModel
                 authRepository
                     .createUserWithEmailAndPassword(email, password)
                     .onSuccess { user ->
-                        // Benutzer erfolgreich in Firebase Auth erstellt
-                        // Jetzt erstelle Benutzer-Dokument in Firestore
+                        // User successfully created in Firebase Auth
+                        // Now create user document in Firestore
                         createUserInFirestore(user.uid, email)
                     }.onFailure { exception ->
                         _uiState.value =
@@ -119,18 +119,18 @@ class AuthViewModel
             }
         }
 
-        /** Abmeldung */
+        /** Sign out */
         fun signOut() {
             authRepository.signOut()
             _uiState.value = AuthUiState() // Reset state
         }
 
-        /** Fehlermeldung löschen */
+        /** Clear error message */
         fun clearErrorMessage() {
             _uiState.value = _uiState.value.copy(errorMessage = null)
         }
 
-        /** Erstellt Benutzer-Dokument in Firestore nach erfolgreicher Registrierung */
+        /** Creates user document in Firestore after successful registration */
         private suspend fun createUserInFirestore(
             uid: String,
             email: String,
@@ -140,7 +140,7 @@ class AuthViewModel
             userRepository
                 .createUser(uid, defaultUser)
                 .onSuccess {
-                    // Firestore-Dokument erfolgreich erstellt
+                    // Firestore document successfully created
                     _uiState.value =
                         _uiState.value.copy(
                             isLoading = false,
@@ -149,8 +149,8 @@ class AuthViewModel
                             errorMessage = null,
                         )
                 }.onFailure { exception ->
-                    // Firestore-Erstellung fehlgeschlagen
-                    // Benutzer ist in Firebase Auth erstellt, aber nicht in Firestore
+                    // Firestore document creation failed
+                    // User is created in Firebase Auth but not in Firestore
                     _uiState.value =
                         _uiState.value.copy(
                             isLoading = false,

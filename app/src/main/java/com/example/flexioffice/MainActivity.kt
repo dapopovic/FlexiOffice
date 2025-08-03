@@ -36,19 +36,19 @@ fun MainFlexiOfficeApp(authViewModel: AuthViewModel = hiltViewModel()) {
     LaunchedEffect(uiState.isLoading, uiState.isLoggedIn) {
         when {
             uiState.isLoading -> {
-                // Zeige einen Ladebildschirm, während die Authentifizierung läuft
+                // Show loading screen while checking auth state
                 navController.navigate(FlexiOfficeRoutes.Loading.route) {
                     popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
                 }
             }
             uiState.isLoggedIn -> {
-                // Wenn der Benutzer angemeldet ist, navigiere zur Startseite
+                // If the user is logged in, navigate to the home screen
                 navController.navigate(FlexiOfficeRoutes.Calendar.route) {
                     popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
                 }
             }
             else -> {
-                // Wenn der Benutzer nicht angemeldet ist, navigiere zum Login
+                // If the user is not logged in, navigate to the login screen
                 navController.navigate(FlexiOfficeRoutes.Login.route) {
                     popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
                 }

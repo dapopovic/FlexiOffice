@@ -94,19 +94,19 @@ class MainViewModel
             }
         }
 
-        /** Prüft ob der aktuelle Benutzer Zugriff auf eine Route hat */
+        /** Check if the current user has access to a route */
         fun hasAccessToRoute(route: String): Boolean {
             val currentState = _uiState.value
             return currentState.availableNavItems.any { it.route == route }
         }
 
-        /** Prüft ob der aktuelle Benutzer Teil eines Teams ist */
+        /** Check if the current user is part of a team */
         fun hasTeamMembership(): Boolean {
             val currentUser = _uiState.value.currentUser
             return currentUser?.teamId?.isNotEmpty() == true && currentUser.teamId != User.NO_TEAM
         }
 
-        /** Gibt die Standard-Route für den aktuellen Benutzer zurück */
+        /** Returns the default route for the current user */
         fun getDefaultRoute(): String {
             val availableItems = _uiState.value.availableNavItems
             return availableItems.firstOrNull()?.route ?: FlexiOfficeRoutes.Loading.route

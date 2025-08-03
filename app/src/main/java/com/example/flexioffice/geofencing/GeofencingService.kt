@@ -77,6 +77,9 @@ class GeofencingService : Service() {
         Log.d(TAG, "GeofencingService created")
     }
 
+    /**
+     * Creates the notification channel for the foreground service
+     */
     private fun createNotificationChannel() {
         val channel =
             NotificationChannel(
@@ -92,6 +95,9 @@ class GeofencingService : Service() {
         notificationManager.createNotificationChannel(channel)
     }
 
+    /**
+     * Creates a foreground notification for the service
+     */
     private fun createForegroundNotification(): Notification =
         NotificationCompat
             .Builder(this, FOREGROUND_CHANNEL_ID)
@@ -123,7 +129,7 @@ class GeofencingService : Service() {
         try {
             Log.d(TAG, "Checking home office status for today...")
 
-            // Prüfe ob heute bereits eine Notification gesendet wurde
+            // Check if notification has already been sent today
             val today = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
             val lastNotificationDate = sharedPrefs.getString(KEY_LAST_NOTIFICATION_DATE, "")
 
@@ -132,7 +138,7 @@ class GeofencingService : Service() {
                 return
             }
 
-            // Prüfe Netzwerkverbindung
+            // Check network connection
             if (!isNetworkAvailable()) {
                 Log.w(TAG, "No network connection available - postponing check")
                 scheduleRetry()
@@ -140,9 +146,9 @@ class GeofencingService : Service() {
             }
             Log.d(TAG, "Network connection available - continuing with home office check")
 
-            // Mit Timeout für Netzwerk-Operationen
+            // With timeout for network operations
             withTimeout(NETWORK_TIMEOUT_MS) {
-                // Hole aktuellen User
+                // Get current user
                 val currentUser = authRepository.currentUser.first()
                 if (currentUser?.uid == null) {
                     Log.w(TAG, "No logged in user found")

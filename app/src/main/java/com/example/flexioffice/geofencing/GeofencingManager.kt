@@ -29,7 +29,7 @@ class GeofencingManager
         companion object {
             private const val TAG = "GeofencingManager"
             private const val HOME_GEOFENCE_ID = "home_geofence"
-            private const val GEOFENCE_RADIUS_METERS = 200f // 200 Meter Radius um das Zuhause
+            private const val GEOFENCE_RADIUS_METERS = 200f // 200 meter radius for home geofence
             const val GEOFENCE_PREFS = "geofence_prefs"
             const val KEY_GEOFENCE_ACTIVE = "geofence_active"
             private const val KEY_LAST_HOME_LOCATION_LAT = "last_home_lat"

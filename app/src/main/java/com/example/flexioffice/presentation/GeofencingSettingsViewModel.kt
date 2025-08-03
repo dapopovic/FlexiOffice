@@ -149,7 +149,7 @@ class GeofencingSettingsViewModel
                     val cancellationTokenSource = CancellationTokenSource()
                     viewModelScope.launch {
                         delay(30000)
-                        cancellationTokenSource.cancel() // Abbrechen nach 30 Sekunden
+                        cancellationTokenSource.cancel() // Cancel after 30 seconds
                         _uiState.value =
                             _uiState.value.copy(
                                 isSettingHomeLocation = false,

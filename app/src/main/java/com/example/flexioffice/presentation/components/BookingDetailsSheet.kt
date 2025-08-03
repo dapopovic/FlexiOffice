@@ -54,7 +54,7 @@ fun BookingDetailsSheet(
                     modifier = Modifier.padding(bottom = 8.dp),
                 )
 
-                // Datum
+                // Date
                 Column {
                     Text(
                         text = stringResource(R.string.booking_details_date_label),
@@ -124,7 +124,7 @@ fun BookingDetailsSheet(
                     )
                 }
 
-                // Antragsteller
+                // Requester
                 Column {
                     Text(
                         text = stringResource(R.string.booking_details_requester_label),
@@ -158,7 +158,7 @@ fun BookingDetailsSheet(
                     )
                 }
 
-                // Kommentar (wenn vorhanden)
+                // Comment (if available)
                 if (booking.comment.isNotEmpty()) {
                     Column {
                         Text(

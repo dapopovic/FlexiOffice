@@ -4,7 +4,7 @@ import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
 import java.time.LocalDate
 
-/** Datenmodell für Home-Office-Buchungen in Firestore */
+/** Data class for home office bookings in Firestore */
 data class Booking(
     val id: String = "",
     val userId: String = "",
@@ -18,7 +18,7 @@ data class Booking(
     val createdAt: String = "",
     val reviewerId: String = "",
 ) {
-    // Leerer Konstruktor für Firestore
+    // Empty constructor for Firestore
     constructor() : this("", "", "", "", "", BookingType.HOME_OFFICE, BookingStatus.PENDING, "", "", "")
 
     @get:Exclude @set:Exclude

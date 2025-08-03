@@ -22,46 +22,46 @@ class GeofencingInitializer
         }
 
         /**
-         * Initialisiert Geofencing beim App-Start falls alle Voraussetzungen erfüllt sind
+         * Initializes geofencing on app start if all prerequisites are met
          */
         suspend fun initializeGeofencingOnAppStart() {
             try {
                 Log.d(TAG, "Checking if geofencing should be initialized...")
 
-                // Prüfe ob User angemeldet ist
+                // Check if user is logged in
                 val currentUser = authRepository.currentUser.first()
                 if (currentUser?.uid == null) {
                     Log.d(TAG, "No user logged in, skipping geofencing initialization")
                     return
                 }
 
-                // Lade User-Daten
+                // Load user data
                 val user = userRepository.getUser(currentUser.uid).getOrNull()
                 if (user == null) {
                     Log.w(TAG, "Could not load user data")
                     return
                 }
 
-                // Prüfe ob User Home-Location konfiguriert hat
+                // Check if user has configured home location
                 if (!user.hasHomeLocation) {
                     Log.d(TAG, "User has no home location configured, skipping geofencing")
                     return
                 }
 
-                // Prüfe Berechtigungen
+                // Check permissions
                 if (!locationPermissionManager.hasAllRequiredPermissions()) {
                     Log.d(TAG, "Missing location permissions, skipping geofencing")
                     cleanupGeofencingOnLogout()
                     return
                 }
 
-                // Prüfe ob Geofencing bereits aktiv ist
+                // Check if geofencing is already active
                 if (geofencingManager.isGeofenceActive()) {
                     Log.d(TAG, "Geofencing already active")
                     return
                 }
 
-                // Initialisiere Geofencing
+                // Initialize geofencing
                 Log.d(TAG, "Initializing geofencing for user: ${user.name}")
                 geofencingManager.setupHomeGeofence(user).fold(
                     onSuccess = {
@@ -77,7 +77,7 @@ class GeofencingInitializer
         }
 
         /**
-         * Deaktiviert Geofencing beim Logout
+         * Cleans up geofencing on logout
          */
         fun cleanupGeofencingOnLogout() {
             try {

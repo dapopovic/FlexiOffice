@@ -1,29 +1,29 @@
 package com.example.flexioffice.data.model
 
-/** Benutzer-Datenmodell für Firestore */
+/** User data model for Firestore */
 data class User(
     val name: String = "",
     val email: String = "",
-    val role: String = "user", // Standard-Rolle
-    val teamId: String = "", // Leerer String = kein Team
-    val id: String = "", // Firestore-Dokument-ID, optional
-    // Firebase Cloud Messaging Token für Push-Benachrichtigungen
+    val role: String = "user", // Default role
+    val teamId: String = "", // Empty string = no team
+    val id: String = "", // Firestore document ID, optional
+    // Firebase Cloud Messaging Token for push notifications
     val fcmToken: String = "",
-    // Home Office Koordinaten für Geofencing
+    // Home Office coordinates for geofencing
     val homeLatitude: Double = 0.0,
     val homeLongitude: Double = 0.0,
     val hasHomeLocation: Boolean = false,
 ) {
-    // Leerer Konstruktor für Firestore
+    // Empty constructor for Firestore
     constructor() : this("", "", "user", "", "", "", 0.0, 0.0, false)
 
     companion object {
-        // Standard-Rollen
+        // Standard roles
         const val ROLE_USER = "user"
         const val ROLE_ADMIN = "admin"
         const val ROLE_MANAGER = "manager"
 
-        // Kein Team
+        // No team
         const val NO_TEAM = ""
 
         // const fields

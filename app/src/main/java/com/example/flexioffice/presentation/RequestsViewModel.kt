@@ -55,6 +55,7 @@ class RequestsViewModel
             observePendingRequests()
         }
 
+        /** Initializes the ViewModel and starts observing pending requests */
         @OptIn(ExperimentalCoroutinesApi::class)
         private fun observePendingRequests() {
             viewModelScope.launch {
@@ -115,6 +116,7 @@ class RequestsViewModel
             }
         }
 
+        /** Approves a booking request */
         fun approveRequest(booking: Booking) {
             processBookingRequest(
                 booking = booking,
@@ -123,6 +125,7 @@ class RequestsViewModel
             )
         }
 
+        /** Declines a booking request */
         fun declineRequest(booking: Booking) {
             processBookingRequest(
                 booking = booking,
@@ -131,6 +134,7 @@ class RequestsViewModel
             )
         }
 
+        /** Processes a booking request by updating its status */
         private fun processBookingRequest(
             booking: Booking,
             newStatus: BookingStatus,
@@ -207,6 +211,7 @@ class RequestsViewModel
             }
         }
 
+        /** Sends a notification about the booking status change */
         private fun sendStatusNotification(
             booking: Booking,
             newStatus: BookingStatus,
@@ -226,17 +231,19 @@ class RequestsViewModel
             }
         }
 
+        /** Clears any error state */
         fun clearError() {
             _uiState.update { it.copy(error = null) }
         }
 
+        /** Checks if a request is currently being processed */
         fun isProcessingRequest(bookingId: String): Boolean {
             val state = _uiState.value
             return (state.isApprovingRequest || state.isDecliningRequest) &&
                 state.selectedBooking?.id == bookingId
         }
 
-        // Multi-select functions
+        /** Starts multi-select mode for batch operations */
         fun startMultiSelectMode(booking: Booking? = null) {
             if (booking != null) {
                 _uiState.update {
@@ -255,6 +262,7 @@ class RequestsViewModel
             }
         }
 
+        /** Exits multi-select mode */
         fun exitMultiSelectMode() {
             _uiState.update {
                 it.copy(
@@ -264,6 +272,7 @@ class RequestsViewModel
             }
         }
 
+        /** Toggles selection of a request in multi-select mode */
         fun toggleRequestSelection(requestId: String) {
             _uiState.update { currentState ->
                 val selectedRequests = currentState.selectedRequests.toMutableSet()
@@ -276,6 +285,7 @@ class RequestsViewModel
             }
         }
 
+        /** Selects all requests in the current state */
         fun selectAllRequests() {
             _uiState.update { currentState ->
                 val allRequestIds = currentState.pendingRequests.map { it.id }.toSet()
@@ -283,18 +293,20 @@ class RequestsViewModel
             }
         }
 
+        /** Clears the selection in multi-select mode */
         fun clearSelection() {
             _uiState.update { it.copy(selectedRequests = emptySet()) }
         }
-
+        /** Batch approves selected requests */
         fun batchApproveRequests() {
             processBatchRequests(BookingStatus.APPROVED)
         }
-
+        /** Batch declines selected requests */
         fun batchDeclineRequests() {
             processBatchRequests(BookingStatus.DECLINED)
         }
 
+        /** Processes batch requests by updating their status */
         private fun processBatchRequests(newStatus: BookingStatus) {
             val selectedIds = _uiState.value.selectedRequests
             if (selectedIds.isEmpty()) return
@@ -342,7 +354,7 @@ class RequestsViewModel
                 }
             }
         }
-
+        /** Sends notifications for batch operations */
         private fun sendBatchNotifications(
             selectedIds: Set<String>,
             newStatus: BookingStatus,

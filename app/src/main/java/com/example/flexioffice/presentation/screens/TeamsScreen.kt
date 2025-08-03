@@ -140,17 +140,17 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                 }
                 is TeamEvent.MemberRemoved -> {
                     Log.d(TAG, "Member successfully removed")
-                    // Die UI wird automatisch durch den Flow aktualisiert
+                    // The UI will automatically update due to state changes
                 }
                 is TeamEvent.Error -> {
                     Log.e(TAG, "Error: ${event.message}")
-                    // Hier könnte man einen Toast oder Snackbar anzeigen
+                    // Here you could show a Toast or Snackbar
                 }
             }
         }
     }
 
-    // Team-Erstellungsdialog
+    // Team creation dialog
     if (showCreateTeamDialog) {
         AlertDialog(
             onDismissRequest = { showCreateTeamDialog = false },
@@ -362,7 +362,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
         )
     }
 
-    // Löschbestätigungsdialog
+    // Delete confirmation dialog
     if (showDeleteConfirmation && userToDelete != null) {
         AlertDialog(
             onDismissRequest = {
@@ -523,7 +523,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
         )
     }
 
-    // Team-Mitglied einladen dialog
+    // Team member invite dialog
     if (uiState.isInviteDialogVisible) {
         AlertDialog(
             onDismissRequest = { viewModel.hideInviteDialog() },

@@ -79,7 +79,7 @@ fun ProfileScreen(
                 )
             }
 
-            // Benutzer-Informationen
+            // User information
             mainUiState.currentUser?.let { user ->
                 Card(
                     modifier =
@@ -96,7 +96,7 @@ fun ProfileScreen(
                             modifier = Modifier.padding(bottom = 16.dp),
                         )
 
-                        // Team-Information
+                        // Team information
                         Row(
                             modifier =
                                 Modifier
@@ -182,7 +182,7 @@ fun ProfileScreen(
                             }
                         }
 
-                        // Rolle
+                        // Role
                         Row(
                             modifier =
                                 Modifier
@@ -217,7 +217,7 @@ fun ProfileScreen(
                     }
                 }
             } ?: run {
-                // Fallback wenn Benutzer-Daten nicht verfügbar sind
+                // Fallback if user data is not available
                 Card(
                     modifier =
                         Modifier
@@ -264,7 +264,7 @@ fun ProfileScreen(
                 }
             }
 
-            // App-Informationen
+            // App information
             Card(
                 modifier =
                     Modifier

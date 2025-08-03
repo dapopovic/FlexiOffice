@@ -3,7 +3,7 @@ package com.example.flexioffice.data.model
 import androidx.compose.ui.graphics.Color
 import java.time.LocalDate
 
-/** Kalender-Event für die UI-Darstellung */
+/** Calendar event for UI representation */
 data class CalendarEvent(
     val id: String,
     val title: String,

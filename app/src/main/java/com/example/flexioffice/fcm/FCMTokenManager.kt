@@ -135,7 +135,7 @@ class FCMTokenManager
             }
 
         /**
-         * Aktualisiert das Token wenn sich ein neues generiert
+         * Updates the token when a new one is generated
          */
         suspend fun updateToken(newToken: String): Result<Unit> =
             try {

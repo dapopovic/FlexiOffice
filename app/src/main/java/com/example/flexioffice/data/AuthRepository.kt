@@ -9,14 +9,14 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** Repository für Firebase Authentication */
+/** Repository for Firebase Authentication */
 @Singleton
 class AuthRepository
     @Inject
     constructor(
         private val firebaseAuth: FirebaseAuth,
     ) {
-        /** Flow für den aktuellen Benutzer-Status */
+        /** Flow for the current user status */
         val currentUser: Flow<FirebaseUser?> =
             callbackFlow {
                 val authStateListener = FirebaseAuth.AuthStateListener { auth -> trySend(auth.currentUser) }
@@ -25,10 +25,10 @@ class AuthRepository
                 awaitClose { firebaseAuth.removeAuthStateListener(authStateListener) }
             }
 
-        /** Prüft ob ein Benutzer angemeldet ist */
+        /** Checks if a user is logged in */
         fun isUserLoggedIn(): Boolean = firebaseAuth.currentUser != null
 
-        /** Anmeldung mit E-Mail und Passwort */
+        /** Sign in with email and password */
         suspend fun signInWithEmailAndPassword(
             email: String,
             password: String,
@@ -45,7 +45,7 @@ class AuthRepository
                 Result.failure(e)
             }
 
-        /** Registrierung mit E-Mail und Passwort */
+        /** Sign up with email and password */
         suspend fun createUserWithEmailAndPassword(
             email: String,
             password: String,
@@ -62,11 +62,11 @@ class AuthRepository
                 Result.failure(e)
             }
 
-        /** Abmeldung */
+        /** Sign out */
         fun signOut() {
             firebaseAuth.signOut()
         }
 
-        /** Aktueller Benutzer */
+        /** Current user */
         fun getCurrentUser(): FirebaseUser? = firebaseAuth.currentUser
     }

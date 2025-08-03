@@ -157,13 +157,13 @@ fun CalendarScreen(
             error = uiState.errorMessage,
             isLoading = uiState.isCreatingBooking,
             onDismiss = { viewModel.hideBookingDialog() },
-            onDateClick = { /* Datum ist bereits ausgewählt */ },
+            onDateClick = { /* Date is already selected */ },
             onCommentChange = { viewModel.updateBookingComment(it) },
             onCreateBooking = { viewModel.handleBookingCreation() },
         )
     }
 
-    // Storno-Dialog bei Shake
+    // Cancel-Dialog for Shake
     if (uiState.showCancelDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.hideCancelDialog() },

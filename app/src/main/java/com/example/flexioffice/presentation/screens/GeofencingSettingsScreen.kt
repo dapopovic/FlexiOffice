@@ -67,7 +67,7 @@ fun GeofencingSettingsScreen(
             }
         }
 
-    // Zeige Error-Messages
+    // Show Error-Messages
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { message ->
             snackbarHostState.showSnackbar(message)
@@ -75,7 +75,7 @@ fun GeofencingSettingsScreen(
         }
     }
 
-    // Zeige Success-Messages
+    // Show Success-Messages
     LaunchedEffect(uiState.successMessage) {
         uiState.successMessage?.let { message ->
             snackbarHostState.showSnackbar(message)
@@ -307,11 +307,6 @@ private fun HomeLocationCard(
                     color = MaterialTheme.colorScheme.primary,
                 )
                 Text(
-//                    text = "Koordinaten: ${String.format(
-//                        Locale.getDefault(),
-//                        "%.6f",
-//                        homeLatitude,
-//                    )}, ${String.format(Locale.getDefault(), "%.6f", homeLongitude)}",
                     text = stringResource(R.string.home_location_coordinates, homeLatitude, homeLongitude),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

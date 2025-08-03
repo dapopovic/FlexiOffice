@@ -87,6 +87,7 @@ class NotificationRepository
             }
         }
 
+        /** Retrieves the FCM token for a user */
         private suspend fun getUserFCMToken(userId: String): String? =
             try {
                 val userDoc =
@@ -102,6 +103,7 @@ class NotificationRepository
                 null
             }
 
+        /** Creates the notification data for a booking status change */
         private fun createBookingStatusNotificationData(
             booking: Booking,
             newStatus: BookingStatus,
@@ -143,6 +145,7 @@ class NotificationRepository
             )
         }
 
+        /** Creates the notification data for a new booking request */
         private fun createNewRequestNotificationData(
             booking: Booking,
             fcmToken: String,
@@ -164,6 +167,7 @@ class NotificationRepository
                 "processed" to false,
             )
 
+        /** Saves a notification for Cloud Function processing */
         private suspend fun saveNotificationForCloudFunction(notificationData: Map<String, Any>) {
             try {
                 firestore.collection(NOTIFICATIONS_COLLECTION).add(notificationData).await()

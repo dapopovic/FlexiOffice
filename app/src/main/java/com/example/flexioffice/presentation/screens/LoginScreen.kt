@@ -55,7 +55,7 @@ fun LoginScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var isRegistering by remember { mutableStateOf(false) }
 
-    // Navigation nach erfolgreichem Login
+    // Navigate after successful login
     LaunchedEffect(uiState.isLoggedIn) {
         if (uiState.isLoggedIn) {
             onLoginSuccess()
@@ -74,7 +74,7 @@ fun LoginScreen(
             modifier = Modifier.padding(bottom = 32.dp),
         )
 
-        // E-Mail Eingabefeld
+        // E-Mail input field
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -90,7 +90,7 @@ fun LoginScreen(
             singleLine = true,
         )
 
-        // Passwort Eingabefeld
+        // Password input field
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -127,7 +127,7 @@ fun LoginScreen(
             singleLine = true,
         )
 
-        // Fehlermeldung anzeigen
+        // Error message if available
         uiState.errorMessage?.let { errorMessage ->
             Card(
                 colors =
@@ -146,7 +146,7 @@ fun LoginScreen(
             }
         }
 
-        // Login/Registrierung Button
+        // Login/Registration Button
         Button(
             onClick = {
                 authViewModel.clearErrorMessage()
@@ -177,7 +177,7 @@ fun LoginScreen(
             }
         }
 
-        // Wechsel zwischen Anmeldung und Registrierung
+        // Switch between login and registration
         TextButton(
             onClick = {
                 isRegistering = !isRegistering
