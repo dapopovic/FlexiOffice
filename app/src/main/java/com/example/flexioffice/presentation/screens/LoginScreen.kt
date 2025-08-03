@@ -107,10 +107,10 @@ fun LoginScreen(
                         text =
                             if (passwordVisible) {
                                 stringResource(
-                                    R.string.password_visibility_show,
+                                    R.string.password_visibility_hide,
                                 )
                             } else {
-                                stringResource(R.string.password_visibility_hide)
+                                stringResource(R.string.password_visibility_show)
                             },
                         style = MaterialTheme.typography.bodyLarge,
                     )

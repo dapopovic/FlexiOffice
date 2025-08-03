@@ -116,7 +116,10 @@
     <string name="calendar_day_header">Tag</string>
     <string name="calendar_home_office_requests">Home Office Anträge</string>
     <string name="calendar_empty_day_indicator">—</string>
-    <string name="calendar_more_events">+%1$d</string>
+    <plurals name="calendar_more_events">
+        <item quantity="one">+%1$d weiterer Termin</item>
+        <item quantity="other">+%1$d weitere Termine</item>
+    </plurals>
 
     <!-- BookingDetailsSheet -->
     <string name="booking_details_title">Details zum Home Office</string>
@@ -182,7 +185,10 @@
     <string name="booking_dialog_chosen_icon_desc">Ausgewählt</string>
 
     <!-- BookingScreen / Multi-Select TopBar -->
-    <string name="selected_count">%1$d ausgewählt</string>
+    <plurals name="selected_count">
+        <item quantity="one">%1$d ausgewählt</item>
+        <item quantity="other">%1$d ausgewählt</item>
+    </plurals>
     <string name="multi_select_exit">Multi-Select beenden</string>
     <string name="batch_cancel_selected">Ausgewählte stornieren</string>
     <string name="batch_clear_selection">Auswahl aufheben</string>

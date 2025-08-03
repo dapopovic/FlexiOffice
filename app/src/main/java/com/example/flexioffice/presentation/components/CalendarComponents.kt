@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -657,7 +658,7 @@ private fun OverflowIndicator(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = stringResource(R.string.calendar_more_events, count),
+                text = pluralStringResource(R.plurals.calendar_more_events, count, count),
                 style = MaterialTheme.typography.labelSmall,
                 color =
                     when {
