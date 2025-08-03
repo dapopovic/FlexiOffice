@@ -150,6 +150,7 @@ class CalendarViewModel
                     type = EventType.HOME_OFFICE,
                     participantNames = listOf(booking.userName),
                     color = getStatusColor(booking.status),
+                    status = booking.status,
                 )
             }
 

@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import com.example.flexioffice.R
 import com.example.flexioffice.data.model.CalendarEvent
 import com.example.flexioffice.data.model.EventType
+import com.example.flexioffice.presentation.components.getStatusIcon
+import com.example.flexioffice.presentation.components.getStatusColor
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
@@ -99,28 +101,11 @@ private fun EventItem(event: CalendarEvent) {
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Event color indicator
-        Box(
-            modifier =
-                Modifier
-                    .size(12.dp)
-                    .background(
-                        event.color,
-                        CircleShape,
-                    ),
-        )
-
-        // Event icon
+        // Event status icon (consistent with legend and calendar)
         Icon(
-            imageVector =
-                when (event.type) {
-                    EventType.TEAM_MEETING -> ImageVector.vectorResource(R.drawable.group_24px)
-                    EventType.OFFICE_BOOKING -> ImageVector.vectorResource(R.drawable.business_center_24px)
-                    EventType.VACATION -> ImageVector.vectorResource(R.drawable.flight_takeoff_24px)
-                    else -> Icons.Default.Home
-                },
+            imageVector = getStatusIcon(event.status),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = getStatusColor(event.status),
             modifier = Modifier.size(20.dp),
         )
 
