@@ -39,6 +39,10 @@ jobs:
               run: |
                   mkdir -p app
                   echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > app/google-services.json
+
+            - name: Print google-services.json
+              run: |
+                  echo "─── google-services.json ───"
                   cat app/google-services.json
 
             - name: Grant execute permission for gradlew
