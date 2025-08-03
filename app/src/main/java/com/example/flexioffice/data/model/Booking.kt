@@ -1,5 +1,11 @@
 package com.example.flexioffice.data.model
 
+import androidx.annotation.StringRes
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
+import com.example.flexioffice.R
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
 import java.time.LocalDate
@@ -55,3 +61,28 @@ enum class BookingStatus {
     DECLINED,
     CANCELLED,
 }
+
+@StringRes
+fun BookingStatus.labelRes() =
+    when (this) {
+        BookingStatus.APPROVED -> R.string.booking_item_status_approved
+        BookingStatus.PENDING -> R.string.booking_item_status_pending
+        BookingStatus.DECLINED -> R.string.booking_item_status_declined
+        BookingStatus.CANCELLED -> R.string.booking_item_status_cancelled
+    }
+
+fun BookingStatus.statusColor() =
+    when (this) {
+        BookingStatus.APPROVED -> R.color.status_approved
+        BookingStatus.PENDING -> R.color.status_pending
+        BookingStatus.DECLINED -> R.color.status_declined
+        BookingStatus.CANCELLED -> R.color.status_cancelled
+    }
+
+fun BookingStatus.statusIcon() =
+    when (this) {
+        BookingStatus.APPROVED -> Icons.Default.CheckCircle
+        BookingStatus.PENDING -> Icons.Default.Info
+        BookingStatus.DECLINED -> Icons.Default.Close
+        BookingStatus.CANCELLED -> Icons.Default.Close
+    }

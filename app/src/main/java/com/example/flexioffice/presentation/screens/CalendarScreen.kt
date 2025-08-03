@@ -211,7 +211,7 @@ fun CalendarScreen(
                     isLoadingDemoData = uiState.isLoadingDemoData,
                 )
 
-                // Filter (nur anzeigen wenn Team vorhanden)
+                // Filters for team members and status
                 if (!uiState.currentUser?.teamId.isNullOrEmpty() &&
                     uiState.currentUser?.teamId != com.example.flexioffice.data.model.User.NO_TEAM
                 ) {
@@ -230,11 +230,11 @@ fun CalendarScreen(
                     uiState = uiState,
                     onDateSelected = viewModel::selectDate,
                     onDateLongPress = { date ->
-                        // Dialog direkt im CalendarScreen anzeigen
+                        // Show booking dialog on long press
                         viewModel.showBookingDialog(date)
                     },
                     onDateDoubleClick = { date ->
-                        // direktbuchung
+                        // Book a direct booking on double click
                         viewModel.createDirectBooking(date)
                     },
                     onMonthChanged = { month ->
@@ -259,7 +259,7 @@ fun CalendarScreen(
                     events = uiState.events,
                 )
 
-                // Legende (nur anzeigen wenn Team vorhanden)
+                // Legend (only show if no team available)
                 if (!uiState.currentUser?.teamId.isNullOrEmpty() &&
                     uiState.currentUser?.teamId != com.example.flexioffice.data.model.User.NO_TEAM
                 ) {

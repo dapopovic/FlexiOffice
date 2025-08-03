@@ -1,14 +1,11 @@
 package com.example.flexioffice.presentation.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -22,11 +19,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.example.flexioffice.data.model.BookingStatus
+import com.example.flexioffice.R
 
 @Composable
 fun BookingLegend(modifier: Modifier = Modifier) {
@@ -46,32 +44,32 @@ fun BookingLegend(modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
-                text = "Legende",
+                text = stringResource(R.string.booking_legend_title),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            // Status-Legende
+            // status legend items
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 LegendItem(
                     icon = Icons.Default.Info,
-                    color = Color(0xFFFF9800), // Orange
-                    text = "Ausstehend",
+                    color = colorResource(R.color.status_pending), // Orange
+                    text = stringResource(R.string.booking_item_status_pending),
                 )
                 LegendItem(
                     icon = Icons.Default.CheckCircle,
-                    color = Color(0xFF4CAF50), // Green
-                    text = "Genehmigt",
+                    color = colorResource(R.color.status_approved), // Green
+                    text = stringResource(R.string.booking_item_status_approved),
                 )
                 LegendItem(
                     icon = Icons.Default.Close,
-                    color = Color(0xFFF44336), // Red
-                    text = "Abgelehnt",
+                    color = colorResource(R.color.status_declined), // Red
+                    text = stringResource(R.string.booking_item_status_declined),
                 )
                 LegendItem(
                     icon = Icons.Default.Close,
-                    color = Color(0xFF9E9E9E), // Grey
-                    text = "Storniert",
+                    color = colorResource(R.color.status_cancelled), // Grey
+                    text = stringResource(R.string.booking_item_status_cancelled),
                 )
             }
         }
@@ -103,21 +101,3 @@ private fun LegendItem(
         )
     }
 }
-
-// Hilfsfunktion für Status-Farben
-fun getStatusColor(status: BookingStatus): Color =
-    when (status) {
-        BookingStatus.PENDING -> Color(0xFFFF9800) // Orange
-        BookingStatus.APPROVED -> Color(0xFF4CAF50) // Green
-        BookingStatus.DECLINED -> Color(0xFFF44336) // Red
-        BookingStatus.CANCELLED -> Color(0xFF9E9E9E) // Grey
-    }
-
-// Hilfsfunktion für Status-Icons
-fun getStatusIcon(status: BookingStatus): ImageVector =
-    when (status) {
-        BookingStatus.PENDING -> Icons.Default.Info
-        BookingStatus.APPROVED -> Icons.Default.CheckCircle
-        BookingStatus.DECLINED -> Icons.Default.Close
-        BookingStatus.CANCELLED -> Icons.Default.Close
-    }

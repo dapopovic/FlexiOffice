@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -42,8 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.flexioffice.R
 import com.example.flexioffice.data.model.CalendarEvent
-import com.example.flexioffice.data.model.EventType
-import com.example.flexioffice.presentation.components.getStatusIcon
+import com.example.flexioffice.data.model.statusIcon
 import com.kizitonwose.calendar.compose.HorizontalCalendar
 import com.kizitonwose.calendar.compose.rememberCalendarState
 import com.kizitonwose.calendar.core.CalendarDay
@@ -225,7 +225,7 @@ private fun CalendarDay(
                                 Modifier
                                     .size(4.dp)
                                     .background(
-                                        event.color,
+                                        colorResource(event.color),
                                         CircleShape,
                                     ),
                         )
@@ -578,7 +578,7 @@ private fun TableEventCell(event: CalendarEvent) {
         modifier = Modifier.height(40.dp).wrapContentWidth(),
         colors =
             CardDefaults.cardColors(
-                containerColor = event.color,
+                containerColor = colorResource(event.color),
             ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         shape = RoundedCornerShape(6.dp),
@@ -591,7 +591,7 @@ private fun TableEventCell(event: CalendarEvent) {
         ) {
             // Event status icon (consistent with legend)
             Icon(
-                imageVector = getStatusIcon(event.status),
+                imageVector = event.status.statusIcon(),
                 contentDescription = null,
                 tint = Color.White,
                 modifier = Modifier.size(14.dp),

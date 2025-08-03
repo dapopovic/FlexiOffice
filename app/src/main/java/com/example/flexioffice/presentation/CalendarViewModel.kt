@@ -1,6 +1,5 @@
 package com.example.flexioffice.presentation
 
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.BuildConfig
@@ -12,7 +11,7 @@ import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.data.model.CalendarEvent
 import com.example.flexioffice.data.model.EventType
 import com.example.flexioffice.data.model.User
-import com.example.flexioffice.presentation.components.getStatusColor
+import com.example.flexioffice.data.model.statusColor
 import com.example.flexioffice.util.Logger
 import com.example.flexioffice.util.ShakeDetector
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -148,7 +147,7 @@ class CalendarViewModel
                     date = booking.date,
                     type = EventType.HOME_OFFICE,
                     participantNames = listOf(booking.userName),
-                    color = getStatusColor(booking.status),
+                    color = booking.status.statusColor(),
                     status = booking.status,
                 )
             }
@@ -337,7 +336,7 @@ class CalendarViewModel
                 _uiState.value = _uiState.value.copy(isLoadingMonthData = true)
 
                 try {
-                    // Buchungen laden
+                    // Load bookings for the specified month
                     bookingRepository
                         .getTeamBookingsStream(teamId, month.year, month.monthValue)
                         .collect { bookingsResult ->

@@ -28,9 +28,9 @@ data class RequestsUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val pendingRequests: List<Booking> = emptyList(),
-    val allPendingRequests: List<Booking> = emptyList(), // Ungefilterte Anfragen
+    val allPendingRequests: List<Booking> = emptyList(), // unfiltered requests
     val teamMembers: List<User> = emptyList(),
-    val selectedTeamMember: String? = null, // Filter für Teammitglied
+    val selectedTeamMember: String? = null, // Filter for team member
     val currentUser: User? = null,
     val selectedBooking: Booking? = null,
     val isApprovingRequest: Boolean = false,
@@ -118,7 +118,7 @@ class RequestsViewModel
                         _uiState.value = _uiState.value.copy(error = e.message, isLoading = false)
                     }.collect { state ->
                         _uiState.update { state }
-                        // Team-Mitglieder laden wenn User Manager ist
+                        // Load team members if the user is a manager
                         if (state.currentUser?.role == User.ROLE_MANAGER) {
                             loadTeamMembers()
                         }

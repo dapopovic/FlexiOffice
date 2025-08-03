@@ -264,5 +264,13 @@
     <string name="requests_action_decline">Ablehnen</string>
     <string name="batch_approve_selected">Ausgewählte genehmigen</string>
     <string name="batch_decline_selected">Ausgewählte ablehnen</string>
+
+    <!-- Shared Filter Strings -->
+    <string name="filters_team_member_fallback">Teammitglied</string>
+    <string name="filters_all_members">Alle Mitglieder</string>
+    <string name="filters_all_status">Jeder Status</string>
+    <string name="filters_clear">Filter zurücksetzen</string>
+    
     <string name="geofencing_title">Erinnerungen</string>
+    <string name="booking_legend_title">Legende</string>
 </resources>

@@ -41,8 +41,8 @@ data class BookingUiState(
     val comment: String = "",
     val showCancelledBookings: Boolean = false,
     val userBookings: List<Booking> = emptyList(),
-    val allUserBookings: List<Booking> = emptyList(), // Ungefilterte Buchungen
-    val selectedStatus: BookingStatus? = null, // Filter für Status
+    val allUserBookings: List<Booking> = emptyList(), // unfiltered bookings
+    val selectedStatus: BookingStatus? = null, // Filter for status
     val approverName: String? = null,
     val isWeekView: Boolean = false, // new Property for calendar view
     // Multi-select properties
@@ -128,7 +128,7 @@ class BookingViewModel
             }
         }
 
-        // Filter-Funktionen
+        // Filter functions
         fun setStatusFilter(status: BookingStatus?) {
             _uiState.update { it.copy(selectedStatus = status) }
             applyFilters()
@@ -143,7 +143,7 @@ class BookingViewModel
             val state = _uiState.value
             var filteredBookings = state.allUserBookings
 
-            // Filter nach Status
+            // Filter after status
             state.selectedStatus?.let { status ->
                 filteredBookings =
                     filteredBookings.filter { booking ->
