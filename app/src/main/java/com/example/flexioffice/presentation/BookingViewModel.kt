@@ -41,6 +41,8 @@ data class BookingUiState(
     val comment: String = "",
     val showCancelledBookings: Boolean = false,
     val userBookings: List<Booking> = emptyList(),
+    val allUserBookings: List<Booking> = emptyList(), // Ungefilterte Buchungen
+    val selectedStatus: BookingStatus? = null, // Filter für Status
     val approverName: String? = null,
     val isWeekView: Boolean = false, // new Property for calendar view
     // Multi-select properties
@@ -110,6 +112,7 @@ class BookingViewModel
                                             BookingUiState(
                                                 isLoading = false,
                                                 userBookings = bookings,
+                                                allUserBookings = bookings,
                                                 error =
                                                     bookingsResult
                                                         .exceptionOrNull()
@@ -123,6 +126,32 @@ class BookingViewModel
                         _uiState.value = _uiState.value.copy(error = e.message, isLoading = false)
                     }.collect { state -> _uiState.update { state } }
             }
+        }
+
+        // Filter-Funktionen
+        fun setStatusFilter(status: BookingStatus?) {
+            _uiState.update { it.copy(selectedStatus = status) }
+            applyFilters()
+        }
+
+        fun clearFilters() {
+            _uiState.update { it.copy(selectedStatus = null) }
+            applyFilters()
+        }
+
+        private fun applyFilters() {
+            val state = _uiState.value
+            var filteredBookings = state.allUserBookings
+
+            // Filter nach Status
+            state.selectedStatus?.let { status ->
+                filteredBookings =
+                    filteredBookings.filter { booking ->
+                        booking.status == status
+                    }
+            }
+
+            _uiState.update { it.copy(userBookings = filteredBookings) }
         }
 
         fun showBookingDialogForDate(date: LocalDate) {

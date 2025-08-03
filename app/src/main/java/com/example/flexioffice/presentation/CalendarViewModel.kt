@@ -3,6 +3,7 @@ package com.example.flexioffice.presentation
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.flexioffice.BuildConfig
 import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.BookingRepository
 import com.example.flexioffice.data.UserRepository
@@ -11,6 +12,8 @@ import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.data.model.CalendarEvent
 import com.example.flexioffice.data.model.EventType
 import com.example.flexioffice.data.model.User
+import com.example.flexioffice.presentation.components.getStatusColor
+import com.example.flexioffice.util.Logger
 import com.example.flexioffice.util.ShakeDetector
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -38,6 +41,10 @@ data class CalendarUiState(
     val isWeekView: Boolean = false,
     val events: List<CalendarEvent> = emptyList(),
     val bookings: List<Booking> = emptyList(),
+    val allBookings: List<Booking> = emptyList(), // Unfiltered bookings
+    val teamMembers: List<User> = emptyList(),
+    val selectedTeamMember: String? = null, // Filter for team member
+    val selectedStatus: BookingStatus? = null, // Filter for booking status
     val showBookingDialog: Boolean = false,
     val bookingDialogDate: LocalDate? = null,
     val bookingComment: String = "",
@@ -59,7 +66,7 @@ class CalendarViewModel
         val uiState: StateFlow<CalendarUiState> = _uiState.asStateFlow()
 
         companion object {
-            private const val HOME_OFFICE_COLOR = 0xFF4CAF50L // Green
+            private const val TAG = "CalendarViewModel"
         }
 
         init {
@@ -92,14 +99,15 @@ class CalendarViewModel
                                             currentMonth.year,
                                             currentMonth.monthValue,
                                         ).map { bookingsResult ->
-                                            val bookings =
-                                                (bookingsResult.getOrNull() ?: emptyList())
-                                                    .filter { it.status != BookingStatus.CANCELLED }
+                                            val allBookings = bookingsResult.getOrNull() ?: emptyList()
+                                            val bookings = allBookings.filter { it.status != BookingStatus.CANCELLED }
                                             CalendarUiState(
                                                 isLoading = false,
                                                 currentUser = user,
                                                 currentMonth = currentMonth,
                                                 bookings = bookings,
+                                                allBookings = allBookings,
+                                                teamMembers = emptyList(), // Wird später geladen
                                                 events = mapBookingsToEvents(bookings),
                                                 errorMessage = bookingsResult.exceptionOrNull()?.message,
                                             )
@@ -113,7 +121,22 @@ class CalendarViewModel
                                 errorMessage = e.message,
                                 isLoading = false,
                             )
-                    }.collect { state -> _uiState.value = state }
+                    }.collect { state ->
+                        _uiState.value = state
+                        // Load team members if user has a team
+                        if (!state.currentUser?.teamId.isNullOrEmpty() && state.currentUser?.teamId != User.NO_TEAM) {
+                            Logger.d(TAG, "Loading team members for teamId: ${state.currentUser?.teamId}")
+                            try {
+                                loadTeamMembers()
+                            } catch (e: Exception) {
+                                Logger.e(TAG, "Failed to load team members", e)
+                                _uiState.value =
+                                    _uiState.value.copy(
+                                        errorMessage = "Failed to load team members: ${e.message}",
+                                    )
+                            }
+                        }
+                    }
             }
         }
 
@@ -125,7 +148,8 @@ class CalendarViewModel
                     date = booking.date,
                     type = EventType.HOME_OFFICE,
                     participantNames = listOf(booking.userName),
-                    color = Color(HOME_OFFICE_COLOR),
+                    color = getStatusColor(booking.status),
+                    status = booking.status,
                 )
             }
 
@@ -155,6 +179,53 @@ class CalendarViewModel
 
         fun refresh() {
             loadBookingsForMonth(_uiState.value.currentMonth)
+        }
+
+        // Filter functions
+        fun setTeamMemberFilter(userId: String?) {
+            _uiState.value = _uiState.value.copy(selectedTeamMember = userId)
+            applyFilters()
+        }
+
+        fun setStatusFilter(status: BookingStatus?) {
+            _uiState.value = _uiState.value.copy(selectedStatus = status)
+            applyFilters()
+        }
+
+        fun clearFilters() {
+            _uiState.value =
+                _uiState.value.copy(
+                    selectedTeamMember = null,
+                    selectedStatus = null,
+                )
+            applyFilters()
+        }
+
+        private fun applyFilters() {
+            val state = _uiState.value
+            var filteredBookings = state.allBookings
+
+            // Filter by team member
+            state.selectedTeamMember?.let { userId ->
+                filteredBookings =
+                    filteredBookings.filter { booking ->
+                        booking.userId == userId
+                    }
+            }
+
+            // Filter by status
+            state.selectedStatus?.let { status ->
+                filteredBookings =
+                    filteredBookings.filter { booking ->
+                        booking.status == status
+                    }
+            }
+
+            _uiState.value =
+                state.copy(
+                    bookings = filteredBookings,
+                    events = mapBookingsToEvents(filteredBookings),
+                )
         }
 
         fun showBookingDialog(
@@ -265,20 +336,56 @@ class CalendarViewModel
             viewModelScope.launch {
                 _uiState.value = _uiState.value.copy(isLoadingMonthData = true)
 
-                bookingRepository
-                    .getTeamBookingsStream(teamId, month.year, month.monthValue)
-                    .collect { result ->
-                        val bookings =
-                            (result.getOrNull() ?: emptyList())
-                                .filter { it.status != BookingStatus.CANCELLED }
-                        _uiState.value =
-                            _uiState.value.copy(
-                                isLoadingMonthData = false,
-                                bookings = bookings,
-                                events = mapBookingsToEvents(bookings),
-                                errorMessage = result.exceptionOrNull()?.message,
-                            )
+                try {
+                    // Buchungen laden
+                    bookingRepository
+                        .getTeamBookingsStream(teamId, month.year, month.monthValue)
+                        .collect { bookingsResult ->
+                            val allBookings = bookingsResult.getOrNull() ?: emptyList()
+
+                            _uiState.value =
+                                _uiState.value.copy(
+                                    isLoadingMonthData = false,
+                                    allBookings = allBookings,
+                                    errorMessage = bookingsResult.exceptionOrNull()?.message,
+                                )
+
+                            applyFilters()
+                        }
+                } catch (e: Exception) {
+                    _uiState.value =
+                        _uiState.value.copy(
+                            isLoadingMonthData = false,
+                            errorMessage = e.message ?: "Error loading bookings",
+                        )
+                }
+            }
+        }
+
+        fun loadTeamMembers() {
+            val teamId = _uiState.value.currentUser?.teamId
+            if (teamId.isNullOrEmpty() || teamId == User.NO_TEAM) return
+
+            Logger.d(TAG, "loadTeamMembers called for teamId: $teamId")
+            viewModelScope.launch {
+                try {
+                    userRepository.getTeamMembersStream(teamId).collect { teamMembersResult ->
+                        val teamMembers = teamMembersResult.getOrNull() ?: emptyList()
+                        Logger.d(TAG, "Loaded ${teamMembers.size} team members")
+
+                        // Only log detailed member info in debug builds to avoid verbose output
+                        if (BuildConfig.DEBUG && teamMembers.isNotEmpty()) {
+                            teamMembers.forEach { member ->
+                                Logger.v(TAG, "Team member: ${member.name} (${member.id})")
+                            }
+                        }
+
+                        _uiState.value = _uiState.value.copy(teamMembers = teamMembers)
                     }
+                } catch (e: Exception) {
+                    // Team member loading errors are not critical, but we should log them
+                    Logger.w(TAG, "Error loading team members: ${e.message}", e)
+                }
             }
         }
 

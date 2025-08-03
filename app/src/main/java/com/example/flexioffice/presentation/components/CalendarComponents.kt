@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import com.example.flexioffice.R
 import com.example.flexioffice.data.model.CalendarEvent
 import com.example.flexioffice.data.model.EventType
+import com.example.flexioffice.presentation.components.getStatusIcon
 import com.kizitonwose.calendar.compose.HorizontalCalendar
 import com.kizitonwose.calendar.compose.rememberCalendarState
 import com.kizitonwose.calendar.core.CalendarDay
@@ -588,27 +589,9 @@ private fun TableEventCell(event: CalendarEvent) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            // Event type icon
+            // Event status icon (consistent with legend)
             Icon(
-                imageVector =
-                    when (event.type) {
-                        EventType.HOME_OFFICE ->
-                            ImageVector.vectorResource(
-                                R.drawable.home_work_24px,
-                            )
-                        EventType.OFFICE_BOOKING ->
-                            ImageVector.vectorResource(
-                                R.drawable.work_24px,
-                            )
-                        EventType.TEAM_MEETING ->
-                            ImageVector.vectorResource(
-                                R.drawable.group_24px,
-                            )
-                        EventType.VACATION ->
-                            ImageVector.vectorResource(
-                                R.drawable.schedule_24px,
-                            )
-                    },
+                imageVector = getStatusIcon(event.status),
                 contentDescription = null,
                 tint = Color.White,
                 modifier = Modifier.size(14.dp),

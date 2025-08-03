@@ -11,6 +11,7 @@ data class CalendarEvent(
     val type: EventType,
     val participantNames: List<String> = emptyList(),
     val color: Color = Color(0xFF2196F3), // Default blue color
+    val status: BookingStatus = BookingStatus.PENDING, // Booking status for icon consistency
 )
 
 enum class EventType {

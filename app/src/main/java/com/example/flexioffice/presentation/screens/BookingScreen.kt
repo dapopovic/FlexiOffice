@@ -34,6 +34,7 @@ import com.example.flexioffice.presentation.BookingViewModel
 import com.example.flexioffice.presentation.components.BookingDatePickerDialog
 import com.example.flexioffice.presentation.components.BookingDetailsSheet
 import com.example.flexioffice.presentation.components.BookingDialog
+import com.example.flexioffice.presentation.components.BookingFilters
 import com.example.flexioffice.presentation.components.BookingFloatingActionButton
 import com.example.flexioffice.presentation.components.BookingItem
 import com.example.flexioffice.presentation.components.BookingScreenHeader
@@ -109,6 +110,16 @@ fun BookingScreen(
                         uiState.userBookings.none { booking ->
                             booking.status != BookingStatus.CANCELLED
                         },
+                )
+            }
+
+            item {
+                BookingFilters(
+                    selectedStatus = uiState.selectedStatus,
+                    showCancelledBookings = uiState.showCancelledBookings,
+                    onStatusFilterChange = { viewModel.setStatusFilter(it) },
+                    onClearFilters = { viewModel.clearFilters() },
+                    modifier = Modifier.padding(bottom = 16.dp),
                 )
             }
 
