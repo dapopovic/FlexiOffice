@@ -1,16 +1,11 @@
 package com.example.flexioffice.presentation.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -19,16 +14,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.flexioffice.R
 import com.example.flexioffice.data.model.CalendarEvent
 import com.example.flexioffice.data.model.EventType
-import com.example.flexioffice.presentation.components.getStatusColor
-import com.example.flexioffice.presentation.components.getStatusIcon
+import com.example.flexioffice.data.model.statusColor
+import com.example.flexioffice.data.model.statusIcon
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
@@ -103,9 +97,9 @@ private fun EventItem(event: CalendarEvent) {
     ) {
         // Event status icon (consistent with legend and calendar)
         Icon(
-            imageVector = getStatusIcon(event.status),
+            imageVector = event.status.statusIcon(),
             contentDescription = null,
-            tint = getStatusColor(event.status),
+            tint = Color(event.status.statusColor()),
             modifier = Modifier.size(20.dp),
         )
 

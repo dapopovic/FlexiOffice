@@ -8,7 +8,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
 
 @Composable
@@ -22,8 +24,8 @@ fun CancelBookingDialog(
     if (showDialog && selectedBooking != null) {
         AlertDialog(
             onDismissRequest = onDismiss,
-            title = { Text("Buchung stornieren") },
-            text = { Text("Möchten Sie diese Buchung wirklich stornieren?") },
+            title = { Text(stringResource(R.string.cancel_booking_dialog_title)) },
+            text = { Text(stringResource(R.string.cancel_booking_dialog_message)) },
             confirmButton = {
                 Button(
                     onClick = onConfirmCancel,
@@ -35,11 +37,11 @@ fun CancelBookingDialog(
                             strokeWidth = 2.dp,
                         )
                     } else {
-                        Text("Stornieren")
+                        Text(stringResource(R.string.calendar_cancel_button))
                     }
                 }
             },
-            dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
         )
     }
 }

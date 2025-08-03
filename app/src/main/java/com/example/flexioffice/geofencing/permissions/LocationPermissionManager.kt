@@ -26,7 +26,7 @@ class LocationPermissionManager
         }
 
         /**
-         * Prüft ob die Basis Location-Berechtigungen vorhanden sind
+         * Checks if the basic location permissions are granted
          */
         fun hasBasicLocationPermissions(): Boolean =
             REQUIRED_LOCATION_PERMISSIONS.all { permission ->
@@ -34,7 +34,7 @@ class LocationPermissionManager
             }
 
         /**
-         * Prüft ob die Background Location-Berechtigung vorhanden ist
+         * Checks if the background location permission is granted
          */
         fun hasBackgroundLocationPermission(): Boolean =
             ActivityCompat.checkSelfPermission(
@@ -43,24 +43,24 @@ class LocationPermissionManager
             ) == PackageManager.PERMISSION_GRANTED
 
         /**
-         * Prüft ob alle erforderlichen Berechtigungen für Geofencing vorhanden sind
+         * Checks if all required permissions for geofencing are granted
          */
         fun hasAllRequiredPermissions(): Boolean = hasBasicLocationPermissions() && hasBackgroundLocationPermission()
 
         /**
-         * Gibt die Liste der fehlenden Berechtigungen zurück
+         * Returns the list of missing permissions
          */
         fun getMissingPermissions(): List<String> {
             val missingPermissions = mutableListOf<String>()
 
-            // Prüfe Basis-Berechtigungen
+            // Check basic permissions
             REQUIRED_LOCATION_PERMISSIONS.forEach { permission ->
                 if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
                     missingPermissions.add(permission)
                 }
             }
 
-            // Prüfe Background-Berechtigung (nur für Android 10+)
+            // Check background location permission (only for Android 10+)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !hasBackgroundLocationPermission()) {
                 missingPermissions.add(BACKGROUND_LOCATION_PERMISSION)
             }

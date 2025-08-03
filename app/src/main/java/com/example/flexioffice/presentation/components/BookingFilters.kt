@@ -23,8 +23,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.flexioffice.R
 import com.example.flexioffice.data.model.BookingStatus
+import com.example.flexioffice.data.model.labelRes
 
 @Composable
 fun BookingFilters(
@@ -47,7 +50,9 @@ fun BookingFilters(
                 onClick = { showStatusDropdown = true },
                 label = {
                     Text(
-                        text = selectedStatus?.let { getStatusDisplayName(it) } ?: "Alle Status",
+                        text =
+                            selectedStatus?.let { stringResource(it.labelRes()) }
+                                ?: stringResource(R.string.filters_all_status),
                     )
                 },
                 selected = selectedStatus != null,
@@ -72,17 +77,17 @@ fun BookingFilters(
                     },
                 )
 
-                // Verfügbare Status basierend auf showCancelledBookings
+                // available statuses based on showCancelledBookings
                 val availableStatuses =
                     if (showCancelledBookings) {
-                        BookingStatus.values().toList()
+                        BookingStatus.entries
                     } else {
-                        BookingStatus.values().filter { it != BookingStatus.CANCELLED }
+                        BookingStatus.entries.filter { it != BookingStatus.CANCELLED }
                     }
 
                 availableStatuses.forEach { status ->
                     DropdownMenuItem(
-                        text = { Text(getStatusDisplayName(status)) },
+                        text = { Text(stringResource(status.labelRes())) },
                         onClick = {
                             onStatusFilterChange(status)
                             showStatusDropdown = false
@@ -92,7 +97,7 @@ fun BookingFilters(
             }
         }
 
-        // Clear Filters Button (nur anzeigen wenn Filter aktiv sind)
+        // Clear Filters Button (only show if filter is applied)
         if (selectedStatus != null) {
             IconButton(
                 onClick = onClearFilters,
@@ -100,18 +105,10 @@ fun BookingFilters(
             ) {
                 Icon(
                     imageVector = Icons.Default.Clear,
-                    contentDescription = "Filter zurücksetzen",
+                    contentDescription = stringResource(R.string.filters_clear),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
     }
 }
-
-private fun getStatusDisplayName(status: BookingStatus): String =
-    when (status) {
-        BookingStatus.PENDING -> "Ausstehend"
-        BookingStatus.APPROVED -> "Genehmigt"
-        BookingStatus.DECLINED -> "Abgelehnt"
-        BookingStatus.CANCELLED -> "Storniert"
-    }

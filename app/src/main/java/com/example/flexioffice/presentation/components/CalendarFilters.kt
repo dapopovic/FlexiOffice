@@ -23,9 +23,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.flexioffice.R
 import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.data.model.User
+import com.example.flexioffice.data.model.labelRes
 import com.example.flexioffice.util.Logger
 
 @Composable
@@ -52,7 +55,7 @@ fun CalendarFilters(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Team Member Filter
+        // Team member filter
         Box(modifier = Modifier.wrapContentSize(Alignment.TopStart)) {
             FilterChip(
                 onClick = { showTeamMemberDropdown = true },
@@ -60,8 +63,9 @@ fun CalendarFilters(
                     Text(
                         text =
                             selectedTeamMember?.let { userId ->
-                                teamMembers.find { it.id == userId }?.name ?: "Teammitglied"
-                            } ?: "Alle Mitglieder",
+                                teamMembers.find { it.id == userId }?.name
+                                    ?: stringResource(R.string.filters_team_member_fallback)
+                            } ?: stringResource(R.string.filters_all_members),
                     )
                 },
                 selected = selectedTeamMember != null,
@@ -79,7 +83,7 @@ fun CalendarFilters(
                 onDismissRequest = { showTeamMemberDropdown = false },
             ) {
                 DropdownMenuItem(
-                    text = { Text("Alle Mitglieder") },
+                    text = { Text(stringResource(R.string.filters_all_members)) },
                     onClick = {
                         onTeamMemberFilterChange(null)
                         showTeamMemberDropdown = false
@@ -103,7 +107,9 @@ fun CalendarFilters(
                 onClick = { showStatusDropdown = true },
                 label = {
                     Text(
-                        text = selectedStatus?.let { getStatusDisplayName(it) } ?: "Alle Status",
+                        text =
+                            selectedStatus?.let { stringResource(it.labelRes()) }
+                                ?: stringResource(R.string.filters_all_status),
                     )
                 },
                 selected = selectedStatus != null,
@@ -121,15 +127,15 @@ fun CalendarFilters(
                 onDismissRequest = { showStatusDropdown = false },
             ) {
                 DropdownMenuItem(
-                    text = { Text("Alle Status") },
+                    text = { Text(stringResource(R.string.filters_all_status)) },
                     onClick = {
                         onStatusFilterChange(null)
                         showStatusDropdown = false
                     },
                 )
-                BookingStatus.values().forEach { status ->
+                BookingStatus.entries.forEach { status ->
                     DropdownMenuItem(
-                        text = { Text(getStatusDisplayName(status)) },
+                        text = { Text(stringResource(status.labelRes())) },
                         onClick = {
                             onStatusFilterChange(status)
                             showStatusDropdown = false
@@ -147,18 +153,10 @@ fun CalendarFilters(
             ) {
                 Icon(
                     imageVector = Icons.Default.Clear,
-                    contentDescription = "Filter zurücksetzen",
+                    contentDescription = stringResource(R.string.filters_clear),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
     }
 }
-
-private fun getStatusDisplayName(status: BookingStatus): String =
-    when (status) {
-        BookingStatus.PENDING -> "Ausstehend"
-        BookingStatus.APPROVED -> "Genehmigt"
-        BookingStatus.DECLINED -> "Abgelehnt"
-        BookingStatus.CANCELLED -> "Storniert"
-    }

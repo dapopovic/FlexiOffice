@@ -24,7 +24,7 @@ class BookingRepository
     constructor(
         private val firestore: FirebaseFirestore,
     ) {
-        /** Lädt alle Buchungen für einen bestimmten Monat */
+        /** Loads all bookings for a specific month */
         suspend fun getBookingsForMonth(month: YearMonth): List<Booking> {
             val startDate = month.atDay(1)
             val endDate = month.atEndOfMonth()
@@ -40,7 +40,7 @@ class BookingRepository
                 .toObjects(Booking::class.java)
         }
 
-        /** Erstellt eine neue Buchung aus einem existierenden Booking-Objekt */
+        /** Creates a new booking from an existing Booking object */
         suspend fun createBooking(booking: Booking): Result<String> =
             try {
                 val docRef = firestore.collection(Booking.COLLECTION_NAME).document()
@@ -51,7 +51,7 @@ class BookingRepository
                 Result.failure(e)
             }
 
-        /** Erstellt eine neue Buchung aus Datum und Kommentar */
+        /** Creates a new booking from date and comment */
         suspend fun createBooking(
             date: LocalDate,
             comment: String,
@@ -61,14 +61,14 @@ class BookingRepository
             type: BookingType = BookingType.HOME_OFFICE,
         ): Result<String> {
             return try {
-                // Validiere das Datum
+                // validate date
                 if (date.isBefore(LocalDate.now())) {
                     return Result.failure(
                         IllegalArgumentException("Buchungen für vergangene Tage sind nicht möglich"),
                     )
                 }
 
-                // Prüfe auf existierende Buchungen
+                // check if user already has a booking for this date
                 val existingBooking =
                     getUserBookingsForDate(userId, date).getOrNull()?.firstOrNull {
                         it.status != BookingStatus.CANCELLED
@@ -81,7 +81,7 @@ class BookingRepository
                     )
                 }
 
-                // Hole Team-Informationen für den Reviewer
+                // Load the team to check if it has a manager
                 val team =
                     try {
                         val teamDoc =
@@ -103,7 +103,7 @@ class BookingRepository
                         )
                     }
 
-                // Prüfe ob das Team einen Manager hat
+                // Check if the team has a manager
                 if (team.managerId.isNullOrEmpty()) {
                     return Result.failure(
                         IllegalArgumentException("Das Team hat keinen Manager zugewiesen"),
@@ -128,7 +128,7 @@ class BookingRepository
             }
         }
 
-        /** Lädt Buchungen eines Benutzers für ein bestimmtes Datum */
+        /** Loads user bookings for a specific date */
         suspend fun getUserBookingsForDate(
             userId: String,
             date: LocalDate,
@@ -148,7 +148,7 @@ class BookingRepository
                 Result.failure(e)
             }
 
-        /** Lädt alle Buchungen für ein Team in einem bestimmten Zeitraum */
+        /** Loads all bookings for a team in a specific time range */
         suspend fun getTeamBookingsInRange(
             teamId: String,
             startDate: LocalDate,
@@ -173,7 +173,7 @@ class BookingRepository
                 Result.failure(e)
             }
 
-        /** Stream für Team-Buchungen eines bestimmten Monats */
+        /** Gets a stream of team bookings for a specific month */
         fun getTeamBookingsStream(
             teamId: String,
             year: Int,
@@ -204,7 +204,7 @@ class BookingRepository
                 awaitClose { listenerRegistration.remove() }
             }
 
-        /** Stream für ausstehende Team-Buchungsanfragen (PENDING Status) */
+        /** Gets a stream of team pending booking requests (PENDING Status) */
         fun getTeamPendingRequestsStream(teamId: String): Flow<Result<List<Booking>>> =
             callbackFlow {
                 val listenerRegistration =
@@ -226,7 +226,7 @@ class BookingRepository
                 awaitClose { listenerRegistration.remove() }
             }
 
-        /** Lädt Buchungen für einen Benutzer */
+        /** Loads bookings for a user */
         suspend fun getUserBookings(userId: String): Result<List<Booking>> =
             try {
                 val querySnapshot =
@@ -243,7 +243,7 @@ class BookingRepository
                 Result.failure(e)
             }
 
-        /** Stream für Buchungen eines Benutzers */
+        /** Gets a stream of user bookings */
         fun getUserBookingsStream(userId: String): Flow<Result<List<Booking>>> =
             callbackFlow {
                 val listenerRegistration =
@@ -264,7 +264,7 @@ class BookingRepository
                 awaitClose { listenerRegistration.remove() }
             }
 
-        /** Aktualisiert den Status einer Buchung */
+        /** Updates the status of a booking */
         suspend fun updateBookingStatus(
             bookingId: String,
             status: BookingStatus,
@@ -286,16 +286,16 @@ class BookingRepository
             }
 
         /**
-         * Aktualisiert den Status mehrerer Buchungen in einem Batch
-         * Diese Methode ist nützlich, um mehrere Buchungen gleichzeitig zu aktualisieren,
-         *  z.B. wenn ein Manager mehrere Anfragen gleichzeitig genehmigen oder ablehnen möchte
+         * Updates the status of multiple bookings in a batch
+         * This method is useful for updating multiple bookings at once,
+         *  e.g. when a manager wants to approve or reject multiple requests simultaneously
          *
-         * @param bookingIds Liste der Buchungs-IDs, die aktualisiert werden sollen
-         * @param status Der neue Status, der auf alle Buchungen angewendet werden soll
-         * @param reviewerId Die ID des Benutzers, der die Buchungen überprüft hat
-         * @return Result<Unit> Erfolgreiche Ausführung oder Fehler
-         * @throws IllegalArgumentException Wenn die Batch-Größe die Firestore-Limitierung überschreitet
-         * @throws Exception Bei anderen Fehlern während der Firestore-Operationen
+         * @param bookingIds List of booking IDs to update
+         * @param status The new status to apply to all bookings
+         * @param reviewerId The ID of the user who reviewed the bookings
+         * @return Result<Unit> Successful execution or error
+         * @throws IllegalArgumentException If the batch size exceeds Firestore limit
+         * @throws Exception For other errors during Firestore operations
          */
         suspend fun updateBookingStatusBatch(
             bookingIds: List<String>,
@@ -330,7 +330,7 @@ class BookingRepository
             }
         }
 
-        /** Erstellt Demo-Buchungen für Testing */
+        /** Creates demo bookings for testing */
         suspend fun createDemoBookings(teamId: String): Result<Unit> =
             try {
                 val currentDate = LocalDate.now()

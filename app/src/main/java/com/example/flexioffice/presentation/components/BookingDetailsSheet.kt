@@ -13,7 +13,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.data.model.BookingStatus
 import java.time.format.DateTimeFormatter
@@ -44,15 +46,18 @@ fun BookingDetailsSheet(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(
-                    text = "Home Office Details",
+                    text =
+                        stringResource(
+                            id = R.string.booking_details_title,
+                        ),
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.padding(bottom = 8.dp),
                 )
 
-                // Datum
+                // Date
                 Column {
                     Text(
-                        text = "Datum",
+                        text = stringResource(R.string.booking_details_date_label),
                         style =
                             MaterialTheme.typography
                                 .labelMedium,
@@ -76,7 +81,7 @@ fun BookingDetailsSheet(
                 // Status
                 Column {
                     Text(
-                        text = "Status",
+                        text = stringResource(R.string.booking_details_status_label),
                         style =
                             MaterialTheme.typography
                                 .labelMedium,
@@ -88,13 +93,13 @@ fun BookingDetailsSheet(
                         text =
                             when (booking.status) {
                                 BookingStatus.APPROVED ->
-                                    "✓ Genehmigt"
+                                    stringResource(R.string.booking_details_status_approved)
                                 BookingStatus.PENDING ->
-                                    "⏳ Ausstehend"
+                                    stringResource(R.string.booking_details_status_pending)
                                 BookingStatus.DECLINED ->
-                                    "✗ Abgelehnt"
+                                    stringResource(R.string.booking_details_status_declined)
                                 BookingStatus.CANCELLED ->
-                                    "⊘ Storniert"
+                                    stringResource(R.string.booking_details_status_cancelled)
                             },
                         style = MaterialTheme.typography.bodyLarge,
                         color =
@@ -119,10 +124,10 @@ fun BookingDetailsSheet(
                     )
                 }
 
-                // Antragsteller
+                // Requester
                 Column {
                     Text(
-                        text = "Antragsteller",
+                        text = stringResource(R.string.booking_details_requester_label),
                         style =
                             MaterialTheme.typography
                                 .labelMedium,
@@ -139,7 +144,7 @@ fun BookingDetailsSheet(
                 // Approver
                 Column {
                     Text(
-                        text = "Genehmigt durch",
+                        text = stringResource(R.string.booking_details_approver_label),
                         style =
                             MaterialTheme.typography
                                 .labelMedium,
@@ -148,16 +153,16 @@ fun BookingDetailsSheet(
                                 .onSurfaceVariant,
                     )
                     Text(
-                        text = approverName ?: "Wird geladen...",
+                        text = approverName ?: stringResource(R.string.booking_details_loading),
                         style = MaterialTheme.typography.bodyLarge,
                     )
                 }
 
-                // Kommentar (wenn vorhanden)
+                // Comment (if available)
                 if (booking.comment.isNotEmpty()) {
                     Column {
                         Text(
-                            text = "Kommentar",
+                            text = stringResource(R.string.booking_details_comment_label),
                             style =
                                 MaterialTheme.typography
                                     .labelMedium,

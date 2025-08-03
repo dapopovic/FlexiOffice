@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -37,6 +38,8 @@ import com.example.flexioffice.R
 import com.example.flexioffice.navigation.FlexiOfficeRoutes
 import com.example.flexioffice.presentation.AuthViewModel
 import com.example.flexioffice.presentation.MainViewModel
+
+private const val TAG = "ProfileScreen"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,12 +74,12 @@ fun ProfileScreen(
                     tint = MaterialTheme.colorScheme.primary,
                 )
                 Text(
-                    text = "Profil",
+                    text = stringResource(R.string.profile_title),
                     style = MaterialTheme.typography.headlineMedium,
                 )
             }
 
-            // Benutzer-Informationen
+            // User information
             mainUiState.currentUser?.let { user ->
                 Card(
                     modifier =
@@ -88,12 +91,12 @@ fun ProfileScreen(
                         modifier = Modifier.padding(16.dp),
                     ) {
                         Text(
-                            text = "Benutzerinformationen",
+                            text = stringResource(R.string.user_information),
                             style = MaterialTheme.typography.titleLarge,
                             modifier = Modifier.padding(bottom = 16.dp),
                         )
 
-                        // Team-Information
+                        // Team information
                         Row(
                             modifier =
                                 Modifier
@@ -109,16 +112,16 @@ fun ProfileScreen(
                             )
                             Column {
                                 Text(
-                                    text = "Team-Status",
+                                    text = stringResource(R.string.team_status),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                                 Text(
                                     text =
                                         when {
-                                            user.teamId.isEmpty() -> "Kein Team zugewiesen"
-                                            user.role == "manager" -> "Team-Manager"
-                                            else -> "Team-Mitglied"
+                                            user.teamId.isEmpty() -> stringResource(R.string.no_team_assigned_status)
+                                            user.role == "manager" -> stringResource(R.string.team_manager)
+                                            else -> stringResource(R.string.team_member)
                                         },
                                     style = MaterialTheme.typography.bodyLarge,
                                 )
@@ -141,12 +144,12 @@ fun ProfileScreen(
                             )
                             Column {
                                 Text(
-                                    text = "Name",
+                                    text = stringResource(R.string.name_label),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                                 Text(
-                                    text = user.name.ifEmpty { "Nicht angegeben" },
+                                    text = user.name.ifEmpty { stringResource(R.string.not_specified) },
                                     style = MaterialTheme.typography.bodyLarge,
                                 )
                             }
@@ -168,18 +171,18 @@ fun ProfileScreen(
                             )
                             Column {
                                 Text(
-                                    text = "E-Mail",
+                                    text = stringResource(R.string.email_address_label),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                                 Text(
-                                    text = user.email.ifEmpty { "Nicht angegeben" },
+                                    text = user.email.ifEmpty { stringResource(R.string.not_specified) },
                                     style = MaterialTheme.typography.bodyLarge,
                                 )
                             }
                         }
 
-                        // Rolle
+                        // Role
                         Row(
                             modifier =
                                 Modifier
@@ -195,16 +198,16 @@ fun ProfileScreen(
                             )
                             Column {
                                 Text(
-                                    text = "Rolle",
+                                    text = stringResource(R.string.role_label),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                                 Text(
                                     text =
                                         when (user.role) {
-                                            "admin" -> "Administrator"
-                                            "manager" -> "Manager/Lead"
-                                            "user" -> "Benutzer"
+                                            "admin" -> stringResource(R.string.role_admin)
+                                            "manager" -> stringResource(R.string.role_manager)
+                                            "user" -> stringResource(R.string.role_user)
                                             else -> user.role
                                         },
                                     style = MaterialTheme.typography.bodyLarge,
@@ -214,7 +217,7 @@ fun ProfileScreen(
                     }
                 }
             } ?: run {
-                // Fallback wenn Benutzer-Daten nicht verfügbar sind
+                // Fallback if user data is not available
                 Card(
                     modifier =
                         Modifier
@@ -225,7 +228,7 @@ fun ProfileScreen(
                         modifier = Modifier.padding(16.dp),
                     ) {
                         Text(
-                            text = "Benutzerinformationen",
+                            text = stringResource(R.string.user_information),
                             style = MaterialTheme.typography.titleLarge,
                             modifier = Modifier.padding(bottom = 16.dp),
                         )
@@ -246,12 +249,12 @@ fun ProfileScreen(
                                 )
                                 Column {
                                     Text(
-                                        text = "E-Mail",
+                                        text = stringResource(R.string.email_address_label),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                     Text(
-                                        text = firebaseUser.email ?: "Nicht verfügbar",
+                                        text = firebaseUser.email ?: stringResource(R.string.not_available),
                                         style = MaterialTheme.typography.bodyLarge,
                                     )
                                 }
@@ -261,7 +264,7 @@ fun ProfileScreen(
                 }
             }
 
-            // App-Informationen
+            // App information
             Card(
                 modifier =
                     Modifier
@@ -272,24 +275,24 @@ fun ProfileScreen(
                     modifier = Modifier.padding(16.dp),
                 ) {
                     Text(
-                        text = "App-Informationen",
+                        text = stringResource(R.string.app_information),
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.padding(bottom = 16.dp),
                     )
 
                     Text(
-                        text = "FlexiOffice",
+                        text = stringResource(R.string.app_name),
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(bottom = 4.dp),
                     )
                     Text(
-                        text = "Version 1.0.0",
+                        text = stringResource(R.string.app_version),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 8.dp),
                     )
                     Text(
-                        text = "Bürobuchungs- und Verwaltungsapp",
+                        text = stringResource(R.string.app_description),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -308,7 +311,7 @@ fun ProfileScreen(
                     contentDescription = null,
                     modifier = Modifier.padding(end = 8.dp),
                 )
-                Text("Home Office Erinnerungen")
+                Text(stringResource(R.string.home_office_reminders))
             }
 
             // Logout Button
@@ -333,7 +336,7 @@ fun ProfileScreen(
                         contentDescription = null,
                         modifier = Modifier.padding(end = 8.dp),
                     )
-                    Text("Abmelden")
+                    Text(stringResource(R.string.logout_button))
                 }
             }
 
@@ -341,7 +344,7 @@ fun ProfileScreen(
 
             // Footer
             Text(
-                text = "Entwickelt für flexibles Arbeiten",
+                text = stringResource(R.string.footer_text),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,

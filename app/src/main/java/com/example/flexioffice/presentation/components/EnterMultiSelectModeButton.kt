@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
@@ -27,7 +28,7 @@ fun EnterMultiSelectModeButton(
             IconButton(onClick = { onEnterMultiSelectMode(null) }) {
                 Icon(
                     ImageVector.vectorResource(R.drawable.done_all_24px),
-                    contentDescription = "Multi-Select View",
+                    contentDescription = stringResource(R.string.multi_select_view_desc),
                     tint = MaterialTheme.colorScheme.primary,
                 )
             }

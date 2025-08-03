@@ -1,16 +1,16 @@
 package com.example.flexioffice.data.model
 
-import androidx.compose.ui.graphics.Color
+import com.example.flexioffice.R
 import java.time.LocalDate
 
-/** Kalender-Event für die UI-Darstellung */
+/** Calendar event for UI representation */
 data class CalendarEvent(
     val id: String,
     val title: String,
     val date: LocalDate,
     val type: EventType,
     val participantNames: List<String> = emptyList(),
-    val color: Color = Color(0xFF2196F3), // Default blue color
+    val color: Int = R.color.status_unknown, // Default blue color
     val status: BookingStatus = BookingStatus.PENDING, // Booking status for icon consistency
 )
 

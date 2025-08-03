@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">FlexiOffice</string>
-    <string name="no_team_allowed_notificiation">Sie sind derzeit keinem Team zugeordnet und haben nicht die Berechtigung, ein Team zu erstellen.</string>
-    <string name="no_team_notificiation">Sie sind derzeit keinem Team zugeordnet. Erstellen Sie ein neues Team und laden Sie Mitglieder ein.</string>
+    <string name="no_team_allowed_notification">Sie sind derzeit keinem Team zugeordnet und haben nicht die Berechtigung, ein Team zu erstellen.</string>
+    <string name="no_team_notification">Sie sind derzeit keinem Team zugeordnet.</string>
     <string name="TeamAccessRequired_Team_Beitreten">Treten Sie einem bestehenden Team bei oder erstellen Sie ein neues Team, um auf diese Funktion zugreifen zu können.</string>
     <string name="EventComponents_ereignisse">Ereignisse</string>
     <string name="EventComponents_keine_ereignisse_tag">Keine Ereignisse an diesem Tag</string>
@@ -15,4 +15,262 @@
     <string name="TeamAccessRequired_zu_den_teams">Zu den Teams</string>
     <string name="ok">OK</string>
     <string name="cancel">Abbrechen</string>
+    <string name="team_member_manager">Manager</string>
+    <string name="team_member_member">Mitglied</string>
+    <string name="team_member_remove_content_desc">Mitglied entfernen</string>
+    <string name="team_member_removed_success">Mitglied erfolgreich entfernt</string>
+    <string name="create_team_title">Neues Team erstellen</string>
+    <string name="create_team_subtitle">Starten Sie Ihr eigenes Team</string>
+    <string name="team_name_content_desc">Teamname</string>
+    <string name="team_name_label">Teamname</string>
+    <string name="team_name_placeholder">z.B. Marketing Team, Development Team...</string>
+    <string name="team_description_content_desc">Beschreibung</string>
+    <string name="team_description_label">Beschreibung (Optional)</string>
+    <string name="team_description_placeholder">Beschreiben Sie die Rolle und Ziele Ihres Teams...</string>
+    <string name="team_benefits_title">Team-Vorteile</string>
+    <string name="team_benefits_subtitle">Verwalten Sie Mitglieder und Home Office Anträge</string>
+    <string name="create_team_button">Team erstellen</string>
+    <string name="remove_team_member_title">Teammitglied entfernen</string>
+    <string name="remove_team_member_warning">Diese Aktion kann nicht rückgängig gemacht werden</string>
+    <string name="remove_team_member_info">Wird aus dem Team entfernt</string>
+    <string name="warning">Warnung</string>
+    <string name="remove_team_member_lost_access">Das Mitglied verliert den Zugang zum Team und kann keine Home Office Anträge mehr für dieses Team stellen.</string>
+    <string name="team_member_remove_button">Mitglied entfernen</string>
+    <string name="invite_team_member_title">Teammitglied einladen</string>
+    <string name="invite_team_member_subtitle">Erweitern Sie Ihr Team</string>
+    <string name="email_content_desc">E-Mail</string>
+    <string name="email_label">E-Mail-Adresse</string>
+    <string name="email_placeholder">beispiel@unternehmen.com</string>
+    <string name="team_invite_title">Team-Einladung</string>
+    <string name="team_invite_info">Der Benutzer wird per E-Mail benachrichtigt</string>
+    <string name="error_content_desc">Fehler</string>
+    <string name="invite_sending">Einladung wird gesendet...</string>
+    <string name="invite_send_button">Einladung senden</string>
+    <string name="team_member_invite_button">Mitglied einladen</string>
+    <string name="teams_title">Teams</string>
+    <string name="teams_icon">👥</string>
+    <string name="no_team_assigned">Kein Team zugeordnet</string>
+    <string name="ready_for_new_team">Bereit für ein neues Team?</string>
+    <string name="manage_team_and_invite">Verwalten Sie Ihr Team und laden Sie Mitglieder ein</string>
+    <string name="my_team">Mein Team</string>
+    <string name="team_members_count">Teammitglieder (%1$d)</string>
+    
+    <!-- Profile Screen -->
+    <string name="profile_title">Profil</string>
+    <string name="user_information">Benutzerinformationen</string>
+    <string name="team_status">Team-Status</string>
+    <string name="no_team_assigned_status">Kein Team zugewiesen</string>
+    <string name="team_manager">Team-Manager</string>
+    <string name="team_member">Team-Mitglied</string>
+    <string name="name_label">Name</string>
+    <string name="email_address_label">E-Mail</string>
+    <string name="role_label">Rolle</string>
+    <string name="not_specified">Nicht angegeben</string>
+    <string name="not_available">Nicht verfügbar</string>
+    <string name="role_admin">Administrator</string>
+    <string name="role_manager">Manager/Lead</string>
+    <string name="role_user">Benutzer</string>
+    <string name="app_information">App-Informationen</string>
+    <string name="app_version">Version 1.0.0</string>
+    <string name="app_description">Bürobuchungs- und Verwaltungsapp</string>
+    <string name="home_office_reminders">Home Office Erinnerungen</string>
+    <string name="logout_button">Abmelden</string>
+    <string name="footer_text">Entwickelt für flexibles Arbeiten</string>
+    
+    <!-- Login Screen -->
+    <string name="login_email_label">E-Mail</string>
+    <string name="login_email_content_desc">E-Mail</string>
+    <string name="login_password_label">Passwort</string>
+    <string name="login_password_content_desc">Passwort</string>
+    <string name="password_visibility_show">👁️</string>
+    <string name="password_visibility_hide">🙈</string>
+    <string name="login_button">Anmelden</string>
+    <string name="register_button">Registrieren</string>
+    <string name="register_switch_text">Noch kein Konto? Hier registrieren</string>
+    <string name="login_switch_text">Bereits ein Konto? Hier anmelden</string>
+    
+    <!-- Calendar Screen -->
+    <string name="calendar_loading_data">Lade Kalenderdaten...</string>
+    <string name="calendar_cancel_booking_title">Buchung stornieren?</string>
+    <string name="calendar_cancel_booking_message">Möchtest du die Buchung wirklich stornieren?</string>
+    <string name="calendar_cancel_button">Stornieren</string>
+    <string name="calendar_title">Kalender</string>
+    <string name="calendar_icon_content_desc">Kalender Icon</string>
+    <string name="calendar_month_view">Monat</string>
+    <string name="calendar_month_view_content_desc">Monatsansicht</string>
+    <string name="calendar_week_view">Woche</string>
+    <string name="calendar_week_view_content_desc">Wochenansicht</string>
+    <string name="calendar_refresh_content_desc">Aktualisieren</string>
+    <string name="calendar_empty_state_icon">📅</string>
+    <string name="calendar_no_team_assigned">Kein Team zugewiesen</string>
+    <string name="calendar_no_team_message">Sie müssen einem Team beitreten, um Team-Home-Office-Tage zu sehen.</string>
+    <string name="calendar_no_events_found">Keine Events gefunden</string>
+    <string name="calendar_no_events_message">Es sind noch keine Home-Office-Tage für Ihr Team geplant.</string>
+    <string name="calendar_book_home_office">Home-Office buchen</string>
+    
+    <!-- Calendar Components -->
+    <string name="calendar_previous_month_content_desc">Vorheriger Monat</string>
+    <string name="calendar_next_month_content_desc">Nächster Monat</string>
+    <string name="calendar_previous_week_content_desc">Vorherige Woche</string>
+    <string name="calendar_next_week_content_desc">Nächste Woche</string>
+    <string name="calendar_day_header">Tag</string>
+    <string name="calendar_home_office_requests">Home Office Anträge</string>
+    <string name="calendar_empty_day_indicator">—</string>
+    <plurals name="calendar_more_events">
+        <item quantity="one">+%1$d weiterer Termin</item>
+        <item quantity="other">+%1$d weitere Termine</item>
+    </plurals>
+
+    <!-- BookingDetailsSheet -->
+    <string name="booking_details_title">Details zum Home Office</string>
+    <string name="booking_details_date_label">Datum</string>
+    <string name="booking_details_status_label">Status</string>
+    <string name="booking_details_status_approved">✓ Genehmigt</string>
+    <string name="booking_details_status_pending">⏳ Ausstehend</string>
+    <string name="booking_details_status_declined">✗ Abgelehnt</string>
+    <string name="booking_details_status_cancelled">⊘ Storniert</string>
+    <string name="booking_details_requester_label">Antragsteller</string>
+    <string name="booking_details_approver_label">Genehmigt durch</string>
+    <string name="booking_details_loading">Wird geladen…</string>
+    <string name="booking_details_comment_label">Kommentar</string>
+
+    <!-- BookingDialog -->
+    <string name="booking_dialog_title">Home Office Antrag</string>
+    <string name="booking_dialog_subtitle">Erstellen Sie einen neuen Antrag</string>
+    <string name="booking_dialog_date_label">Datum auswählen</string>
+    <string name="booking_dialog_selected_date_label">Ausgewähltes Datum</string>
+    <string name="booking_dialog_date_placeholder">Tippen Sie hier, um ein Datum zu wählen</string>
+    <string name="booking_dialog_date_icon_desc">Datum auswählen</string>
+    <string name="booking_dialog_comment_label">Kommentar (Optional)</string>
+    <string name="booking_dialog_comment_placeholder">Fügen Sie einen Kommentar zu Ihrem Antrag hinzu…</string>
+    <string name="booking_dialog_comment_icon_desc">Kommentar</string>
+    <string name="booking_dialog_work_type_home_office">Home Office</string>
+    <string name="booking_dialog_work_type_description">Vollzeit von zu Hause arbeiten</string>
+    <string name="booking_dialog_create">Antrag einreichen</string>
+    <string name="booking_dialog_create_loading">Antrag wird erstellt…</string>
+
+    <!-- BookingFloatingActionButton -->
+    <string name="booking_fab_content_description">Neuer Home Office Antrag</string>
+    <string name="booking_fab_text">Antrag erstellen</string>
+
+    <!-- BookingScreenHeader -->
+    <string name="booking_header_icon_desc">Anträge Icon</string>
+    <string name="booking_header_title">Home Office Anträge</string>
+    <string name="booking_header_subtitle">Hier können Sie Ihre Home Office Anträge verwalten.</string>
+    <string name="booking_header_show_cancelled">Stornierte Anträge anzeigen</string>
+
+    <!-- CancelBookingDialog -->
+    <string name="cancel_booking_dialog_title">Buchung stornieren</string>
+    <string name="cancel_booking_dialog_message">Möchten Sie diese Buchung wirklich stornieren?</string>
+    <!-- (the confirm-button text “Stornieren” can reuse existing “calendar_cancel_button”) -->
+
+    <!-- EmptyBookingsCard -->
+    <string name="empty_bookings_title">Keine Anträge vorhanden</string>
+    <string name="empty_bookings_description">Erstellen Sie einen neuen Home Office Antrag mit dem + Button</string>
+
+    <!-- EnterMultiSelectModeButton -->
+    <string name="multi_select_view_desc">Mehrfachauswahl-Modus</string>
+
+    <!-- BookingItem -->
+    <string name="booking_item_status_icon_desc">Status</string>
+    <string name="booking_item_status_approved">Genehmigt</string>
+    <string name="booking_item_status_pending">Ausstehend</string>
+    <string name="booking_item_status_declined">Abgelehnt</string>
+    <string name="booking_item_status_cancelled">Storniert</string>
+    <string name="booking_item_cancel_desc">Buchung stornieren</string>
+
+    <!-- InAppNotificationBanner -->
+    <string name="in_app_notification_action_button">Ansehen</string>
+    <string name="in_app_notification_close">Schließen</string>
+    <string name="booking_dialog_chosen_icon_desc">Ausgewählt</string>
+
+    <!-- BookingScreen / Multi-Select TopBar -->
+    <plurals name="selected_count">
+        <item quantity="one">%1$d ausgewählt</item>
+        <item quantity="other">%1$d ausgewählt</item>
+    </plurals>
+    <string name="multi_select_exit">Multi-Select beenden</string>
+    <string name="batch_cancel_selected">Ausgewählte stornieren</string>
+    <string name="batch_clear_selection">Auswahl aufheben</string>
+    <string name="select_all">Alle auswählen</string>
+
+    <!-- BookingScreenHeader -->
+    <string name="booking_screen_header_title">Home Office Anträge</string>
+    <string name="booking_screen_header_subtitle">Hier können Sie Ihre Home Office Anträge verwalten.</string>
+
+    <string name="booking_dialog_work_type_title">Home Office</string>
+    <string name="booking_dialog_work_type_desc">Vollzeit von zu Hause arbeiten</string>
+    <string name="booking_dialog_confirm">Antrag einreichen</string>
+    <string name="booking_dialog_confirm_loading">Antrag wird erstellt…</string>
+    <string name="booking_dialog_dismiss">Abbrechen</string>
+
+    <!-- FAB on BookingScreen -->
+    <string name="fab_booking_desc">Neuer Home Office Antrag</string>
+    <string name="fab_booking_text">Antrag erstellen</string>
+
+    <!-- GeofencingSettingsScreen -->
+    <string name="geofencing_back_desc">Zurück</string>
+    <string name="geofencing_location_icon_desc">Standort-Icon</string>
+    <string name="geofencing_subtitle">Automatische Benachrichtigungen beim Verlassen des Zuhauses</string>
+
+    <!-- LocationPermissionCard -->
+    <string name="location_permissions_icon_desc">Berechtigungen-Icon</string>
+    <string name="location_permissions_title">Standort-Berechtigungen</string>
+    <string name="location_permissions_granted">✅ Alle erforderlichen Berechtigungen erteilt</string>
+    <string name="location_permissions_required">❌ Standort-Berechtigungen erforderlich für Home Office Erinnerungen</string>
+    <string name="location_permissions_request">Berechtigungen erteilen</string>
+    <string name="location_background_permission_request">Hintergrund-Berechtigung erteilen</string>
+    <string name="location_permissions_all_granted_info">Alle erforderlichen Berechtigungen sind erteilt.</string>
+
+    <!-- HomeLocationCard -->
+    <string name="home_location_icon_desc">Zuhause-Icon</string>
+    <string name="home_location_title">Zuhause-Standort</string>
+    <string name="home_location_configured">✅ Zuhause-Standort konfiguriert</string>
+    <string name="home_location_coordinates">Koordinaten: %1$s, %2$s</string>
+    <string name="home_location_not_configured">Kein Zuhause-Standort konfiguriert</string>
+    <string name="home_location_update">Zuhause-Standort aktualisieren</string>
+    <string name="home_location_set">Aktuellen Standort als Zuhause festlegen</string>
+
+    <!-- GeofencingToggleCard -->
+    <string name="geofencing_icon_desc">Geofencing-Icon</string>
+    <string name="geofencing_enabled_desc">Sie erhalten eine Benachrichtigung, wenn Sie bei geplantem Home Office das Zuhause verlassen.</string>
+    <string name="geofencing_disabled_desc">Aktivieren Sie Erinnerungen für Home Office Tage.</string>
+    <string name="switch_on">Aktiviert</string>
+    <string name="switch_off">Deaktiviert</string>
+    <string name="geofencing_toggle_warning">⚠️ Berechtigungen und Zuhause-Standort erforderlich</string>
+    <string name="geofencing_toggle_title">Erinnerungen</string>
+
+    <!-- GeofencingInfoCard -->
+    <string name="info_icon_desc">Info-Icon</string>
+    <string name="geofencing_info_title">Wie funktioniert es?</string>
+    <string name="geofencing_info_body">
+• Die App überwacht einen 200-Meter-Radius um Ihr Zuhause\n
+• Bei geplantem Home Office erhalten Sie eine Erinnerung, wenn Sie das Zuhause verlassen\n
+• Die Benachrichtigung wird nur einmal pro Tag\n
+• Ihre Standortdaten werden nur lokal auf dem Gerät gespeichert
+    </string>
+
+    <!-- RequestsScreen -->
+    <string name="requests_icon_desc">Buchungsanfragen-Icon</string>
+    <string name="requests_title">Buchungsanfragen</string>
+    <string name="requests_subtitle">Genehmigen oder lehnen Sie Buchungsanfragen ab</string>
+    <string name="requests_loading">Lade Anfragen…</string>
+    <string name="requests_empty_title">Keine ausstehenden Anfragen</string>
+    <string name="requests_empty_subtitle">Alle Buchungsanfragen wurden bereits bearbeitet</string>
+    <string name="request_item_date">Home Office am %s</string>
+    <string name="request_item_comment">Kommentar: %s</string>
+    <string name="requests_action_processing">Verarbeite…</string>
+    <string name="requests_action_approve">Genehmigen</string>
+    <string name="requests_action_decline">Ablehnen</string>
+    <string name="batch_approve_selected">Ausgewählte genehmigen</string>
+    <string name="batch_decline_selected">Ausgewählte ablehnen</string>
+
+    <!-- Shared Filter Strings -->
+    <string name="filters_team_member_fallback">Teammitglied</string>
+    <string name="filters_all_members">Alle Mitglieder</string>
+    <string name="filters_all_status">Jeder Status</string>
+    <string name="filters_clear">Filter zurücksetzen</string>
+    
+    <string name="geofencing_title">Erinnerungen</string>
+    <string name="booking_legend_title">Legende</string>
 </resources>

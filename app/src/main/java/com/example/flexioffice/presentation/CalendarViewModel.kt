@@ -1,7 +1,5 @@
 package com.example.flexioffice.presentation
 
-import android.hardware.SensorManager
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.BuildConfig
@@ -13,7 +11,7 @@ import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.data.model.CalendarEvent
 import com.example.flexioffice.data.model.EventType
 import com.example.flexioffice.data.model.User
-import com.example.flexioffice.presentation.components.getStatusColor
+import com.example.flexioffice.data.model.statusColor
 import com.example.flexioffice.util.Logger
 import com.example.flexioffice.util.ShakeDetector
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -82,7 +80,7 @@ class CalendarViewModel
                         } else {
                             userRepository.getUserStream(userId).flatMapLatest { userResult ->
                                 val user = userResult.getOrNull()
-                                if (user?.teamId.isNullOrEmpty() || user?.teamId == User.NO_TEAM) {
+                                if (user?.teamId.isNullOrEmpty() || user.teamId == User.NO_TEAM) {
                                     // User has no team, show empty calendar
                                     flowOf(
                                         CalendarUiState(
@@ -149,7 +147,7 @@ class CalendarViewModel
                     date = booking.date,
                     type = EventType.HOME_OFFICE,
                     participantNames = listOf(booking.userName),
-                    color = getStatusColor(booking.status),
+                    color = booking.status.statusColor(),
                     status = booking.status,
                 )
             }
@@ -338,7 +336,7 @@ class CalendarViewModel
                 _uiState.value = _uiState.value.copy(isLoadingMonthData = true)
 
                 try {
-                    // Buchungen laden
+                    // Load bookings for the specified month
                     bookingRepository
                         .getTeamBookingsStream(teamId, month.year, month.monthValue)
                         .collect { bookingsResult ->
@@ -411,7 +409,7 @@ class CalendarViewModel
             }
         }
 
-        // Shake-Erkennung
+        // Shake-to-cancel functionality
         private var sensorManager: android.hardware.SensorManager? = null
         private var shakeDetector: ShakeDetector? = null
 
@@ -439,7 +437,7 @@ class CalendarViewModel
 
         private fun onShakeDetected() {
             val state = _uiState.value
-            if (state.showCancelDialog) return // Dialog ist offen, Shake ignorieren
+            if (state.showCancelDialog) return // Dialog is open, ignore shake
             val selectedDate = state.selectedDate
             val currentUser = state.currentUser
             if (selectedDate != null && currentUser != null) {

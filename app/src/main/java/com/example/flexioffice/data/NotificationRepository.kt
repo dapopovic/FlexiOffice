@@ -20,22 +20,22 @@ class NotificationRepository
             private const val NOTIFICATIONS_COLLECTION = "notifications"
         }
 
-        /** Sendet eine Notification über Booking-Status-Änderung */
+        /** Sends a notification about a booking status change */
         suspend fun sendBookingStatusNotification(
             booking: Booking,
             newStatus: BookingStatus,
             reviewerName: String,
         ): Result<Unit> {
             return try {
-                // Hole das FCM Token des Antragstellers
+                // Get the FCM token of the requester
                 val userToken = getUserFCMToken(booking.userId)
 
                 if (userToken.isNullOrEmpty()) {
-                    Log.w(TAG, "Kein FCM Token für User ${booking.userId} gefunden")
-                    return Result.success(Unit) // Nicht kritisch
+                    Log.w(TAG, "No FCM Token found for User ${booking.userId}")
+                    return Result.success(Unit) // Not critical
                 }
 
-                // Erstelle Notification-Datenstruktur
+                // Create notification data structure
                 val notificationData =
                     createBookingStatusNotificationData(
                         booking = booking,
@@ -44,49 +44,50 @@ class NotificationRepository
                         fcmToken = userToken,
                     )
 
-                // Speichere Notification in Firestore für Cloud Function
+                // Save notification in Firestore for Cloud Function
                 saveNotificationForCloudFunction(notificationData)
 
-                Log.d(TAG, "Booking Status Notification erstellt für User ${booking.userId}")
+                Log.d(TAG, "Booking Status Notification created for User ${booking.userId}")
                 Result.success(Unit)
             } catch (e: Exception) {
-                Log.e(TAG, "Fehler beim Senden der Booking Status Notification", e)
+                Log.e(TAG, "Error sending booking status notification", e)
                 Result.failure(e)
             }
         }
 
-        /** Sendet eine Notification über neue Booking-Anfrage an Manager */
+        /** Sends a notification about a new booking request to the manager */
         suspend fun sendNewBookingRequestNotification(
             booking: Booking,
             managerUserId: String,
         ): Result<Unit> {
             return try {
-                // Hole das FCM Token des Managers
+                // Get the FCM token of the manager
                 val managerToken = getUserFCMToken(managerUserId)
 
                 if (managerToken.isNullOrEmpty()) {
-                    Log.w(TAG, "Kein FCM Token für Manager $managerUserId gefunden")
-                    return Result.success(Unit) // Nicht kritisch
+                    Log.w(TAG, "No FCM Token found for Manager $managerUserId")
+                    return Result.success(Unit) // Not critical
                 }
 
-                // Erstelle Notification-Datenstruktur
+                // Create notification data structure
                 val notificationData =
                     createNewRequestNotificationData(
                         booking = booking,
                         fcmToken = managerToken,
                     )
 
-                // Speichere Notification in Firestore für Cloud Function
+                // Save notification in Firestore for Cloud Function
                 saveNotificationForCloudFunction(notificationData)
 
-                Log.d(TAG, "New Booking Request Notification erstellt für Manager $managerUserId")
+                Log.d(TAG, "New Booking Request Notification created for Manager $managerUserId")
                 Result.success(Unit)
             } catch (e: Exception) {
-                Log.e(TAG, "Fehler beim Senden der New Request Notification", e)
+                Log.e(TAG, "Error sending new request notification", e)
                 Result.failure(e)
             }
         }
 
+        /** Retrieves the FCM token for a user */
         private suspend fun getUserFCMToken(userId: String): String? =
             try {
                 val userDoc =
@@ -98,10 +99,11 @@ class NotificationRepository
 
                 userDoc.getString(User.FCM_TOKEN_FIELD)
             } catch (e: Exception) {
-                Log.e(TAG, "Fehler beim Abrufen des FCM Tokens für User $userId", e)
+                Log.e(TAG, "Error retrieving FCM token for User $userId", e)
                 null
             }
 
+        /** Creates the notification data for a booking status change */
         private fun createBookingStatusNotificationData(
             booking: Booking,
             newStatus: BookingStatus,
@@ -143,6 +145,7 @@ class NotificationRepository
             )
         }
 
+        /** Creates the notification data for a new booking request */
         private fun createNewRequestNotificationData(
             booking: Booking,
             fcmToken: String,
@@ -164,13 +167,14 @@ class NotificationRepository
                 "processed" to false,
             )
 
+        /** Saves a notification for Cloud Function processing */
         private suspend fun saveNotificationForCloudFunction(notificationData: Map<String, Any>) {
             try {
                 firestore.collection(NOTIFICATIONS_COLLECTION).add(notificationData).await()
 
-                Log.d(TAG, "Notification für Cloud Function gespeichert")
+                Log.d(TAG, "Notification saved for Cloud Function")
             } catch (e: Exception) {
-                Log.e(TAG, "Fehler beim Speichern der Notification", e)
+                Log.e(TAG, "Error saving notification", e)
                 throw e
             }
         }

@@ -145,11 +145,11 @@ class GeofencingSettingsViewModel
                 _uiState.value = _uiState.value.copy(isSettingHomeLocation = true)
 
                 try {
-                    // Hole aktuellen Standort
+                    // Get current location with a cancellation token
                     val cancellationTokenSource = CancellationTokenSource()
                     viewModelScope.launch {
                         delay(30000)
-                        cancellationTokenSource.cancel() // Abbrechen nach 30 Sekunden
+                        cancellationTokenSource.cancel() // Cancel after 30 seconds
                         _uiState.value =
                             _uiState.value.copy(
                                 isSettingHomeLocation = false,
@@ -164,7 +164,7 @@ class GeofencingSettingsViewModel
                             ).await()
 
                     if (location != null) {
-                        // Aktualisiere User in Firestore
+                        // Update user in Firestore
                         userRepository
                             .updateUserHomeLocation(
                                 uid = currentUser.id,
@@ -177,7 +177,7 @@ class GeofencingSettingsViewModel
                                         "Home location successfully updated: ${location.latitude}, ${location.longitude}",
                                     )
 
-                                    // Lade User-Daten neu
+                                    // Reload user data
                                     val updatedUser = userRepository.getUser(currentUser.id).getOrNull()
                                     _uiState.value =
                                         _uiState.value.copy(

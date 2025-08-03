@@ -1,6 +1,6 @@
 package com.example.flexioffice.navigation
 
-/** Navigation-Routen für FlexiOffice */
+/** Navigation-Routes for FlexiOffice */
 sealed class FlexiOfficeRoutes(
     val route: String,
 ) {
@@ -16,7 +16,7 @@ sealed class FlexiOfficeRoutes(
         const val FULL_ROUTE = "booking?date={date}"
     }
 
-    object Requests : FlexiOfficeRoutes("requests") // Nur für Leads
+    object Requests : FlexiOfficeRoutes("requests") // Only for leads
 
     object Profile : FlexiOfficeRoutes("profile")
 
@@ -25,10 +25,10 @@ sealed class FlexiOfficeRoutes(
     object GeofencingSettings : FlexiOfficeRoutes("geofencing_settings")
 
     companion object {
-        /** Standard-Route für neue Benutzer */
+        /** Standard-Route for new users */
         const val DEFAULT_ROUTE = "calendar"
 
-        /** Alle verfügbaren BottomBar-Routen */
+        /** All available BottomBar routes */
         val bottomBarRoutes = listOf(Calendar, Booking, Teams, Requests)
     }
 }

@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -97,11 +98,11 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
             ) {
                 Icon(
                     painter = painterResource(R.drawable.assignment_24px),
-                    contentDescription = "Buchungsanfragen Icon",
+                    contentDescription = stringResource(R.string.requests_icon_desc),
                     modifier = Modifier.padding(end = 8.dp),
                     tint = MaterialTheme.colorScheme.primary,
                 )
-                Text(text = "Buchungsanfragen", style = MaterialTheme.typography.headlineMedium)
+                Text(text = stringResource(R.string.requests_title), style = MaterialTheme.typography.headlineMedium)
                 EnterMultiSelectModeButton(
                     isMultiselectMode = uiState.isMultiSelectMode,
                     onEnterMultiSelectMode = viewModel::startMultiSelectMode,
@@ -110,7 +111,7 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
             }
 
             Text(
-                text = "Genehmigen oder lehnen Sie Buchungsanfragen ab",
+                text = stringResource(R.string.requests_subtitle),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 16.dp),
@@ -138,7 +139,7 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
                 ) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp))
                     Text(
-                        text = "Lade Anfragen...",
+                        text = stringResource(R.string.requests_loading),
                         modifier = Modifier.padding(start = 8.dp),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -160,12 +161,12 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
-                            text = "Keine ausstehenden Anfragen",
+                            text = stringResource(R.string.requests_empty_title),
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(top = 16.dp),
                         )
                         Text(
-                            text = "Alle Buchungsanfragen wurden bereits bearbeitet",
+                            text = stringResource(R.string.requests_empty_subtitle),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 8.dp),
@@ -301,7 +302,11 @@ fun RequestItem(
                     )
 
                     Text(
-                        text = "Home Office am ${booking.date.format(dateFormatter)}",
+                        text =
+                            stringResource(
+                                R.string.request_item_date,
+                                booking.date.format(dateFormatter),
+                            ),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier =
@@ -320,7 +325,7 @@ fun RequestItem(
             // Comment if present
             if (booking.comment.isNotBlank()) {
                 Text(
-                    text = "Kommentar: ${booking.comment}",
+                    text = stringResource(R.string.request_item_comment, booking.comment),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 12.dp),
@@ -352,7 +357,14 @@ fun RequestItem(
                             )
                         }
                         Text(
-                            text = if (isProcessing) "Verarbeite..." else "Genehmigen",
+                            text =
+                                if (isProcessing) {
+                                    stringResource(
+                                        R.string.requests_action_processing,
+                                    )
+                                } else {
+                                    stringResource(R.string.requests_action_approve)
+                                },
                             modifier =
                                 Modifier.padding(start = if (isProcessing) 8.dp else 0.dp),
                         )
@@ -370,7 +382,7 @@ fun RequestItem(
                                 modifier = Modifier.padding(end = 4.dp).size(16.dp),
                             )
                         }
-                        Text(text = "Ablehnen")
+                        Text(text = stringResource(R.string.requests_action_decline))
                     }
                 }
             }
@@ -393,7 +405,7 @@ fun RequestsMultiSelectTopBar(
         title = { Text("$selectedCount ausgewählt") },
         navigationIcon = {
             IconButton(onClick = onExitMultiSelect) {
-                Icon(Icons.Default.Close, contentDescription = "Multi-Select beenden")
+                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.multi_select_exit))
             }
         },
         actions = {
@@ -404,7 +416,7 @@ fun RequestsMultiSelectTopBar(
                 ) {
                     Icon(
                         Icons.Default.CheckCircle,
-                        contentDescription = "Ausgewählte genehmigen",
+                        contentDescription = stringResource(R.string.batch_approve_selected),
                     )
                 }
                 IconButton(
@@ -413,20 +425,20 @@ fun RequestsMultiSelectTopBar(
                 ) {
                     Icon(
                         ImageVector.vectorResource(R.drawable.cancel_24px),
-                        contentDescription = "Ausgewählte ablehnen",
+                        contentDescription = stringResource(R.string.batch_decline_selected),
                     )
                 }
                 IconButton(onClick = onClearSelection) {
                     Icon(
                         ImageVector.vectorResource(R.drawable.check_box_outline_blank_24px),
-                        contentDescription = "Auswahl aufheben",
+                        contentDescription = stringResource(R.string.batch_clear_selection),
                     )
                 }
             }
             IconButton(onClick = onSelectAll) {
                 Icon(
                     ImageVector.vectorResource(R.drawable.check_box_24px),
-                    contentDescription = "Alle auswählen",
+                    contentDescription = stringResource(R.string.select_all),
                 )
             }
         },

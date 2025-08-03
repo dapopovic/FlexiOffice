@@ -46,6 +46,7 @@ class InAppNotificationViewModel
             observeNotifications()
         }
 
+        /** Initializes the notification manager and observes notifications */
         private fun observeNotifications() {
             viewModelScope.launch {
                 InAppNotificationManager.notificationFlow.collect { notification ->
@@ -61,6 +62,7 @@ class InAppNotificationViewModel
             }
         }
 
+        /** Shows a notification with the given details */
         private fun showNotification(
             title: String,
             message: String,
@@ -89,6 +91,7 @@ class InAppNotificationViewModel
             }
         }
 
+        /** Displays the notification on the screen */
         private fun displayNotification(item: NotificationItem) {
             isShowingNotification = true
             viewModelScope.launch {
@@ -106,6 +109,7 @@ class InAppNotificationViewModel
             }
         }
 
+        /** Dismisses the current notification */
         fun dismissNotification() {
             _notificationState.value = _notificationState.value.copy(isVisible = false)
             isShowingNotification = false

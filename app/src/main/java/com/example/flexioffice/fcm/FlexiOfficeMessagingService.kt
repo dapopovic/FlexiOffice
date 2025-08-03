@@ -42,12 +42,18 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
         serviceScope.cancel()
     }
 
+    /**
+     * Creates the notification channel for FCM messages
+     */
     override fun onNewToken(token: String) {
         Log.d(TAG, "Refreshed FCM token: $token")
 
         sendTokenToServer(token)
     }
 
+    /**
+     * Handles incoming FCM messages
+     */
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.d(TAG, "From: ${remoteMessage.from}")
 
@@ -65,6 +71,9 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
         }
     }
 
+    /**
+     * Handles data messages with specific types
+     */
     private fun handleDataMessage(data: Map<String, String>) {
         val type = data["type"]
         val bookingId = data["bookingId"]
@@ -101,6 +110,9 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
         }
     }
 
+    /**
+     * Shows a notification with the given title and body
+     */
     private fun showNotification(
         title: String?,
         body: String?,
@@ -153,6 +165,9 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
         notificationManager.notify(notificationId, notificationBuilder.build())
     }
 
+    /**
+     * Shows a notification with type-specific handling
+     */
     private fun showNotificationWithType(
         title: String?,
         body: String?,
@@ -181,6 +196,9 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
         showNotification(title, body, bookingId)
     }
 
+    /**
+     * Creates the notification channel for FCM messages
+     */
     private fun createNotificationChannel() {
         val channel =
             NotificationChannel(
@@ -198,6 +216,9 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
         notificationManager.createNotificationChannel(channel)
     }
 
+    /**
+     * Sends the FCM token to the server for the current user
+     */
     private fun sendTokenToServer(token: String) {
         serviceScope.launch {
             try {

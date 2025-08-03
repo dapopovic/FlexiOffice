@@ -20,6 +20,7 @@ class TeamRepository
         private val firestore: FirebaseFirestore,
         private val auth: FirebaseAuth,
     ) {
+        /** Loads the current user's team */
         suspend fun getCurrentUserTeam(): Team? {
             val uid = auth.currentUser?.uid ?: return null
             val userDoc =
@@ -32,7 +33,7 @@ class TeamRepository
             return getTeam(teamId).getOrNull()
         }
 
-        /** Lädt ein Team anhand seiner ID */
+        /** Loads a team by its ID */
         suspend fun getTeam(teamId: String): Result<Team?> =
             try {
                 val team =
@@ -47,7 +48,7 @@ class TeamRepository
                 Result.failure(e)
             }
 
-        /** Aktualisiert ein bestehendes Team */
+        /** Updates an existing team */
         suspend fun updateTeam(team: Team): Result<Unit> =
             try {
                 firestore
@@ -60,6 +61,7 @@ class TeamRepository
                 Result.failure(e)
             }
 
+        /** Streams updates for a specific team */
         fun getTeamStream(teamId: String): Flow<Result<Team>> =
             callbackFlow {
                 val listenerRegistration =
@@ -85,6 +87,7 @@ class TeamRepository
                 awaitClose { listenerRegistration.remove() }
             }
 
+        /** Creates a new team atomically */
         suspend fun createTeamAtomically(team: Team): Result<String> =
             try {
                 val teamDocRef = firestore.collection(Team.COLLECTION_NAME).document()
@@ -106,6 +109,7 @@ class TeamRepository
                 Result.failure(e)
             }
 
+        /** Invites a user to a team atomically */
         suspend fun inviteUserToTeamAtomically(
             teamId: String,
             managerId: String,
@@ -153,7 +157,7 @@ class TeamRepository
                 Result.failure(e)
             }
 
-        /** Aktualisiert die Mitgliederliste eines Teams */
+        /** Updates the member list of a team */
         suspend fun updateTeamMembers(
             teamId: String,
             members: List<String>,
@@ -169,7 +173,7 @@ class TeamRepository
                 Result.failure(e)
             }
 
-        /** Prüft, ob ein Benutzer Manager eines Teams ist */
+        /** Checks if a user is the manager of a team */
         suspend fun isTeamManager(
             userId: String,
             teamId: String,
@@ -181,6 +185,7 @@ class TeamRepository
                 Result.failure(e)
             }
 
+        /** Finds a user by their email */
         suspend fun findUserByEmail(email: String): QuerySnapshot =
             firestore
                 .collection(User.COLLECTION_NAME)

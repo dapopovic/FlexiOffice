@@ -29,7 +29,7 @@ class GeofencingManager
         companion object {
             private const val TAG = "GeofencingManager"
             private const val HOME_GEOFENCE_ID = "home_geofence"
-            private const val GEOFENCE_RADIUS_METERS = 200f // 200 Meter Radius um das Zuhause
+            private const val GEOFENCE_RADIUS_METERS = 200f // 200 meter radius for home geofence
             const val GEOFENCE_PREFS = "geofence_prefs"
             const val KEY_GEOFENCE_ACTIVE = "geofence_active"
             private const val KEY_LAST_HOME_LOCATION_LAT = "last_home_lat"
@@ -51,22 +51,22 @@ class GeofencingManager
         }
 
         /**
-         * Konfiguriert Geofencing für das Zuhause des Benutzers
+         * Configures geofencing for the user's home location
          */
         @RequiresPermission(Manifest.permission.ACCESS_FINE_LOCATION)
         fun setupHomeGeofence(user: User): Result<Unit> {
             return try {
                 if (!user.hasHomeLocation) {
-                    Log.w(TAG, "User hat keine Home-Location konfiguriert")
-                    return Result.failure(IllegalStateException("Keine Home-Location konfiguriert"))
+                    Log.w(TAG, "User has no home location configured")
+                    return Result.failure(IllegalStateException("No home location configured"))
                 }
 
                 if (!locationPermissionManager.hasAllRequiredPermissions()) {
-                    Log.w(TAG, "Keine Location-Berechtigung vorhanden")
-                    return Result.failure(SecurityException("Keine Location-Berechtigung"))
+                    Log.w(TAG, "No location permissions granted")
+                    return Result.failure(SecurityException("No location permissions granted"))
                 }
 
-                // Entferne vorherige Geofences falls vorhanden
+                // Remove previous geofences if any
                 removeGeofences()
 
                 val geofence =
@@ -91,10 +91,10 @@ class GeofencingManager
 
                 Log.d(
                     TAG,
-                    "Aktiviere Home Geofence für Koordinaten: ${user.homeLatitude}, ${user.homeLongitude}",
+                    "Activating home geofence for coordinates: ${user.homeLatitude}, ${user.homeLongitude}",
                 )
                 geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)
-                // Speichere Status in SharedPreferences
+                // Save status in SharedPreferences
                 sharedPrefs.edit {
                     putString(KEY_LAST_HOME_LOCATION_LAT, user.homeLatitude.toString())
                         .putString(KEY_LAST_HOME_LOCATION_LNG, user.homeLongitude.toString())
@@ -103,23 +103,23 @@ class GeofencingManager
 
                 Log.d(
                     TAG,
-                    "Home Geofence erfolgreich aktiviert für Koordinaten: ${user.homeLatitude}, ${user.homeLongitude}",
+                    "Home Geofence successfully activated for coordinates: ${user.homeLatitude}, ${user.homeLongitude}",
                 )
                 Result.success(Unit)
             } catch (e: Exception) {
-                Log.e(TAG, "Fehler beim Aktivieren des Home Geofence", e)
+                Log.e(TAG, "Error activating home geofence", e)
                 Result.failure(e)
             }
         }
 
         /**
-         * Entfernt alle aktiven Geofences
+         * Removes all active geofences
          */
         fun removeGeofences(): Result<Unit> =
             try {
                 geofencingClient.removeGeofences(geofencePendingIntent)
 
-                // Lösche Status in SharedPreferences
+                // Remove status from SharedPreferences
                 sharedPrefs
                     .edit {
                         putBoolean(KEY_GEOFENCE_ACTIVE, false)
@@ -127,20 +127,20 @@ class GeofencingManager
                             .remove(KEY_LAST_HOME_LOCATION_LNG)
                     }
 
-                Log.d(TAG, "Alle Geofences erfolgreich entfernt")
+                Log.d(TAG, "All geofences successfully removed")
                 Result.success(Unit)
             } catch (e: Exception) {
-                Log.e(TAG, "Fehler beim Entfernen der Geofences", e)
+                Log.e(TAG, "Error removing geofences", e)
                 Result.failure(e)
             }
 
         /**
-         * Prüft ob Geofencing aktiv ist
+         * Checks if geofencing is active
          */
         fun isGeofenceActive(): Boolean = sharedPrefs.getBoolean(KEY_GEOFENCE_ACTIVE, false)
 
         /**
-         * Holt die letzte gespeicherte Home-Location
+         * Retrieves the last saved home location
          */
         fun getLastHomeLocation(): Pair<Double, Double>? {
             val lat = sharedPrefs.getString(KEY_LAST_HOME_LOCATION_LAT, null)?.toDoubleOrNull()

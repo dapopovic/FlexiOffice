@@ -28,9 +28,9 @@ data class RequestsUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val pendingRequests: List<Booking> = emptyList(),
-    val allPendingRequests: List<Booking> = emptyList(), // Ungefilterte Anfragen
+    val allPendingRequests: List<Booking> = emptyList(), // unfiltered requests
     val teamMembers: List<User> = emptyList(),
-    val selectedTeamMember: String? = null, // Filter für Teammitglied
+    val selectedTeamMember: String? = null, // Filter for team member
     val currentUser: User? = null,
     val selectedBooking: Booking? = null,
     val isApprovingRequest: Boolean = false,
@@ -58,6 +58,7 @@ class RequestsViewModel
             observePendingRequests()
         }
 
+        /** Initializes the ViewModel and starts observing pending requests */
         @OptIn(ExperimentalCoroutinesApi::class)
         private fun observePendingRequests() {
             viewModelScope.launch {
@@ -117,7 +118,7 @@ class RequestsViewModel
                         _uiState.value = _uiState.value.copy(error = e.message, isLoading = false)
                     }.collect { state ->
                         _uiState.update { state }
-                        // Team-Mitglieder laden wenn User Manager ist
+                        // Load team members if the user is a manager
                         if (state.currentUser?.role == User.ROLE_MANAGER) {
                             loadTeamMembers()
                         }
@@ -167,6 +168,7 @@ class RequestsViewModel
             }
         }
 
+        /** Approves a booking request */
         fun approveRequest(booking: Booking) {
             processBookingRequest(
                 booking = booking,
@@ -175,6 +177,7 @@ class RequestsViewModel
             )
         }
 
+        /** Declines a booking request */
         fun declineRequest(booking: Booking) {
             processBookingRequest(
                 booking = booking,
@@ -183,15 +186,16 @@ class RequestsViewModel
             )
         }
 
+        /** Processes a booking request by updating its status */
         private fun processBookingRequest(
             booking: Booking,
             newStatus: BookingStatus,
             isApproving: Boolean,
         ) {
             val currentUserId = auth.currentUser?.uid ?: return
-            val action = if (isApproving) "Genehmige" else "Lehne"
-            val actionPast = if (isApproving) "genehmigt" else "abgelehnt"
-            val actionError = if (isApproving) "Genehmigen" else "Ablehnen"
+            val action = if (isApproving) "approved" else "declined"
+            val actionPast = if (isApproving) "approved" else "declined"
+            val actionError = if (isApproving) "Approve" else "Decline"
             viewModelScope.launch {
                 try {
                     _uiState.update {
@@ -205,7 +209,7 @@ class RequestsViewModel
 
                     Log.d(
                         "RequestsViewModel",
-                        "$action Antrag: ${booking.id} für User: ${booking.userName}",
+                        "$action request: ${booking.id} for user: ${booking.userName}",
                     )
 
                     bookingRepository
@@ -215,7 +219,7 @@ class RequestsViewModel
                             currentUserId,
                         ).fold(
                             onSuccess = {
-                                Log.d("RequestsViewModel", "Antrag erfolgreich $actionPast")
+                                Log.d("RequestsViewModel", "Request successfully $actionPast")
 
                                 // Send FCM notification to requester
                                 sendStatusNotification(booking, newStatus)
@@ -231,13 +235,13 @@ class RequestsViewModel
                             onFailure = { exception ->
                                 Log.e(
                                     "RequestsViewModel",
-                                    "Fehler beim $actionError",
+                                    "Error during $actionError",
                                     exception,
                                 )
                                 _uiState.update {
                                     it.copy(
                                         error =
-                                            "Fehler beim $actionError: ${exception.message}",
+                                            "Error during $actionError: ${exception.message}",
                                         isApprovingRequest = false,
                                         isDecliningRequest = false,
                                         selectedBooking = null,
@@ -246,10 +250,10 @@ class RequestsViewModel
                             },
                         )
                 } catch (e: Exception) {
-                    Log.e("RequestsViewModel", "Unerwarteter Fehler beim $actionError", e)
+                    Log.e("RequestsViewModel", "Unexpected error during $actionError", e)
                     _uiState.update {
                         it.copy(
-                            error = "Unerwarteter Fehler: ${e.message}",
+                            error = "Unexpected error: ${e.message}",
                             isApprovingRequest = false,
                             isDecliningRequest = false,
                             selectedBooking = null,
@@ -259,6 +263,7 @@ class RequestsViewModel
             }
         }
 
+        /** Sends a notification about the booking status change */
         private fun sendStatusNotification(
             booking: Booking,
             newStatus: BookingStatus,
@@ -270,25 +275,27 @@ class RequestsViewModel
                         newStatus = newStatus,
                         reviewerName = uiState.value.currentUser?.name ?: "Manager",
                     )
-                    Log.d("RequestsViewModel", "FCM-Notification erfolgreich gesendet")
+                    Log.d("RequestsViewModel", "FCM notification sent successfully")
                 } catch (e: Exception) {
-                    Log.e("RequestsViewModel", "Fehler beim Senden der FCM-Notification", e)
+                    Log.e("RequestsViewModel", "Error sending FCM notification", e)
                     // Don't fail the overall operation if notification fails
                 }
             }
         }
 
+        /** Clears any error state */
         fun clearError() {
             _uiState.update { it.copy(error = null) }
         }
 
+        /** Checks if a request is currently being processed */
         fun isProcessingRequest(bookingId: String): Boolean {
             val state = _uiState.value
             return (state.isApprovingRequest || state.isDecliningRequest) &&
                 state.selectedBooking?.id == bookingId
         }
 
-        // Multi-select functions
+        /** Starts multi-select mode for batch operations */
         fun startMultiSelectMode(booking: Booking? = null) {
             if (booking != null) {
                 _uiState.update {
@@ -307,6 +314,7 @@ class RequestsViewModel
             }
         }
 
+        /** Exits multi-select mode */
         fun exitMultiSelectMode() {
             _uiState.update {
                 it.copy(
@@ -316,6 +324,7 @@ class RequestsViewModel
             }
         }
 
+        /** Toggles selection of a request in multi-select mode */
         fun toggleRequestSelection(requestId: String) {
             _uiState.update { currentState ->
                 val selectedRequests = currentState.selectedRequests.toMutableSet()
@@ -328,6 +337,7 @@ class RequestsViewModel
             }
         }
 
+        /** Selects all requests in the current state */
         fun selectAllRequests() {
             _uiState.update { currentState ->
                 val allRequestIds = currentState.pendingRequests.map { it.id }.toSet()
@@ -335,18 +345,22 @@ class RequestsViewModel
             }
         }
 
+        /** Clears the selection in multi-select mode */
         fun clearSelection() {
             _uiState.update { it.copy(selectedRequests = emptySet()) }
         }
 
+        /** Batch approves selected requests */
         fun batchApproveRequests() {
             processBatchRequests(BookingStatus.APPROVED)
         }
 
+        /** Batch declines selected requests */
         fun batchDeclineRequests() {
             processBatchRequests(BookingStatus.DECLINED)
         }
 
+        /** Processes batch requests by updating their status */
         private fun processBatchRequests(newStatus: BookingStatus) {
             val selectedIds = _uiState.value.selectedRequests
             if (selectedIds.isEmpty()) return
@@ -395,6 +409,7 @@ class RequestsViewModel
             }
         }
 
+        /** Sends notifications for batch operations */
         private fun sendBatchNotifications(
             selectedIds: Set<String>,
             newStatus: BookingStatus,
@@ -414,14 +429,14 @@ class RequestsViewModel
                         } catch (e: Exception) {
                             Log.e(
                                 "RequestsViewModel",
-                                "Fehler beim Senden der Batch-Notification für ${booking.id}",
+                                "Error sending batch notification for ${booking.id}",
                                 e,
                             )
                         }
                     }
-                    Log.d("RequestsViewModel", "Batch-Notifications erfolgreich gesendet")
+                    Log.d("RequestsViewModel", "Batch notifications sent successfully")
                 } catch (e: Exception) {
-                    Log.e("RequestsViewModel", "Fehler beim Senden der Batch-Notifications", e)
+                    Log.e("RequestsViewModel", "Error sending batch notifications", e)
                 }
             }
         }

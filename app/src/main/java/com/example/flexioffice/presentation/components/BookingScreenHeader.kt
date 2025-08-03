@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
@@ -37,12 +38,12 @@ fun BookingScreenHeader(
                     painterResource(
                         R.drawable.schedule_24px,
                     ),
-                contentDescription = "Anträge Icon",
+                contentDescription = stringResource(R.string.booking_header_icon_desc),
                 modifier = Modifier.padding(end = 8.dp),
                 tint = MaterialTheme.colorScheme.primary,
             )
             Text(
-                text = "Home Office Anträge",
+                text = stringResource(R.string.booking_header_title),
                 style = MaterialTheme.typography.headlineMedium,
             )
             EnterMultiSelectModeButton(
@@ -52,7 +53,7 @@ fun BookingScreenHeader(
             )
         }
         Text(
-            text = "Hier können Sie Ihre Home Office Anträge verwalten.",
+            text = stringResource(R.string.booking_header_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 8.dp),
@@ -63,7 +64,7 @@ fun BookingScreenHeader(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
-                text = "Stornierte Anträge anzeigen",
+                text = stringResource(R.string.booking_header_show_cancelled),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

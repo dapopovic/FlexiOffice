@@ -23,6 +23,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -186,10 +188,14 @@ fun MultiSelectTopBar(
     isBatchProcessing: Boolean,
 ) {
     TopAppBar(
-        title = { Text("$selectedCount ausgewählt") },
+        title = {
+            Text(
+                pluralStringResource(R.plurals.selected_count, selectedCount, selectedCount),
+            )
+        },
         navigationIcon = {
             IconButton(onClick = onExitMultiSelect) {
-                Icon(Icons.Default.Close, contentDescription = "Multi-Select beenden")
+                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.multi_select_exit))
             }
         },
         actions = {
@@ -200,20 +206,20 @@ fun MultiSelectTopBar(
                 ) {
                     Icon(
                         ImageVector.vectorResource(R.drawable.cancel_24px),
-                        contentDescription = "Ausgewählte stornieren",
+                        contentDescription = stringResource(R.string.batch_cancel_selected),
                     )
                 }
                 IconButton(onClick = onClearSelection) {
                     Icon(
                         ImageVector.vectorResource(R.drawable.check_box_outline_blank_24px),
-                        contentDescription = "Auswahl aufheben",
+                        contentDescription = stringResource(R.string.batch_clear_selection),
                     )
                 }
             }
             IconButton(onClick = onSelectAll) {
                 Icon(
                     ImageVector.vectorResource(R.drawable.check_box_24px),
-                    contentDescription = "Alle auswählen",
+                    contentDescription = stringResource(R.string.select_all),
                 )
             }
         },

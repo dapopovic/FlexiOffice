@@ -7,4 +7,9 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="status_approved">#FF4CAF50</color>
+    <color name="status_pending">#FFFF9800</color>
+    <color name="status_declined">#FFF44336</color>
+    <color name="status_cancelled">#FF9E9E9E</color>
+    <color name="status_unknown">#FF2196F3</color>
 </resources>

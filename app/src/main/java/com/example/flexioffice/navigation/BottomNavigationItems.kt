@@ -11,11 +11,11 @@ data class BottomNavigationItem(
     val unselectedIconId: Int,
     val hasNews: Boolean = false,
     val badgeCount: Int? = null,
-    val requiredRole: String? = null, // null = für alle Rollen verfügbar
-    val requiresTeamMembership: Boolean = false, // true = erfordert Team-Mitgliedschaft
+    val requiredRole: String? = null, // null = for all roles available
+    val requiresTeamMembership: Boolean = false, // true = requires team membership
 )
 
-/** Factory für BottomNavigation Items */
+/** Factory for BottomNavigation Items */
 object BottomNavigationItems {
     val calendar =
         BottomNavigationItem(
@@ -31,7 +31,7 @@ object BottomNavigationItems {
             title = "Buchen",
             selectedIconId = R.drawable.book_24px_filled,
             unselectedIconId = R.drawable.book_24px,
-            requiresTeamMembership = true, // Erfordert Team-Mitgliedschaft
+            requiresTeamMembership = true, // Requires team membership
         )
 
     val requests =
@@ -40,7 +40,7 @@ object BottomNavigationItems {
             title = "Anfragen",
             selectedIconId = R.drawable.assignment_24px_filled,
             unselectedIconId = R.drawable.assignment_24px,
-            requiredRole = User.ROLE_MANAGER, // Nur für Manager/Leads
+            requiredRole = User.ROLE_MANAGER, // Only for managers/leads
         )
 
     val teams =
@@ -59,20 +59,20 @@ object BottomNavigationItems {
             unselectedIconId = R.drawable.person_24px,
         )
 
-    /** Gibt die für eine Rolle und Team-Status verfügbaren Navigation-Items zurück */
+    /** Returns the navigation items available for a role and team status */
     fun getItemsForUser(user: User?): List<BottomNavigationItem> {
         val allItems = listOf(calendar, booking, requests, teams, profile)
         val userRole = user?.role ?: User.ROLE_USER
         val hasTeam = user?.teamId?.isNotEmpty() == true && user.teamId != User.NO_TEAM
 
         return allItems.filter { item ->
-            // Prüfe Rollen-Berechtigung
+            // Check role access
             val hasRoleAccess =
                 item.requiredRole == null ||
                     item.requiredRole == userRole ||
                     (item.requiredRole == User.ROLE_MANAGER && userRole == User.ROLE_ADMIN)
 
-            // Prüfe Team-Mitgliedschaft falls erforderlich
+            // Check team membership if required
             val hasTeamAccess = !item.requiresTeamMembership || hasTeam
 
             hasRoleAccess && hasTeamAccess

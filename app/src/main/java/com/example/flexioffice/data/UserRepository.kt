@@ -10,7 +10,7 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** Repository für Benutzer-Datenoperationen in Firestore */
+/** Repository for user data operations in Firestore */
 @Singleton
 class UserRepository
     @Inject
@@ -18,7 +18,7 @@ class UserRepository
         private val firestore: FirebaseFirestore,
         private val auth: FirebaseAuth,
     ) {
-        /** Erstellt einen neuen Benutzer in Firestore */
+        /** Creates a new user in Firestore */
         suspend fun createUser(
             uid: String,
             user: User,
@@ -34,12 +34,13 @@ class UserRepository
                 Result.failure(e)
             }
 
-        /** Lädt Benutzer-Daten aus Firestore */
+        /** Loads user data from Firestore */
         suspend fun getCurrentUser(): User? {
             val uid = auth.currentUser?.uid ?: return null
             return getUser(uid).getOrNull()
         }
 
+        /** Loads a user by their UID */
         suspend fun getUser(uid: String): Result<User?> =
             try {
                 val document =
@@ -58,7 +59,7 @@ class UserRepository
                 Result.failure(e)
             }
 
-        /** Lädt einen Benutzer anhand seiner ID */
+        /** Loads a user by their ID */
         suspend fun getUserById(uid: String): Result<User?> =
             try {
                 val document =
@@ -77,6 +78,7 @@ class UserRepository
                 Result.failure(e)
             }
 
+        /** Gets a list of users by team ID */
         suspend fun getUsersByTeamId(teamId: String): Result<List<User>> =
             try {
                 val querySnapshot =
@@ -92,6 +94,7 @@ class UserRepository
                 Result.failure(e)
             }
 
+        /** Gets a stream of user data */
         fun getUserStream(userId: String): Flow<Result<User>> =
             callbackFlow {
                 val listenerRegistration =
@@ -119,6 +122,7 @@ class UserRepository
                 awaitClose { listenerRegistration.remove() }
             }
 
+        /** Gets a stream of team members */
         fun getTeamMembersStream(teamId: String): Flow<Result<List<User>>> =
             callbackFlow {
                 val listenerRegistration =
@@ -141,7 +145,7 @@ class UserRepository
                 awaitClose { listenerRegistration.remove() }
             }
 
-        /** Entfernt ein Mitglied aus einem Team durch Zurücksetzen der TeamId */
+        /** Removes a member from a team by resetting the teamId */
         suspend fun removeUserFromTeam(userId: String): Result<Unit> =
             try {
                 firestore
@@ -154,7 +158,7 @@ class UserRepository
                 Result.failure(e)
             }
 
-        /** Aktualisiert Benutzer-Daten in Firestore */
+        /** Updates user data in Firestore */
         suspend fun updateUser(
             uid: String,
             user: User,
@@ -170,7 +174,7 @@ class UserRepository
                 Result.failure(e)
             }
 
-        /** Aktualisiert die Team-ID eines Benutzers */
+        /** Updates the team ID of a user */
         suspend fun updateUserTeamId(
             uid: String,
             teamId: String,
@@ -187,7 +191,7 @@ class UserRepository
             }
 
         /**
-         * Extrahiert den Namen aus einer E-Mail-Adresse z.B. "max.mustermann@example.com" -> "Max
+         * Extracts the name from an email address e.g. "max.mustermann@example.com" -> "Max
          * Mustermann"
          */
         private fun extractNameFromEmail(email: String): String {
@@ -197,15 +201,16 @@ class UserRepository
             }
         }
 
-        /** Erstellt einen Standard-Benutzer basierend auf E-Mail */
+        /** Creates a default user based on email */
         fun createDefaultUser(email: String): User =
             User(
                 name = extractNameFromEmail(email),
                 email = email,
-                role = User.ROLE_MANAGER, // Alle neuen User als Manager anlegen
-                teamId = User.NO_TEAM, // Leerer String als initiale teamId
+                role = User.ROLE_MANAGER, // Every new user is a manager by default
+                teamId = User.NO_TEAM, // Empty string as initial teamId
             )
 
+        /** Updates the team and role of a user */
         suspend fun updateUserTeamAndRole(
             userId: String,
             teamId: String,
@@ -227,7 +232,7 @@ class UserRepository
                 Result.failure(e)
             }
 
-        /** Aktualisiert die Home-Location eines Benutzers für Geofencing */
+        /** Updates the home location of a user for geofencing */
         suspend fun updateUserHomeLocation(
             uid: String,
             latitude: Double,

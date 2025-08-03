@@ -1,14 +1,14 @@
 package com.example.flexioffice.data.model
 
-/** Datenmodell für Teams in Firestore */
+/** Data class for teams in Firestore */
 data class Team(
     val id: String = "",
     val name: String = "",
     val description: String = "",
-    val members: List<String> = emptyList(), // Liste von User-UIDs
-    val managerId: String = "", // UID des Team-Managers
+    val members: List<String> = emptyList(), // List of user UIDs
+    val managerId: String = "", // UID of the team manager
 ) {
-    // Leerer Konstruktor für Firestore
+    // Empty constructor for Firestore
     constructor() : this("", "", "", emptyList(), "")
 
     companion object {

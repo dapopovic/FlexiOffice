@@ -23,7 +23,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.flexioffice.R
 import com.example.flexioffice.data.model.User
 
 @Composable
@@ -49,8 +51,9 @@ fun RequestsFilters(
                     Text(
                         text =
                             selectedTeamMember?.let { userId ->
-                                teamMembers.find { it.id == userId }?.name ?: "Teammitglied"
-                            } ?: "Alle Mitglieder",
+                                teamMembers.find { it.id == userId }?.name
+                                    ?: stringResource(R.string.filters_team_member_fallback)
+                            } ?: stringResource(R.string.filters_all_members),
                     )
                 },
                 selected = selectedTeamMember != null,
@@ -68,7 +71,7 @@ fun RequestsFilters(
                 onDismissRequest = { showTeamMemberDropdown = false },
             ) {
                 DropdownMenuItem(
-                    text = { Text("Alle Mitglieder") },
+                    text = { Text(stringResource(R.string.filters_all_members)) },
                     onClick = {
                         onTeamMemberFilterChange(null)
                         showTeamMemberDropdown = false
@@ -94,7 +97,7 @@ fun RequestsFilters(
             ) {
                 Icon(
                     imageVector = Icons.Default.Clear,
-                    contentDescription = "Filter zurücksetzen",
+                    contentDescription = stringResource(R.string.filters_clear),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }

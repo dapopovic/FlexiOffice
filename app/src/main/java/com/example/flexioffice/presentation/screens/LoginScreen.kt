@@ -30,13 +30,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.flexioffice.R
 import com.example.flexioffice.presentation.AuthViewModel
+
+private const val TAG = "LoginScreen"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +55,7 @@ fun LoginScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var isRegistering by remember { mutableStateOf(false) }
 
-    // Navigation nach erfolgreichem Login
+    // Navigate after successful login
     LaunchedEffect(uiState.isLoggedIn) {
         if (uiState.isLoggedIn) {
             onLoginSuccess()
@@ -65,32 +69,49 @@ fun LoginScreen(
     ) {
         // App Title
         Text(
-            text = "FlexiOffice",
+            text = stringResource(R.string.app_name),
             style = MaterialTheme.typography.headlineLarge,
             modifier = Modifier.padding(bottom = 32.dp),
         )
 
-        // E-Mail Eingabefeld
+        // E-Mail input field
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("E-Mail") },
-            leadingIcon = { Icon(Icons.Default.Email, contentDescription = "E-Mail") },
+            label = { Text(stringResource(R.string.login_email_label)) },
+            leadingIcon = {
+                Icon(
+                    Icons.Default.Email,
+                    contentDescription = stringResource(R.string.login_email_content_desc),
+                )
+            },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
             singleLine = true,
         )
 
-        // Passwort Eingabefeld
+        // Password input field
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Passwort") },
-            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Passwort") },
+            label = { Text(stringResource(R.string.login_password_label)) },
+            leadingIcon = {
+                Icon(
+                    Icons.Default.Lock,
+                    contentDescription = stringResource(R.string.login_password_content_desc),
+                )
+            },
             trailingIcon = {
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Text(
-                        text = if (passwordVisible) "👁️" else "🙈",
+                        text =
+                            if (passwordVisible) {
+                                stringResource(
+                                    R.string.password_visibility_hide,
+                                )
+                            } else {
+                                stringResource(R.string.password_visibility_show)
+                            },
                         style = MaterialTheme.typography.bodyLarge,
                     )
                 }
@@ -106,7 +127,7 @@ fun LoginScreen(
             singleLine = true,
         )
 
-        // Fehlermeldung anzeigen
+        // Error message if available
         uiState.errorMessage?.let { errorMessage ->
             Card(
                 colors =
@@ -125,7 +146,7 @@ fun LoginScreen(
             }
         }
 
-        // Login/Registrierung Button
+        // Login/Registration Button
         Button(
             onClick = {
                 authViewModel.clearErrorMessage()
@@ -144,11 +165,19 @@ fun LoginScreen(
                     color = MaterialTheme.colorScheme.onPrimary,
                 )
             } else {
-                Text(if (isRegistering) "Registrieren" else "Anmelden")
+                Text(
+                    if (isRegistering) {
+                        stringResource(
+                            R.string.register_button,
+                        )
+                    } else {
+                        stringResource(R.string.login_button)
+                    },
+                )
             }
         }
 
-        // Wechsel zwischen Anmeldung und Registrierung
+        // Switch between login and registration
         TextButton(
             onClick = {
                 isRegistering = !isRegistering
@@ -157,9 +186,9 @@ fun LoginScreen(
         ) {
             Text(
                 if (isRegistering) {
-                    "Bereits ein Konto? Anmelden"
+                    stringResource(R.string.login_switch_text)
                 } else {
-                    "Noch kein Konto? Registrieren"
+                    stringResource(R.string.register_switch_text)
                 },
             )
         }

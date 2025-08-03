@@ -40,12 +40,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.flexioffice.R
 import com.example.flexioffice.data.model.User
 import com.example.flexioffice.presentation.TeamEvent
 import com.example.flexioffice.presentation.TeamViewModel
+
+private const val TAG = "TeamsScreen"
 
 @Composable
 fun TeamMemberItem(
@@ -84,10 +88,13 @@ fun TeamMemberItem(
                 )
                 Text(
                     text =
-                        when {
-                            isManager || member.role == User.ROLE_MANAGER -> "Manager"
-                            else -> "Mitglied"
-                        },
+                        stringResource(
+                            if (isManager || member.role == User.ROLE_MANAGER) {
+                                R.string.team_member_manager
+                            } else {
+                                R.string.team_member_member
+                            },
+                        ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -100,7 +107,7 @@ fun TeamMemberItem(
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "Mitglied entfernen",
+                    contentDescription = stringResource(R.string.team_member_remove_content_desc),
                     tint = MaterialTheme.colorScheme.error,
                 )
             }
@@ -132,18 +139,18 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                     inviteEmail = ""
                 }
                 is TeamEvent.MemberRemoved -> {
-                    Log.d("TeamsScreen", "Mitglied erfolgreich entfernt")
-                    // Die UI wird automatisch durch den Flow aktualisiert
+                    Log.d(TAG, "Member successfully removed")
+                    // The UI will automatically update due to state changes
                 }
                 is TeamEvent.Error -> {
-                    Log.e("TeamsScreen", "Fehler: ${event.message}")
-                    // Hier könnte man einen Toast oder Snackbar anzeigen
+                    Log.e(TAG, "Error: ${event.message}")
+                    // Here you could show a Toast or Snackbar
                 }
             }
         }
     }
 
-    // Team-Erstellungsdialog
+    // Team creation dialog
     if (showCreateTeamDialog) {
         AlertDialog(
             onDismissRequest = { showCreateTeamDialog = false },
@@ -171,12 +178,12 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                     }
                     Column {
                         Text(
-                            "Neues Team erstellen",
+                            stringResource(R.string.create_team_title),
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
-                            "Starten Sie Ihr eigenes Team",
+                            stringResource(R.string.create_team_subtitle),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -207,12 +214,10 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Star,
-                                    contentDescription = "Teamname",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp),
+                                    contentDescription = stringResource(R.string.team_name_content_desc),
                                 )
                                 Text(
-                                    "Teamname",
+                                    stringResource(R.string.team_name_label),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -222,7 +227,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                                 onValueChange = { teamName = it },
                                 placeholder = {
                                     Text(
-                                        "z.B. Marketing Team, Development Team...",
+                                        stringResource(R.string.team_name_placeholder),
                                         style = MaterialTheme.typography.bodyMedium,
                                     )
                                 },
@@ -260,12 +265,10 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
-                                    contentDescription = "Beschreibung",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp),
+                                    contentDescription = stringResource(R.string.team_description_content_desc),
                                 )
                                 Text(
-                                    "Beschreibung (Optional)",
+                                    stringResource(R.string.team_description_label),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -275,7 +278,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                                 onValueChange = { teamDescription = it },
                                 placeholder = {
                                     Text(
-                                        "Beschreiben Sie die Rolle und Ziele Ihres Teams...",
+                                        stringResource(R.string.team_description_placeholder),
                                         style = MaterialTheme.typography.bodyMedium,
                                     )
                                 },
@@ -309,12 +312,12 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                             )
                             Column {
                                 Text(
-                                    "Team-Vorteile",
+                                    stringResource(R.string.team_benefits_title),
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                                 )
                                 Text(
-                                    "Verwalten Sie Mitglieder und Home Office Anträge",
+                                    stringResource(R.string.team_benefits_subtitle),
                                     style = MaterialTheme.typography.bodySmall,
                                     color =
                                         MaterialTheme.colorScheme.onTertiaryContainer
@@ -343,20 +346,23 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                                 contentDescription = null,
                                 modifier = Modifier.size(20.dp),
                             )
-                            Text("Team erstellen", style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                stringResource(R.string.create_team_button),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
                         }
                     }
                     TextButton(
                         onClick = { showCreateTeamDialog = false },
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text("Abbrechen") }
+                    ) { Text(stringResource(R.string.cancel)) }
                 }
             },
             dismissButton = null,
         )
     }
 
-    // Löschbestätigungsdialog
+    // Delete confirmation dialog
     if (showDeleteConfirmation && userToDelete != null) {
         AlertDialog(
             onDismissRequest = {
@@ -387,12 +393,12 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                     }
                     Column {
                         Text(
-                            "Teammitglied entfernen",
+                            stringResource(R.string.remove_team_member_title),
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
-                            "Diese Aktion kann nicht rückgängig gemacht werden",
+                            stringResource(R.string.remove_team_member_warning),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -426,13 +432,9 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                                 modifier = Modifier.size(24.dp),
                             )
                             Column {
+                                Text(userToDelete!!.name)
                                 Text(
-                                    userToDelete!!.name,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                )
-                                Text(
-                                    "Wird aus dem Team entfernt",
+                                    stringResource(R.string.remove_team_member_info),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -462,12 +464,12 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                             )
                             Column {
                                 Text(
-                                    "Warnung",
+                                    stringResource(R.string.warning),
                                     style = MaterialTheme.typography.titleSmall,
                                     color = MaterialTheme.colorScheme.onErrorContainer,
                                 )
                                 Text(
-                                    "Das Mitglied verliert den Zugang zum Team und kann keine Home Office Anträge mehr für dieses Team stellen.",
+                                    stringResource(R.string.remove_team_member_lost_access),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onErrorContainer,
                                 )
@@ -503,7 +505,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                                 modifier = Modifier.size(20.dp),
                             )
                             Text(
-                                "Mitglied entfernen",
+                                stringResource(R.string.team_member_remove_button),
                                 style = MaterialTheme.typography.titleMedium,
                             )
                         }
@@ -514,13 +516,14 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                             userToDelete = null
                         },
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text("Abbrechen") }
+                    ) { Text(stringResource(R.string.cancel)) }
                 }
             },
             dismissButton = null,
         )
     }
 
+    // Team member invite dialog
     if (uiState.isInviteDialogVisible) {
         AlertDialog(
             onDismissRequest = { viewModel.hideInviteDialog() },
@@ -548,12 +551,12 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                     }
                     Column {
                         Text(
-                            "Teammitglied einladen",
+                            stringResource(R.string.invite_team_member_title),
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
-                            "Erweitern Sie Ihr Team",
+                            stringResource(R.string.invite_team_member_subtitle),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -584,12 +587,10 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Person,
-                                    contentDescription = "E-Mail",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp),
+                                    contentDescription = stringResource(R.string.email_content_desc),
                                 )
                                 Text(
-                                    "E-Mail-Adresse",
+                                    stringResource(R.string.email_label),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -599,7 +600,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                                 onValueChange = { inviteEmail = it },
                                 placeholder = {
                                     Text(
-                                        "beispiel@unternehmen.com",
+                                        stringResource(R.string.email_placeholder),
                                         style = MaterialTheme.typography.bodyMedium,
                                     )
                                 },
@@ -640,12 +641,12 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                             )
                             Column {
                                 Text(
-                                    "Team-Einladung",
+                                    stringResource(R.string.team_invite_title),
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                                 )
                                 Text(
-                                    "Der Benutzer wird per E-Mail benachrichtigt",
+                                    stringResource(R.string.team_invite_info),
                                     style = MaterialTheme.typography.bodySmall,
                                     color =
                                         MaterialTheme.colorScheme.onTertiaryContainer
@@ -672,7 +673,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Delete,
-                                    contentDescription = "Fehler",
+                                    contentDescription = stringResource(R.string.error_content_desc),
                                     tint = MaterialTheme.colorScheme.onErrorContainer,
                                     modifier = Modifier.size(20.dp),
                                 )
@@ -714,9 +715,9 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                             }
                             Text(
                                 if (uiState.isLoading) {
-                                    "Einladung wird gesendet..."
+                                    stringResource(R.string.invite_sending)
                                 } else {
-                                    "Einladung senden"
+                                    stringResource(R.string.invite_send_button)
                                 },
                                 style = MaterialTheme.typography.titleMedium,
                             )
@@ -725,7 +726,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                     TextButton(
                         onClick = { viewModel.hideInviteDialog() },
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text("Abbrechen") }
+                    ) { Text(stringResource(R.string.cancel)) }
                 }
             },
             dismissButton = null,
@@ -734,20 +735,20 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
 
     Scaffold(
         floatingActionButton = {
-            // FAB nur anzeigen, wenn der Benutzer kein Team hat und eines erstellen darf
+            // show FAB only if the user has no team and is allowed to create one
             if (uiState.canCreateTeam && uiState.currentTeam == null) {
                 ExtendedFloatingActionButton(
                     onClick = { showCreateTeamDialog = true },
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Team erstellen")
+                    Text(stringResource(R.string.create_team_button))
                 }
             } else if (uiState.currentTeam?.managerId == uiState.currentUser?.id) {
                 ExtendedFloatingActionButton(
                     onClick = { viewModel.showInviteDialog() },
                     icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                    text = { Text("Mitglied einladen") },
+                    text = { Text(stringResource(R.string.team_member_invite_button)) },
                     expanded = true,
                 )
             }
@@ -768,7 +769,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                     tint = MaterialTheme.colorScheme.primary,
                 )
                 Text(
-                    text = "Teams",
+                    text = stringResource(R.string.teams_title),
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.weight(1f),
                 )
@@ -780,29 +781,29 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
-                        text = "👥",
+                        text = stringResource(R.string.teams_icon),
                         style = MaterialTheme.typography.displayLarge,
                         modifier = Modifier.padding(bottom = 16.dp),
                     )
 
                     Text(
                         text =
-                            if (!uiState.canCreateTeam) {
-                                "Kein Team zugeordnet"
-                            } else {
-                                "Bereit für ein neues Team?"
-                            },
+                            stringResource(
+                                if (!uiState.canCreateTeam) R.string.no_team_assigned else R.string.ready_for_new_team,
+                            ),
                         style = MaterialTheme.typography.headlineMedium,
                         modifier = Modifier.padding(bottom = 8.dp),
                     )
 
                     Text(
                         text =
-                            if (!uiState.canCreateTeam) {
-                                "Sie sind derzeit keinem Team zugeordnet und haben nicht die Berechtigung, ein Team zu erstellen."
-                            } else {
-                                "Sie sind derzeit keinem Team zugeordnet. Erstellen Sie ein neues Team und laden Sie Mitglieder ein."
-                            },
+                            stringResource(
+                                if (!uiState.canCreateTeam) {
+                                    R.string.no_team_allowed_notification
+                                } else {
+                                    R.string.no_team_notification
+                                },
+                            ),
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -810,9 +811,9 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                     )
                 }
             } else {
-                // Teamdetails anzeigen
+                // show Team details
                 Text(
-                    text = "Verwalten Sie Ihr Team und laden Sie Mitglieder ein",
+                    text = stringResource(R.string.manage_team_and_invite),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 24.dp),
@@ -821,7 +822,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = uiState.currentTeam?.name ?: "Mein Team",
+                            text = uiState.currentTeam?.name ?: stringResource(R.string.my_team),
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(bottom = 8.dp),
                         )
@@ -836,7 +837,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                         }
 
                         Text(
-                            text = "Teammitglieder (${uiState.teamMembers.size})",
+                            text = stringResource(R.string.team_members_count, uiState.teamMembers.size),
                             style = MaterialTheme.typography.titleSmall,
                             modifier = Modifier.padding(bottom = 8.dp),
                         )

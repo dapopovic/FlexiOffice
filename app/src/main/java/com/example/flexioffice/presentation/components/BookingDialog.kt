@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.flexioffice.R
 import java.time.LocalDate
@@ -80,14 +81,14 @@ fun BookingDialog(
                     }
                     Column {
                         Text(
-                            "Home Office Antrag",
+                            stringResource(R.string.booking_dialog_title),
                             style =
                                 MaterialTheme.typography
                                     .headlineSmall,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
-                            "Erstellen Sie einen neuen Antrag",
+                            stringResource(R.string.booking_dialog_subtitle),
                             style = MaterialTheme.typography.bodyMedium,
                             color =
                                 MaterialTheme.colorScheme
@@ -133,7 +134,7 @@ fun BookingDialog(
                                             .calendar_today_24px,
                                     ),
                                 contentDescription =
-                                    "Datum auswählen",
+                                    stringResource(R.string.booking_dialog_date_icon_desc),
                                 tint =
                                     if (selectedDate != null) {
                                         MaterialTheme
@@ -150,9 +151,9 @@ fun BookingDialog(
                                 Text(
                                     text =
                                         if (selectedDate != null) {
-                                            "Ausgewähltes Datum"
+                                            stringResource(R.string.booking_dialog_selected_date_label)
                                         } else {
-                                            "Datum auswählen"
+                                            stringResource(R.string.booking_dialog_date_label)
                                         },
                                     style =
                                         MaterialTheme
@@ -179,7 +180,9 @@ fun BookingDialog(
                                                             .FULL,
                                                     ),
                                             )
-                                            ?: "Tippen Sie hier, um ein Datum zu wählen",
+                                            ?: stringResource(
+                                                R.string.booking_dialog_date_placeholder,
+                                            ),
                                     style =
                                         MaterialTheme
                                             .typography
@@ -245,7 +248,7 @@ fun BookingDialog(
                                                 .edit_note_24px,
                                         ),
                                     contentDescription =
-                                        "Kommentar",
+                                        stringResource(R.string.booking_dialog_comment_icon_desc),
                                     tint =
                                         MaterialTheme
                                             .colorScheme
@@ -256,7 +259,7 @@ fun BookingDialog(
                                         ),
                                 )
                                 Text(
-                                    "Kommentar (Optional)",
+                                    stringResource(R.string.booking_dialog_comment_label),
                                     style =
                                         MaterialTheme
                                             .typography
@@ -272,7 +275,7 @@ fun BookingDialog(
                                 onValueChange = onCommentChange,
                                 placeholder = {
                                     Text(
-                                        "Fügen Sie einen Kommentar zu Ihrem Antrag hinzu...",
+                                        stringResource(R.string.booking_dialog_comment_placeholder),
                                         style =
                                             MaterialTheme
                                                 .typography
@@ -336,7 +339,7 @@ fun BookingDialog(
                             )
                             Column {
                                 Text(
-                                    "Home Office",
+                                    stringResource(R.string.booking_dialog_work_type_home_office),
                                     style =
                                         MaterialTheme
                                             .typography
@@ -347,7 +350,7 @@ fun BookingDialog(
                                             .onTertiaryContainer,
                                 )
                                 Text(
-                                    "Vollzeit von zu Hause arbeiten",
+                                    stringResource(R.string.booking_dialog_work_type_description),
                                     style =
                                         MaterialTheme
                                             .typography
@@ -365,7 +368,7 @@ fun BookingDialog(
                             Spacer(modifier = Modifier.weight(1f))
                             Icon(
                                 Icons.Default.CheckCircle,
-                                contentDescription = "Ausgewählt",
+                                contentDescription = stringResource(R.string.booking_dialog_chosen_icon_desc),
                                 tint =
                                     MaterialTheme.colorScheme
                                         .onTertiaryContainer,
@@ -402,7 +405,7 @@ fun BookingDialog(
                                                 .error_24px,
                                         ),
                                     contentDescription =
-                                        "Fehler",
+                                        stringResource(R.string.error_content_desc),
                                     tint =
                                         MaterialTheme
                                             .colorScheme
@@ -483,9 +486,9 @@ fun BookingDialog(
                             }
                             Text(
                                 if (isLoading) {
-                                    "Antrag wird erstellt..."
+                                    stringResource(R.string.booking_dialog_create_loading)
                                 } else {
-                                    "Antrag einreichen"
+                                    stringResource(R.string.booking_dialog_create)
                                 },
                                 style =
                                     MaterialTheme.typography
@@ -506,7 +509,7 @@ fun BookingDialog(
                             modifier = Modifier.size(16.dp),
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Abbrechen")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             },

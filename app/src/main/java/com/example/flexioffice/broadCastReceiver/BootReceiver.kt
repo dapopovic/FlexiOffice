@@ -38,7 +38,7 @@ class BootReceiver : BroadcastReceiver() {
                     Log.w(TAG, "Location permission not granted, cannot re-register geofences")
                     return
                 }
-                // Starte Service um Geofences zu re-registrieren
+                // Start GeofencingService to re-register geofences
                 val serviceIntent =
                     Intent(context, GeofencingService::class.java).apply {
                         action = GeofencingService.ACTION_REREGISTER_GEOFENCES

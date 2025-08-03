@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -84,7 +85,7 @@ fun Modifier.swipeableCard(
 
                                 // Reset and delay to prevent rapid successive swipes
                                 offsetX.snapTo(0f)
-                                kotlinx.coroutines.delay(300)
+                                delay(300)
                                 isProcessing = false
                             } else {
                                 // Smooth spring-back animation

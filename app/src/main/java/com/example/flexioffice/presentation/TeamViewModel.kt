@@ -54,7 +54,7 @@ class TeamViewModel
         private val _events = Channel<TeamEvent>()
         val events = _events.receiveAsFlow()
 
-        /** Entfernt ein Mitglied aus dem Team */
+        /** Removes a member from the team */
         fun removeMember(userId: String) {
             viewModelScope.launch {
                 try {
@@ -71,14 +71,14 @@ class TeamViewModel
                         return@launch
                     }
 
-                    // Erst User aus Team Members entfernen
+                    // First remove user from team members
                     val updatedMembers = currentTeam.members.filter { it != userId }
                     val updatedTeam = currentTeam.copy(members = updatedMembers)
 
                     teamRepository
                         .updateTeam(updatedTeam)
                         .onSuccess {
-                            // Dann TeamId im User zurücksetzen
+                            // Then reset team ID in user
                             userRepository
                                 .removeUserFromTeam(userId)
                                 .onSuccess {
@@ -101,6 +101,7 @@ class TeamViewModel
             observeUserAndTeamData()
         }
 
+        /** Loads team details if the user is in a team */
         @OptIn(ExperimentalCoroutinesApi::class)
         private fun observeUserAndTeamData() {
             viewModelScope.launch {
@@ -156,6 +157,7 @@ class TeamViewModel
             }
         }
 
+        /** Loads the current user's team */
         private fun loadTeamDetails(teamId: String) {
             viewModelScope.launch {
                 teamRepository
@@ -172,6 +174,7 @@ class TeamViewModel
             }
         }
 
+        /** Loads the members of the specified team */
         private fun loadTeamMembers(teamId: String) {
             viewModelScope.launch {
                 val members = mutableListOf<User>()
@@ -191,6 +194,7 @@ class TeamViewModel
             }
         }
 
+        /** Creates a new team */
         fun createTeam(
             name: String,
             description: String = "",
@@ -237,18 +241,22 @@ class TeamViewModel
             }
         }
 
+        /** Clears any error message */
         fun clearError() {
             _uiState.value = _uiState.value.copy(errorMessage = null)
         }
 
+        /** Shows the invite dialog */
         fun showInviteDialog() {
             _uiState.value = _uiState.value.copy(isInviteDialogVisible = true)
         }
 
+        /** Hides the invite dialog */
         fun hideInviteDialog() {
             _uiState.value = _uiState.value.copy(isInviteDialogVisible = false)
         }
 
+        /** Invites a user by email */
         fun inviteUserByEmail(email: String) {
             if (email.isBlank()) {
                 _uiState.update { it.copy(errorMessage = "E-Mail darf nicht leer sein.") }
