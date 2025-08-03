@@ -50,6 +50,7 @@ import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.presentation.RequestsViewModel
 import com.example.flexioffice.presentation.components.EnterMultiSelectModeButton
+import com.example.flexioffice.presentation.components.RequestsFilters
 import com.example.flexioffice.presentation.components.swipeableCard
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -112,13 +113,26 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
                 text = "Genehmigen oder lehnen Sie Buchungsanfragen ab",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 24.dp),
+                modifier = Modifier.padding(bottom = 16.dp),
             )
+
+            // Filter nur für Manager anzeigen
+            if (uiState.currentUser?.role == com.example.flexioffice.data.model.User.ROLE_MANAGER &&
+                uiState.teamMembers.isNotEmpty()
+            ) {
+                RequestsFilters(
+                    teamMembers = uiState.teamMembers,
+                    selectedTeamMember = uiState.selectedTeamMember,
+                    onTeamMemberFilterChange = { viewModel.setTeamMemberFilter(it) },
+                    onClearFilters = { viewModel.clearFilters() },
+                    modifier = Modifier.padding(bottom = 16.dp),
+                )
+            }
 
             if (uiState.isLoading) {
                 // Loading state
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -133,7 +147,7 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
             } else if (uiState.pendingRequests.isEmpty()) {
                 // Empty state
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 ) {
                     Column(
                         modifier = Modifier.padding(24.dp).fillMaxWidth(),
@@ -160,7 +174,10 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
                 }
             } else {
                 // List of pending requests
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                LazyColumn(
+                    modifier = Modifier.padding(top = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     items(uiState.pendingRequests) { booking ->
                         RequestItem(
                             booking = booking,
@@ -203,7 +220,6 @@ fun RequestItem(
     val declineColor = MaterialTheme.colorScheme.error
     val neutralColor = MaterialTheme.colorScheme.surfaceVariant
     var swipeBackgroundColor by remember { mutableStateOf<Color?>(neutralColor) }
-
     val swipeAlpha: (Float, Float) -> Float =
         remember {
             { offset, threshold -> (kotlin.math.abs(offset) / threshold).coerceAtMost(0.3f) }
