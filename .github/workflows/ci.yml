@@ -34,16 +34,13 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-gradle-
 
-            - name: Set up google-services.json
-              shell: bash
+            - name: Decrypt google-services.json
               run: |
                   mkdir -p app
-                  echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > app/google-services.json
-
-            - name: Print google-services.json
-              run: |
-                  echo "─── google-services.json ───"
-                  cat app/google-services.json
+                  openssl aes-256-cbc -d \
+                      -in app/google-services.json.enc \
+                      -out app/google-services.json \
+                      -k "$GMS_PASSPHRASE"
 
             - name: Upload google-services.json artifact
               uses: actions/upload-artifact@v4
@@ -115,6 +112,14 @@ jobs:
                   key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
                   restore-keys: |
                       ${{ runner.os }}-gradle-
+
+            - name: Decrypt google-services.json
+              run: |
+                  mkdir -p app
+                  openssl aes-256-cbc -d \
+                      -in app/google-services.json.enc \
+                      -out app/google-services.json \
+                      -k "$GMS_PASSPHRASE"
 
             - name: Grant execute permission for gradlew
               run: chmod +x gradlew
