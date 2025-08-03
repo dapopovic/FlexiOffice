@@ -45,6 +45,12 @@ jobs:
                   echo "─── google-services.json ───"
                   cat app/google-services.json
 
+            - name: Upload google-services.json artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: google_services_json
+                  path: app/google-services.json
+
             - name: Grant execute permission for gradlew
               run: chmod +x gradlew
 
