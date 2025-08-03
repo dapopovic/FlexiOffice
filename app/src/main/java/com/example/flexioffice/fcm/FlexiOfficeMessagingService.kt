@@ -215,7 +215,7 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(channel)
     }
-    
+
     /**
      * Sends the FCM token to the server for the current user
      */

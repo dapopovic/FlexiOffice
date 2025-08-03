@@ -209,7 +209,7 @@ class UserRepository
                 role = User.ROLE_MANAGER, // Every new user is a manager by default
                 teamId = User.NO_TEAM, // Empty string as initial teamId
             )
-            
+
         /** Updates the team and role of a user */
         suspend fun updateUserTeamAndRole(
             userId: String,

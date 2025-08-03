@@ -61,6 +61,7 @@ class InAppNotificationViewModel
                 }
             }
         }
+
         /** Shows a notification with the given details */
         private fun showNotification(
             title: String,
@@ -89,6 +90,7 @@ class InAppNotificationViewModel
                 displayNotification(notificationItem)
             }
         }
+
         /** Displays the notification on the screen */
         private fun displayNotification(item: NotificationItem) {
             isShowingNotification = true
@@ -106,6 +108,7 @@ class InAppNotificationViewModel
                     )
             }
         }
+
         /** Dismisses the current notification */
         fun dismissNotification() {
             _notificationState.value = _notificationState.value.copy(isVisible = false)

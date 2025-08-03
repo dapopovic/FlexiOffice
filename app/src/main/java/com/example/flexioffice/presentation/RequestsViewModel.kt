@@ -189,7 +189,7 @@ class RequestsViewModel
                                 _uiState.update {
                                     it.copy(
                                         error =
-                                        "Error during $actionError: ${exception.message}",
+                                            "Error during $actionError: ${exception.message}",
                                         isApprovingRequest = false,
                                         isDecliningRequest = false,
                                         selectedBooking = null,
@@ -297,10 +297,12 @@ class RequestsViewModel
         fun clearSelection() {
             _uiState.update { it.copy(selectedRequests = emptySet()) }
         }
+
         /** Batch approves selected requests */
         fun batchApproveRequests() {
             processBatchRequests(BookingStatus.APPROVED)
         }
+
         /** Batch declines selected requests */
         fun batchDeclineRequests() {
             processBatchRequests(BookingStatus.DECLINED)
@@ -354,6 +356,7 @@ class RequestsViewModel
                 }
             }
         }
+
         /** Sends notifications for batch operations */
         private fun sendBatchNotifications(
             selectedIds: Set<String>,

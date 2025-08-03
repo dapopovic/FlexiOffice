@@ -53,7 +53,7 @@ class FCMTokenManager
         suspend fun initializeFCMSuspend(): Result<String> =
             try {
                 val token = firebaseMessaging.token.await()
-                
+
                 val userId = auth.currentUser?.uid
                 if (userId != null) {
                     saveTokenToFirestore(userId, token)
