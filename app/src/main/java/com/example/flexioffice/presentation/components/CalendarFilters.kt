@@ -1,5 +1,6 @@
 package com.example.flexioffice.presentation.components
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -41,9 +42,9 @@ fun CalendarFilters(
     var showStatusDropdown by remember { mutableStateOf(false) }
 
     // Debug log
-    android.util.Log.d("CalendarFilters", "teamMembers count: ${teamMembers.size}")
+    Log.d("CalendarFilters", "teamMembers count: ${teamMembers.size}")
     teamMembers.forEach { member ->
-        android.util.Log.d("CalendarFilters", "Team member: ${member.name} (${member.id})")
+        Log.d("CalendarFilters", "Team member: ${member.name} (${member.id})")
     }
 
     Row(

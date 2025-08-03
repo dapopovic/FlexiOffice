@@ -162,7 +162,7 @@ class RequestsViewModel
                         _uiState.update { it.copy(teamMembers = teamMembers) }
                     }
                 } catch (e: Exception) {
-                    // Team-Mitglieder-Fehler sind nicht kritisch
+                    Log.e("RequestsViewModel", "Error loading team members: ${e.message}", e)
                 }
             }
         }
