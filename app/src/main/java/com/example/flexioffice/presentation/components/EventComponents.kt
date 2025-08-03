@@ -27,8 +27,8 @@ import androidx.compose.ui.unit.dp
 import com.example.flexioffice.R
 import com.example.flexioffice.data.model.CalendarEvent
 import com.example.flexioffice.data.model.EventType
-import com.example.flexioffice.presentation.components.getStatusIcon
 import com.example.flexioffice.presentation.components.getStatusColor
+import com.example.flexioffice.presentation.components.getStatusIcon
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
