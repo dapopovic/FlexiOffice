@@ -1,5 +1,6 @@
 package com.example.flexioffice.presentation.components
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -36,6 +37,15 @@ import com.example.flexioffice.data.model.BookingStatus
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
+
+@StringRes
+private fun BookingStatus.labelRes() =
+    when (this) {
+        BookingStatus.APPROVED -> R.string.booking_item_status_approved
+        BookingStatus.PENDING -> R.string.booking_item_status_pending
+        BookingStatus.DECLINED -> R.string.booking_item_status_declined
+        BookingStatus.CANCELLED -> R.string.booking_item_status_cancelled
+    }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -226,17 +236,7 @@ fun BookingItem(
                         modifier = Modifier.padding(0.dp),
                     ) {
                         Text(
-                            text =
-                                when (booking.status) {
-                                    BookingStatus.APPROVED ->
-                                        stringResource(R.string.booking_item_status_approved)
-                                    BookingStatus.PENDING ->
-                                        stringResource(R.string.booking_item_status_pending)
-                                    BookingStatus.DECLINED ->
-                                        stringResource(R.string.booking_item_status_declined)
-                                    BookingStatus.CANCELLED ->
-                                        stringResource(R.string.booking_item_status_cancelled)
-                                },
+                            text = stringResource(booking.status.labelRes()),
                             style = MaterialTheme.typography.labelSmall,
                             color =
                                 when (booking.status) {
