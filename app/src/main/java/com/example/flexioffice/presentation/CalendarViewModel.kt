@@ -4,6 +4,7 @@ import android.hardware.SensorManager
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.flexioffice.BuildConfig
 import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.BookingRepository
 import com.example.flexioffice.data.UserRepository
@@ -12,9 +13,9 @@ import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.data.model.CalendarEvent
 import com.example.flexioffice.data.model.EventType
 import com.example.flexioffice.data.model.User
+import com.example.flexioffice.presentation.components.getStatusColor
 import com.example.flexioffice.util.Logger
 import com.example.flexioffice.util.ShakeDetector
-import com.google.android.datatransport.BuildConfig
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,7 +68,6 @@ class CalendarViewModel
 
         companion object {
             private const val TAG = "CalendarViewModel"
-            private const val HOME_OFFICE_COLOR = 0xFF4CAF50L // Green
         }
 
         init {
@@ -149,7 +149,7 @@ class CalendarViewModel
                     date = booking.date,
                     type = EventType.HOME_OFFICE,
                     participantNames = listOf(booking.userName),
-                    color = Color(HOME_OFFICE_COLOR),
+                    color = getStatusColor(booking.status),
                 )
             }
 
