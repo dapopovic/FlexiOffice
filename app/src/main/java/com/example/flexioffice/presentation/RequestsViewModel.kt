@@ -137,9 +137,9 @@ class RequestsViewModel
             isApproving: Boolean,
         ) {
             val currentUserId = auth.currentUser?.uid ?: return
-            val action = if (isApproving) "Genehmige" else "Lehne"
-            val actionPast = if (isApproving) "genehmigt" else "abgelehnt"
-            val actionError = if (isApproving) "Genehmigen" else "Ablehnen"
+            val action = if (isApproving) "approved" else "declined"
+            val actionPast = if (isApproving) "approved" else "declined"
+            val actionError = if (isApproving) "Approve" else "Decline"
             viewModelScope.launch {
                 try {
                     _uiState.update {
@@ -153,7 +153,7 @@ class RequestsViewModel
 
                     Log.d(
                         "RequestsViewModel",
-                        "$action Antrag: ${booking.id} für User: ${booking.userName}",
+                        "$action request: ${booking.id} for user: ${booking.userName}",
                     )
 
                     bookingRepository
@@ -163,7 +163,7 @@ class RequestsViewModel
                             currentUserId,
                         ).fold(
                             onSuccess = {
-                                Log.d("RequestsViewModel", "Antrag erfolgreich $actionPast")
+                                Log.d("RequestsViewModel", "Request successfully $actionPast")
 
                                 // Send FCM notification to requester
                                 sendStatusNotification(booking, newStatus)
@@ -179,13 +179,13 @@ class RequestsViewModel
                             onFailure = { exception ->
                                 Log.e(
                                     "RequestsViewModel",
-                                    "Fehler beim $actionError",
+                                    "Error during $actionError",
                                     exception,
                                 )
                                 _uiState.update {
                                     it.copy(
                                         error =
-                                            "Fehler beim $actionError: ${exception.message}",
+                                        "Error during $actionError: ${exception.message}",
                                         isApprovingRequest = false,
                                         isDecliningRequest = false,
                                         selectedBooking = null,
@@ -194,10 +194,10 @@ class RequestsViewModel
                             },
                         )
                 } catch (e: Exception) {
-                    Log.e("RequestsViewModel", "Unerwarteter Fehler beim $actionError", e)
+                    Log.e("RequestsViewModel", "Unexpected error during $actionError", e)
                     _uiState.update {
                         it.copy(
-                            error = "Unerwarteter Fehler: ${e.message}",
+                            error = "Unexpected error: ${e.message}",
                             isApprovingRequest = false,
                             isDecliningRequest = false,
                             selectedBooking = null,
@@ -218,9 +218,9 @@ class RequestsViewModel
                         newStatus = newStatus,
                         reviewerName = uiState.value.currentUser?.name ?: "Manager",
                     )
-                    Log.d("RequestsViewModel", "FCM-Notification erfolgreich gesendet")
+                    Log.d("RequestsViewModel", "FCM notification sent successfully")
                 } catch (e: Exception) {
-                    Log.e("RequestsViewModel", "Fehler beim Senden der FCM-Notification", e)
+                    Log.e("RequestsViewModel", "Error sending FCM notification", e)
                     // Don't fail the overall operation if notification fails
                 }
             }
@@ -362,14 +362,14 @@ class RequestsViewModel
                         } catch (e: Exception) {
                             Log.e(
                                 "RequestsViewModel",
-                                "Fehler beim Senden der Batch-Notification für ${booking.id}",
+                                "Error sending batch notification for ${booking.id}",
                                 e,
                             )
                         }
                     }
-                    Log.d("RequestsViewModel", "Batch-Notifications erfolgreich gesendet")
+                    Log.d("RequestsViewModel", "Batch notifications sent successfully")
                 } catch (e: Exception) {
-                    Log.e("RequestsViewModel", "Fehler beim Senden der Batch-Notifications", e)
+                    Log.e("RequestsViewModel", "Error sending batch notifications", e)
                 }
             }
         }

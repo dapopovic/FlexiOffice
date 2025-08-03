@@ -24,54 +24,52 @@ class FCMTokenManager
         }
 
         /**
-         * Initialisiert FCM für den aktuellen Benutzer
-         * Holt das aktuelle Token und speichert es in Firestore
+         * Initializes FCM for the current user
+         * Retrieves the current token and saves it to Firestore
          */
         fun initializeFCM() {
             firebaseMessaging.token.addOnCompleteListener { task ->
                 if (!task.isSuccessful) {
-                    Log.e(TAG, "Fehler beim Abrufen des FCM Tokens", task.exception)
+                    Log.e(TAG, "Error retrieving FCM token", task.exception)
                     return@addOnCompleteListener
                 }
 
                 val token = task.result
-                Log.d(TAG, "FCM Token erhalten")
 
                 val userId = auth.currentUser?.uid
                 if (userId != null) {
                     saveTokenToFirestoreAsync(userId, token)
-                    Log.d(TAG, "FCM Token für User $userId gespeichert")
+                    Log.d(TAG, "FCM Token for User $userId saved")
                 } else {
-                    Log.w(TAG, "Kein angemeldeter Benutzer - Token nicht gespeichert")
+                    Log.w(TAG, "No logged in user - Token not saved")
                 }
             }
         }
 
         /**
-         * Initialisiert FCM für den aktuellen Benutzer (suspend version)
-         * Holt das aktuelle Token und speichert es in Firestore
+         * Initializes FCM for the current user (suspend version)
+         * Retrieves the current token and saves it to Firestore
          */
         suspend fun initializeFCMSuspend(): Result<String> =
             try {
                 val token = firebaseMessaging.token.await()
-                Log.d(TAG, "FCM Token erhalten")
-
+                
                 val userId = auth.currentUser?.uid
                 if (userId != null) {
                     saveTokenToFirestore(userId, token)
-                    Log.d(TAG, "FCM Token für User $userId gespeichert")
+                    Log.d(TAG, "FCM Token for User $userId saved")
                 } else {
-                    Log.w(TAG, "Kein angemeldeter Benutzer - Token nicht gespeichert")
+                    Log.w(TAG, "No logged in user - Token not saved")
                 }
 
                 Result.success(token)
             } catch (e: Exception) {
-                Log.e(TAG, "Fehler beim Initialisieren von FCM", e)
+                Log.e(TAG, "Error initializing FCM", e)
                 Result.failure(e)
             }
 
         /**
-         * Speichert das FCM Token in Firestore für den Benutzer (async version)
+         * Saves the FCM token to Firestore for the user (async version)
          */
         private fun saveTokenToFirestoreAsync(
             userId: String,
@@ -82,15 +80,15 @@ class FCMTokenManager
                 .document(userId)
                 .set(mapOf(FCM_TOKEN_FIELD to token), SetOptions.merge())
                 .addOnSuccessListener {
-                    Log.d(TAG, "FCM Token erfolgreich in Firestore gespeichert")
+                    Log.d(TAG, "FCM Token successfully saved to Firestore")
                 }.addOnFailureListener { exception ->
-                    Log.e(TAG, "Fehler beim Speichern des FCM Tokens", exception)
-                    // Nicht kritisch - Token kann später aktualisiert werden
+                    Log.e(TAG, "Error saving FCM token", exception)
+                    // Not critical - Token can be updated later
                 }
         }
 
         /**
-         * Speichert das FCM Token in Firestore für den Benutzer
+         * Save the FCM token to Firestore for the user (suspend version)
          */
         private suspend fun saveTokenToFirestore(
             userId: String,
@@ -103,15 +101,15 @@ class FCMTokenManager
                     .set(mapOf(FCM_TOKEN_FIELD to token), SetOptions.merge())
                     .await()
 
-                Log.d(TAG, "FCM Token erfolgreich in Firestore gespeichert")
+                Log.d(TAG, "FCM Token successfully saved to Firestore")
             } catch (e: Exception) {
-                Log.e(TAG, "Fehler beim Speichern des FCM Tokens", e)
-                // Nicht kritisch - Token kann später aktualisiert werden
+                Log.e(TAG, "Error saving FCM token", e)
+                // Not critical - Token can be updated later
             }
         }
 
         /**
-         * Entfernt das FCM Token beim Logout
+         * Removes the FCM token on logout
          */
         suspend fun clearToken(): Result<Unit> =
             try {
@@ -123,16 +121,16 @@ class FCMTokenManager
                         .set(mapOf(FCM_TOKEN_FIELD to null), SetOptions.merge())
                         .await()
 
-                    Log.d(TAG, "FCM Token erfolgreich entfernt")
+                    Log.d(TAG, "FCM Token successfully removed")
                 }
 
                 // Firebase Messaging Token löschen
                 firebaseMessaging.deleteToken().await()
-                Log.d(TAG, "FCM Token komplett gelöscht")
+                Log.d(TAG, "FCM Token completely deleted")
 
                 Result.success(Unit)
             } catch (e: Exception) {
-                Log.e(TAG, "Fehler beim Löschen des FCM Tokens", e)
+                Log.e(TAG, "Error deleting FCM token", e)
                 Result.failure(e)
             }
 
@@ -144,23 +142,23 @@ class FCMTokenManager
                 val userId = auth.currentUser?.uid
                 if (userId != null) {
                     saveTokenToFirestore(userId, newToken)
-                    Log.d(TAG, "FCM Token erfolgreich aktualisiert")
+                    Log.d(TAG, "FCM Token successfully updated for User $userId")
                 }
                 Result.success(Unit)
             } catch (e: Exception) {
-                Log.e(TAG, "Fehler beim Aktualisieren des FCM Tokens", e)
+                Log.e(TAG, "Error updating FCM token", e)
                 Result.failure(e)
             }
 
         /**
-         * Holt das aktuelle Token ohne es zu speichern
+         * Retrieves the current token without saving it
          */
         suspend fun getCurrentToken(): Result<String> =
             try {
                 val token = firebaseMessaging.token.await()
                 Result.success(token)
             } catch (e: Exception) {
-                Log.e(TAG, "Fehler beim Abrufen des aktuellen Tokens", e)
+                Log.e(TAG, "Error retrieving current token", e)
                 Result.failure(e)
             }
     }

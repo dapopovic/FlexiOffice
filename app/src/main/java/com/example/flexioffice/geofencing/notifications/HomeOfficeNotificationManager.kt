@@ -37,7 +37,7 @@ class HomeOfficeNotificationManager
         }
 
         /**
-         * Erstellt den Notification Channel für Home Office Erinnerungen
+         * Creates the notification channel for Home Office reminders
          */
         private fun createNotificationChannel() {
             val channel =
@@ -53,11 +53,11 @@ class HomeOfficeNotificationManager
                 }
 
             notificationManager.createNotificationChannel(channel)
-            Log.d(TAG, "Notification Channel erstellt: $CHANNEL_ID")
+            Log.d(TAG, "Notification Channel created: $CHANNEL_ID")
         }
 
         /**
-         * Zeigt eine Home Office Erinnerungs-Notification an
+         * Shows a Home Office reminder notification
          */
         fun showHomeOfficeReminderNotification(userName: String) {
             try {
@@ -96,17 +96,17 @@ class HomeOfficeNotificationManager
                         .build()
 
                 notificationManager.notify(NOTIFICATION_ID, notification)
-                Log.d(TAG, "Home Office Erinnerungs-Notification gesendet für User: $userName")
+                Log.d(TAG, "Home Office Reminder-Notification sent for User: $userName")
             } catch (e: Exception) {
-                Log.e(TAG, "Fehler beim Senden der Home Office Notification", e)
+                Log.e(TAG, "Error sending Home Office Reminder-Notification", e)
             }
         }
 
         /**
-         * Entfernt alle Home Office Notifications
+         * Removes all Home Office notifications
          */
         fun cancelAllNotifications() {
             notificationManager.cancel(NOTIFICATION_ID)
-            Log.d(TAG, "Alle Home Office Notifications entfernt")
+            Log.d(TAG, "All Home Office notifications removed")
         }
     }

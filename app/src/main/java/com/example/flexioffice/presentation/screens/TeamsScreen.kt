@@ -139,11 +139,11 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                     inviteEmail = ""
                 }
                 is TeamEvent.MemberRemoved -> {
-                    Log.d(TAG, "Mitglied erfolgreich entfernt")
+                    Log.d(TAG, "Member successfully removed")
                     // Die UI wird automatisch durch den Flow aktualisiert
                 }
                 is TeamEvent.Error -> {
-                    Log.e(TAG, "Fehler: ${event.message}")
+                    Log.e(TAG, "Error: ${event.message}")
                     // Hier könnte man einen Toast oder Snackbar anzeigen
                 }
             }
@@ -735,7 +735,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
 
     Scaffold(
         floatingActionButton = {
-            // FAB nur anzeigen, wenn der Benutzer kein Team hat und eines erstellen darf
+            // show FAB only if the user has no team and is allowed to create one
             if (uiState.canCreateTeam && uiState.currentTeam == null) {
                 ExtendedFloatingActionButton(
                     onClick = { showCreateTeamDialog = true },
@@ -811,7 +811,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                     )
                 }
             } else {
-                // Teamdetails anzeigen
+                // show Team details
                 Text(
                     text = stringResource(R.string.manage_team_and_invite),
                     style = MaterialTheme.typography.bodyLarge,

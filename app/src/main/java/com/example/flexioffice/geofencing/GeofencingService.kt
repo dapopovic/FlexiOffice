@@ -74,7 +74,7 @@ class GeofencingService : Service() {
         super.onCreate()
         sharedPrefs = getSharedPreferences(NOTIFICATION_PREFS, MODE_PRIVATE)
         createNotificationChannel()
-        Log.d(TAG, "GeofencingService erstellt")
+        Log.d(TAG, "GeofencingService created")
     }
 
     private fun createNotificationChannel() {
@@ -105,7 +105,7 @@ class GeofencingService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     /**
-     * Prüft ob eine Netzwerkverbindung verfügbar ist
+     * Checks if network is available
      */
     private fun isNetworkAvailable(): Boolean {
         val connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -117,45 +117,45 @@ class GeofencingService : Service() {
     }
 
     /**
-     * Prüft ob heute Home Office geplant ist und sendet eine Notification falls ja
+     * Checks if home office is planned for today and sends a notification if so
      */
     suspend fun checkAndSendHomeOfficeNotification() {
         try {
-            Log.d(TAG, "Prüfe Home Office Status für heute...")
+            Log.d(TAG, "Checking home office status for today...")
 
             // Prüfe ob heute bereits eine Notification gesendet wurde
             val today = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
             val lastNotificationDate = sharedPrefs.getString(KEY_LAST_NOTIFICATION_DATE, "")
 
             if (lastNotificationDate == today) {
-                Log.d(TAG, "Heute bereits eine Home Office Notification gesendet - überspringe")
+                Log.d(TAG, "Home office notification already sent today - skipping")
                 return
             }
 
             // Prüfe Netzwerkverbindung
             if (!isNetworkAvailable()) {
-                Log.w(TAG, "Keine Netzwerkverbindung verfügbar - verschiebe Prüfung")
+                Log.w(TAG, "No network connection available - postponing check")
                 scheduleRetry()
                 return
             }
-            Log.d(TAG, "Netzwerkverbindung verfügbar - fahre fort mit Home Office Prüfung")
+            Log.d(TAG, "Network connection available - continuing with home office check")
 
             // Mit Timeout für Netzwerk-Operationen
             withTimeout(NETWORK_TIMEOUT_MS) {
                 // Hole aktuellen User
                 val currentUser = authRepository.currentUser.first()
                 if (currentUser?.uid == null) {
-                    Log.w(TAG, "Kein angemeldeter User gefunden")
+                    Log.w(TAG, "No logged in user found")
                     return@withTimeout
                 }
 
                 val user = userRepository.getUserStream(currentUser.uid).first().getOrNull()
                 if (user == null) {
-                    Log.w(TAG, "User-Daten konnten nicht geladen werden")
+                    Log.w(TAG, "User data could not be loaded")
                     return@withTimeout
                 }
 
-                // Prüfe ob User heute Home Office hat
+                // Check if user has home office today
                 val todayBookings =
                     bookingRepository
                         .getUserBookingsForDate(
@@ -169,45 +169,45 @@ class GeofencingService : Service() {
                     }
 
                 if (hasHomeOfficeToday) {
-                    Log.d(TAG, "User hat heute Home Office geplant - sende Notification")
+                    Log.d(TAG, "User has home office planned for today - sending notification")
 
-                    // Sende lokale Notification
+                    // Send local notification
                     notificationManager.showHomeOfficeReminderNotification(user.name)
 
-                    // Speichere dass heute bereits eine Notification gesendet wurde
+                    // Save that a notification has already been sent today
                     sharedPrefs
                         .edit {
                             putString(KEY_LAST_NOTIFICATION_DATE, today)
                                 .putInt(KEY_RETRY_COUNT, 0) // Reset retry count on success
                         }
 
-                    Log.d(TAG, "Home Office Notification erfolgreich gesendet")
+                    Log.d(TAG, "Home office notification sent successfully")
                 } else {
-                    Log.d(TAG, "Kein Home Office für heute geplant - keine Notification")
+                    Log.d(TAG, "No home office planned for today - no notification")
                     // Reset retry count even if no notification needed
                     sharedPrefs.edit { putInt(KEY_RETRY_COUNT, 0) }
                 }
             }
         } catch (e: TimeoutCancellationException) {
-            Log.w(TAG, "Timeout beim Prüfen des Home Office Status - versuche später erneut ${e.message}")
+            Log.w(TAG, "Timeout while checking home office status - will retry later ${e.message}")
             scheduleRetry()
         } catch (e: UnknownHostException) {
-            Log.w(TAG, "DNS Resolution Fehler - keine Internetverbindung: ${e.message}")
+            Log.w(TAG, "DNS resolution error - no internet connection: ${e.message}")
             scheduleRetry()
         } catch (e: SocketTimeoutException) {
-            Log.w(TAG, "Socket Timeout - schwache Verbindung: ${e.message}")
+            Log.w(TAG, "Socket timeout - weak connection: ${e.message}")
             scheduleRetry()
         } catch (e: IOException) {
-            Log.w(TAG, "Netzwerk I/O Fehler: ${e.message}")
+            Log.w(TAG, "Network I/O error: ${e.message}")
             scheduleRetry()
         } catch (e: Exception) {
-            Log.e(TAG, "Unerwarteter Fehler beim Prüfen des Home Office Status", e)
+            Log.e(TAG, "Unexpected error while checking home office status", e)
             // Don't schedule retry for unexpected errors to avoid infinite loops
         }
     }
 
     /**
-     * Plant einen erneuten Versuch für später ein (nur bei Netzwerkproblemen)
+     * Schedules a retry for later (only for network issues)
      */
     private suspend fun scheduleRetry() {
         val currentRetryCount = sharedPrefs.getInt(KEY_RETRY_COUNT, 0)
@@ -216,83 +216,83 @@ class GeofencingService : Service() {
             val newRetryCount = currentRetryCount + 1
             sharedPrefs.edit { putInt(KEY_RETRY_COUNT, newRetryCount) }
 
-            Log.d(TAG, "Plane Wiederholung $newRetryCount/$MAX_RETRY_COUNT für später ein")
+            Log.d(TAG, "Scheduling retry $newRetryCount/$MAX_RETRY_COUNT for later")
 
             val delayMs = 30000L * (1 shl (newRetryCount - 1))
 
-            Log.d(TAG, "Plane Wiederholung $newRetryCount/$MAX_RETRY_COUNT in ${delayMs / 1000}s")
+            Log.d(TAG, "Scheduling retry $newRetryCount/$MAX_RETRY_COUNT in ${delayMs / 1000}s")
 
             scope.launch {
                 delay(delayMs)
                 checkAndSendHomeOfficeNotification()
             }
         } else {
-            Log.w(TAG, "Maximale Anzahl von Wiederholungen erreicht - gebe auf")
+            Log.w(TAG, "Maximum number of retries reached - giving up")
             sharedPrefs.edit { putInt(KEY_RETRY_COUNT, 0) }
         }
     }
 
     /**
-     * Re-registriert Geofences nach einem Geräte-Neustart oder App-Update
+     * Re-registers geofences after a device reboot or app update
      */
     @RequiresPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     private suspend fun reregisterGeofencesAfterBoot() {
         try {
-            Log.d(TAG, "Re-registriere Geofences nach Boot/Update...")
+            Log.d(TAG, "Re-registering geofences after boot/update...")
 
-            // Prüfe ob Geofencing vorher aktiv war
+            // Check if geofencing was active before
             if (!geofencingManager.isGeofenceActive()) {
-                Log.d(TAG, "Geofencing war nicht aktiv - keine Re-Registration nötig")
+                Log.d(TAG, "Geofencing was not active - no re-registration needed")
                 return
             }
 
-            // Prüfe Netzwerkverbindung
+            // Check network connection
             if (!isNetworkAvailable()) {
-                Log.w(TAG, "Keine Netzwerkverbindung für Geofence Re-Registration")
+                Log.w(TAG, "No network connection for geofence re-registration")
                 return
             }
 
-            // Mit Timeout für Netzwerk-Operationen
+            // With timeout for network operations
             withTimeout(NETWORK_TIMEOUT_MS) {
-                // Hole aktuellen User
+                // Get current user
                 val currentUser = authRepository.currentUser.first()
                 if (currentUser?.uid == null) {
-                    Log.w(TAG, "Kein angemeldeter User - deaktiviere Geofencing Status")
+                    Log.w(TAG, "No logged in user - disabling geofencing status")
                     geofencingManager.removeGeofences()
                     return@withTimeout
                 }
 
                 val user = userRepository.getUserStream(currentUser.uid).first().getOrNull()
                 if (user == null) {
-                    Log.w(TAG, "User-Daten nicht verfügbar für Geofence Re-Registration")
+                    Log.w(TAG, "User data not available for geofence re-registration")
                     return@withTimeout
                 }
 
-                // Prüfe ob User noch Home-Koordinaten hat
+                // Check if user still has home coordinates
                 if (user.hasHomeLocation) {
-                    Log.d(TAG, "Re-registriere Geofence für User: ${user.name}")
+                    Log.d(TAG, "Re-registering geofence for user: ${user.name}")
 
                     geofencingManager.setupHomeGeofence(user).fold(
                         onSuccess = {
-                            Log.d(TAG, "Geofence erfolgreich re-registriert nach Boot/Update")
+                            Log.d(TAG, "Geofence successfully re-registered after boot/update")
                         },
                         onFailure = { error ->
-                            Log.e(TAG, "Fehler beim Re-Registrieren der Geofence", error)
-                            // Setze Status auf inaktiv bei Fehlern
+                            Log.e(TAG, "Error re-registering geofence", error)
+                            // Set status to inactive on errors
                             geofencingManager.removeGeofences()
                         },
                     )
                 } else {
-                    Log.d(TAG, "User hat keine Home-Location mehr - deaktiviere Geofencing")
+                    Log.d(TAG, "User has no home location anymore - disabling geofencing")
                     geofencingManager.removeGeofences()
                 }
             }
         } catch (e: TimeoutCancellationException) {
-            Log.w(TAG, "Timeout beim Re-Registrieren der Geofences")
+            Log.w(TAG, "Timeout while re-registering geofences")
         } catch (e: UnknownHostException) {
-            Log.w(TAG, "DNS Fehler beim Re-Registrieren der Geofences: ${e.message}")
+            Log.w(TAG, "DNS error while re-registering geofences: ${e.message}")
         } catch (e: Exception) {
-            Log.e(TAG, "Unerwarteter Fehler beim Re-Registrieren der Geofences", e)
+            Log.e(TAG, "Unexpected error while re-registering geofences", e)
         }
     }
 
@@ -302,9 +302,9 @@ class GeofencingService : Service() {
         flags: Int,
         startId: Int,
     ): Int {
-        Log.d(TAG, "GeofencingService gestartet mit Action: ${intent?.action}")
+        Log.d(TAG, "GeofencingService started with Action: ${intent?.action}")
 
-        // Starte als Foreground Service
+        // Start as Foreground Service
         startForeground(FOREGROUND_NOTIFICATION_ID, createForegroundNotification())
 
         when (intent?.action) {
@@ -318,7 +318,7 @@ class GeofencingService : Service() {
                 }
             }
             else -> {
-                // Standard-Aktion: Home Office Status prüfen
+                // Default action: Check home office status
                 scope.launch {
                     try {
                         checkAndSendHomeOfficeNotification()
@@ -334,6 +334,6 @@ class GeofencingService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(TAG, "GeofencingService beendet")
+        Log.d(TAG, "GeofencingService stopped")
     }
 }

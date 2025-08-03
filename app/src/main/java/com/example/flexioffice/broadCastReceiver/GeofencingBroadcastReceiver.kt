@@ -41,15 +41,15 @@ class GeofencingBroadcastReceiver : BroadcastReceiver() {
                 Log.d(TAG, "Exit from geofence: ${geofence.requestId}")
 
                 if (geofence.requestId == "home_geofence") {
-                    Log.d(TAG, "User hat Zuhause verlassen - starte GeofencingService")
+                    Log.d(TAG, "User left home geofence - starting GeofencingService")
 
-                    // Starte GeofencingService um Home Office Status zu prüfen
+                    // Start GeofencingService to check home office status
                     val serviceIntent = Intent(context, GeofencingService::class.java)
                     context.startForegroundService(serviceIntent)
                 }
             }
         } else {
-            Log.d(TAG, "Unbekannter Geofence-Übergang: $geofenceTransition")
+            Log.d(TAG, "Unknown geofence transition: $geofenceTransition")
         }
     }
 }

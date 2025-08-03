@@ -42,7 +42,7 @@ data class BookingUiState(
     val showCancelledBookings: Boolean = false,
     val userBookings: List<Booking> = emptyList(),
     val approverName: String? = null,
-    val isWeekView: Boolean = false, // Neue Property für Kalenderansicht
+    val isWeekView: Boolean = false, // new Property for calendar view
     // Multi-select properties
     val isMultiSelectMode: Boolean = false,
     val selectedBookings: Set<String> = emptySet(), // Booking IDs
@@ -195,12 +195,12 @@ class BookingViewModel
                 return
             }
 
-            // Prüfe, ob das ausgewählte Datum in der Vergangenheit liegt
-            if (currentState.selectedDate.isBefore(LocalDate.now())) {
+            // Check if the selected date is in the past
+            if (selectedDate.isBefore(LocalDate.now())) {
                 _uiState.update { it.copy(error = "Buchungen für vergangene Tage sind nicht möglich") }
                 return
             }
-            // Prüfe, ob bereits eine aktive Buchung für dieses Datum existiert
+            // Check if there is already an active booking for this date
             val existingBooking =
                 currentState.userBookings.find {
                     it.date == currentState.selectedDate && it.status != BookingStatus.CANCELLED
@@ -236,12 +236,12 @@ class BookingViewModel
 
                     Log.d(
                         "BookingViewModel",
-                        "Erstelle Buchung für User: ${user.name}, Team: ${team.id}",
+                        "Creating booking for User: ${user.name}, Team: ${team.id}",
                     )
 
                     val booking =
                         Booking(
-                            id = "", // Die ID wird jetzt im Repository gesetzt
+                            id = "", // The ID will now be set in the repository
                             userId = userId,
                             userName = user.name,
                             teamId = team.id,
@@ -271,17 +271,17 @@ class BookingViewModel
                         } catch (e: Exception) {
                             Log.e(
                                 "BookingViewModel",
-                                "Fehler beim Senden der Benachrichtigung",
+                                "Error sending notification",
                                 e,
                             )
                         }
                     }
                 } catch (e: Exception) {
-                    Log.e("BookingViewModel", "Fehler beim Erstellen der Buchung", e)
+                    Log.e("BookingViewModel", "Error creating booking", e)
                     _uiState.update {
                         it.copy(
                             error =
-                                "Die Buchung konnte nicht erstellt werden. Bitte versuchen Sie es später erneut.",
+                                "The booking could not be created. Please try again later.",
                         )
                     }
                 } finally {
@@ -292,12 +292,12 @@ class BookingViewModel
 
         private suspend fun loadApproverName(userId: String?): String {
             return try {
-                if (userId == null) return "Nicht zugewiesen"
+                if (userId == null) return "Not assigned"
                 val user = userRepository.getUserById(userId).getOrNull()
-                user?.name ?: "Unbekannt"
+                user?.name ?: "Unknown"
             } catch (e: Exception) {
                 Log.e("BookingViewModel", "Error loading approver name for userId: $userId", e)
-                "Fehler beim Laden"
+                "Error loading"
             }
         }
 
