@@ -74,25 +74,6 @@ fun BookingLegend(modifier: Modifier = Modifier) {
                     text = "Storniert",
                 )
             }
-
-            // Home-Office Indikator
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Box(
-                    modifier =
-                        Modifier
-                            .size(16.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF4CAF50)), // Green für Home-Office
-                )
-                Text(
-                    text = "Home-Office Tag",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
         }
     }
 }
