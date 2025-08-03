@@ -25,6 +25,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -340,6 +341,7 @@ class GeofencingService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        scope.cancel()
         Log.d(TAG, "GeofencingService stopped")
     }
 }
