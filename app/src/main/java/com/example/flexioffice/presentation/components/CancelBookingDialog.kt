@@ -12,6 +12,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
+import com.example.flexioffice.ui.components.base.FlexiOfficeDangerButton
+import com.example.flexioffice.ui.components.base.FlexiOfficeTextButton
 
 @Composable
 fun CancelBookingDialog(
@@ -27,21 +29,19 @@ fun CancelBookingDialog(
             title = { Text(stringResource(R.string.cancel_booking_dialog_title)) },
             text = { Text(stringResource(R.string.cancel_booking_dialog_message)) },
             confirmButton = {
-                Button(
+                FlexiOfficeDangerButton(
+                    text = stringResource(R.string.calendar_cancel_button),
                     onClick = onConfirmCancel,
                     enabled = !isLoading,
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp,
-                        )
-                    } else {
-                        Text(stringResource(R.string.calendar_cancel_button))
-                    }
-                }
+                    isLoading = isLoading
+                )
             },
-            dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+            dismissButton = { 
+                FlexiOfficeTextButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = onDismiss
+                ) 
+            },
         )
     }
 }

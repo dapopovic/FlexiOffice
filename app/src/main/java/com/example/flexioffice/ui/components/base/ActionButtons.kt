@@ -153,3 +153,63 @@ fun FlexiOfficeTextButton(
         Text(text)
     }
 }
+
+@Composable
+fun FlexiOfficeDangerButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    isLoading: Boolean = false,
+    icon: ImageVector? = null,
+    iconPainter: Painter? = null
+) {
+    Button(
+        onClick = onClick,
+        enabled = enabled && !isLoading,
+        modifier = modifier,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.error,
+            contentColor = MaterialTheme.colorScheme.onError
+        )
+    ) {
+        when {
+            isLoading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(FlexiOfficeSpacing.smallIconSize),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.onError
+                )
+                if (text.isNotEmpty()) {
+                    Spacer(modifier = Modifier.width(FlexiOfficeSpacing.small))
+                    Text(text)
+                }
+            }
+            icon != null -> {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(FlexiOfficeSpacing.smallIconSize)
+                )
+                if (text.isNotEmpty()) {
+                    Spacer(modifier = Modifier.width(FlexiOfficeSpacing.extraSmall))
+                    Text(text)
+                }
+            }
+            iconPainter != null -> {
+                Icon(
+                    painter = iconPainter,
+                    contentDescription = null,
+                    modifier = Modifier.size(FlexiOfficeSpacing.smallIconSize)
+                )
+                if (text.isNotEmpty()) {
+                    Spacer(modifier = Modifier.width(FlexiOfficeSpacing.extraSmall))
+                    Text(text)
+                }
+            }
+            else -> {
+                Text(text)
+            }
+        }
+    }
+}

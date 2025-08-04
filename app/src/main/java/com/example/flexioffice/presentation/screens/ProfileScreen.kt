@@ -38,6 +38,8 @@ import com.example.flexioffice.R
 import com.example.flexioffice.navigation.FlexiOfficeRoutes
 import com.example.flexioffice.presentation.AuthViewModel
 import com.example.flexioffice.presentation.MainViewModel
+import com.example.flexioffice.ui.components.base.FlexiOfficeDangerButton
+import com.example.flexioffice.ui.components.base.FlexiOfficeSecondaryButton
 
 private const val TAG = "ProfileScreen"
 
@@ -300,44 +302,25 @@ fun ProfileScreen(
             }
 
             // Geofencing Settings Button
-            OutlinedButton(
+            FlexiOfficeSecondaryButton(
+                text = stringResource(R.string.home_office_reminders),
                 onClick = {
                     navController?.navigate(FlexiOfficeRoutes.GeofencingSettings.route)
                 },
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            ) {
-                Icon(
-                    Icons.Default.LocationOn,
-                    contentDescription = null,
-                    modifier = Modifier.padding(end = 8.dp),
-                )
-                Text(stringResource(R.string.home_office_reminders))
-            }
+                icon = Icons.Default.LocationOn,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+            )
 
             // Logout Button
-            Button(
+            FlexiOfficeDangerButton(
+                text = stringResource(R.string.logout_button),
                 onClick = {
                     authViewModel.signOut()
                 },
-                modifier = Modifier.fillMaxWidth(),
-                colors =
-                    ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                    ),
-            ) {
-                if (authUiState.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        color = MaterialTheme.colorScheme.onError,
-                    )
-                } else {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ExitToApp,
-                        contentDescription = null,
-                        modifier = Modifier.padding(end = 8.dp),
-                    )
-                    Text(stringResource(R.string.logout_button))
-                }
+                isLoading = authUiState.isLoading,
+                icon = Icons.AutoMirrored.Filled.ExitToApp,
+                modifier = Modifier.fillMaxWidth()
+            )
             }
 
             Spacer(modifier = Modifier.weight(1f))
