@@ -1,6 +1,7 @@
 package com.example.flexioffice.presentation
 
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.data.AuthRepository
@@ -50,8 +51,18 @@ class RequestsViewModel
         private val authRepository: AuthRepository,
         private val notificationRepository: NotificationRepository,
         private val auth: FirebaseAuth,
+        private val savedStateHandle: SavedStateHandle,
     ) : ViewModel() {
-        private val _uiState = MutableStateFlow(RequestsUiState())
+        
+        companion object {
+            private const val SELECTED_TEAM_MEMBER_KEY = "requests_selected_team_member"
+        }
+        
+        private val _uiState = MutableStateFlow(
+            RequestsUiState(
+                selectedTeamMember = savedStateHandle.get<String>(SELECTED_TEAM_MEMBER_KEY)
+            )
+        )
         val uiState: StateFlow<RequestsUiState> = _uiState
 
         init {
@@ -129,11 +140,13 @@ class RequestsViewModel
         // Filter-Funktionen
         fun setTeamMemberFilter(userId: String?) {
             _uiState.update { it.copy(selectedTeamMember = userId) }
+            savedStateHandle[SELECTED_TEAM_MEMBER_KEY] = userId
             applyFilters()
         }
 
         fun clearFilters() {
             _uiState.update { it.copy(selectedTeamMember = null) }
+            savedStateHandle.remove<String>(SELECTED_TEAM_MEMBER_KEY)
             applyFilters()
         }
 
