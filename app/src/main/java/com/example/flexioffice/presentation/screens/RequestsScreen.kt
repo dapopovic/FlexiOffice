@@ -53,6 +53,12 @@ import com.example.flexioffice.presentation.RequestsViewModel
 import com.example.flexioffice.presentation.components.EnterMultiSelectModeButton
 import com.example.flexioffice.presentation.components.RequestsFilters
 import com.example.flexioffice.presentation.components.swipeableCard
+import com.example.flexioffice.ui.components.base.EmptyState
+import com.example.flexioffice.ui.components.base.FlexiOfficePrimaryButton
+import com.example.flexioffice.ui.components.base.FlexiOfficeSecondaryButton
+import com.example.flexioffice.ui.components.base.LoadingIndicator
+import com.example.flexioffice.ui.components.base.MultiSelectAction
+import com.example.flexioffice.ui.components.base.MultiSelectTopBar
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
@@ -76,15 +82,35 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             if (uiState.isMultiSelectMode) {
-                RequestsMultiSelectTopBar(
+                MultiSelectTopBar(
                     selectedCount = uiState.selectedRequests.size,
-                    onExitMultiSelect = { viewModel.exitMultiSelectMode() },
-                    onSelectAll = { viewModel.selectAllRequests() },
-                    onClearSelection = { viewModel.clearSelection() },
-                    onBatchApprove = { viewModel.batchApproveRequests() },
-                    onBatchDecline = { viewModel.batchDeclineRequests() },
-                    isBatchProcessing = uiState.isBatchProcessing,
-                )
+                    onExitMultiSelect = { viewModel.exitMultiSelectMode() }
+                ) {
+                    if (uiState.selectedRequests.isNotEmpty()) {
+                        MultiSelectAction(
+                            icon = Icons.Default.CheckCircle,
+                            contentDescription = stringResource(R.string.batch_approve_selected),
+                            onClick = { viewModel.batchApproveRequests() },
+                            enabled = !uiState.isBatchProcessing
+                        )
+                        MultiSelectAction(
+                            icon = ImageVector.vectorResource(R.drawable.cancel_24px),
+                            contentDescription = stringResource(R.string.batch_decline_selected),
+                            onClick = { viewModel.batchDeclineRequests() },
+                            enabled = !uiState.isBatchProcessing
+                        )
+                        MultiSelectAction(
+                            icon = ImageVector.vectorResource(R.drawable.check_box_outline_blank_24px),
+                            contentDescription = stringResource(R.string.batch_clear_selection),
+                            onClick = { viewModel.clearSelection() }
+                        )
+                    }
+                    MultiSelectAction(
+                        icon = ImageVector.vectorResource(R.drawable.check_box_24px),
+                        contentDescription = stringResource(R.string.select_all),
+                        onClick = { viewModel.selectAllRequests() }
+                    )
+                }
             }
         },
     ) { padding ->
@@ -132,47 +158,15 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
 
             if (uiState.isLoading) {
                 // Loading state
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                    Text(
-                        text = stringResource(R.string.requests_loading),
-                        modifier = Modifier.padding(start = 8.dp),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+                LoadingIndicator(text = stringResource(R.string.requests_loading))
             } else if (uiState.pendingRequests.isEmpty()) {
                 // Empty state
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(24.dp).fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.assignment_24px),
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            text = stringResource(R.string.requests_empty_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(top = 16.dp),
-                        )
-                        Text(
-                            text = stringResource(R.string.requests_empty_subtitle),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 8.dp),
-                        )
-                    }
-                }
+                EmptyState(
+                    title = stringResource(R.string.requests_empty_title),
+                    subtitle = stringResource(R.string.requests_empty_subtitle),
+                    iconPainter = painterResource(R.drawable.assignment_24px),
+                    modifier = Modifier.padding(top = 8.dp)
+                )
             } else {
                 // List of pending requests
                 LazyColumn(
@@ -338,109 +332,30 @@ fun RequestItem(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Button(
+                    FlexiOfficePrimaryButton(
+                        text = if (isProcessing) {
+                            stringResource(R.string.requests_action_processing)
+                        } else {
+                            stringResource(R.string.requests_action_approve)
+                        },
                         onClick = onApprove,
                         modifier = Modifier.weight(1f),
                         enabled = !isProcessing,
-                    ) {
-                        if (isProcessing) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                            )
-                        } else {
-                            Icon(
-                                Icons.Default.CheckCircle,
-                                contentDescription = null,
-                                modifier = Modifier.padding(end = 4.dp).size(16.dp),
-                            )
-                        }
-                        Text(
-                            text =
-                                if (isProcessing) {
-                                    stringResource(
-                                        R.string.requests_action_processing,
-                                    )
-                                } else {
-                                    stringResource(R.string.requests_action_approve)
-                                },
-                            modifier =
-                                Modifier.padding(start = if (isProcessing) 8.dp else 0.dp),
-                        )
-                    }
+                        isLoading = isProcessing,
+                        icon = if (!isProcessing) Icons.Default.CheckCircle else null
+                    )
 
-                    OutlinedButton(
+                    FlexiOfficeSecondaryButton(
+                        text = stringResource(R.string.requests_action_decline),
                         onClick = onDecline,
                         modifier = Modifier.weight(1f),
                         enabled = !isProcessing,
-                    ) {
-                        if (!isProcessing) {
-                            Icon(
-                                painter = painterResource(R.drawable.cancel_24px),
-                                contentDescription = null,
-                                modifier = Modifier.padding(end = 4.dp).size(16.dp),
-                            )
-                        }
-                        Text(text = stringResource(R.string.requests_action_decline))
-                    }
+                        iconPainter = if (!isProcessing) painterResource(R.drawable.cancel_24px) else null
+                    )
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun RequestsMultiSelectTopBar(
-    selectedCount: Int,
-    onExitMultiSelect: () -> Unit,
-    onSelectAll: () -> Unit,
-    onClearSelection: () -> Unit,
-    onBatchApprove: () -> Unit,
-    onBatchDecline: () -> Unit,
-    isBatchProcessing: Boolean,
-) {
-    TopAppBar(
-        title = { Text("$selectedCount ausgewählt") },
-        navigationIcon = {
-            IconButton(onClick = onExitMultiSelect) {
-                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.multi_select_exit))
-            }
-        },
-        actions = {
-            if (selectedCount > 0) {
-                IconButton(
-                    onClick = onBatchApprove,
-                    enabled = !isBatchProcessing,
-                ) {
-                    Icon(
-                        Icons.Default.CheckCircle,
-                        contentDescription = stringResource(R.string.batch_approve_selected),
-                    )
-                }
-                IconButton(
-                    onClick = onBatchDecline,
-                    enabled = !isBatchProcessing,
-                ) {
-                    Icon(
-                        ImageVector.vectorResource(R.drawable.cancel_24px),
-                        contentDescription = stringResource(R.string.batch_decline_selected),
-                    )
-                }
-                IconButton(onClick = onClearSelection) {
-                    Icon(
-                        ImageVector.vectorResource(R.drawable.check_box_outline_blank_24px),
-                        contentDescription = stringResource(R.string.batch_clear_selection),
-                    )
-                }
-            }
-            IconButton(onClick = onSelectAll) {
-                Icon(
-                    ImageVector.vectorResource(R.drawable.check_box_24px),
-                    contentDescription = stringResource(R.string.select_all),
-                )
-            }
-        },
-    )
-}
+

@@ -40,6 +40,8 @@ import com.example.flexioffice.presentation.components.BookingItem
 import com.example.flexioffice.presentation.components.BookingScreenHeader
 import com.example.flexioffice.presentation.components.CancelBookingDialog
 import com.example.flexioffice.presentation.components.EmptyBookingsCard
+import com.example.flexioffice.ui.components.base.MultiSelectAction
+import com.example.flexioffice.ui.components.base.MultiSelectTopBar
 
 @Composable
 fun BookingScreen(
@@ -80,12 +82,27 @@ fun BookingScreen(
             if (uiState.isMultiSelectMode) {
                 MultiSelectTopBar(
                     selectedCount = uiState.selectedBookings.size,
-                    onExitMultiSelect = { viewModel.exitMultiSelectMode() },
-                    onSelectAll = { viewModel.selectAllBookings() },
-                    onClearSelection = { viewModel.clearSelection() },
-                    onBatchCancel = { viewModel.batchCancelBookings() },
-                    isBatchProcessing = uiState.isBatchProcessing,
-                )
+                    onExitMultiSelect = { viewModel.exitMultiSelectMode() }
+                ) {
+                    if (uiState.selectedBookings.isNotEmpty()) {
+                        MultiSelectAction(
+                            icon = ImageVector.vectorResource(R.drawable.cancel_24px),
+                            contentDescription = stringResource(R.string.batch_cancel_selected),
+                            onClick = { viewModel.batchCancelBookings() },
+                            enabled = !uiState.isBatchProcessing
+                        )
+                        MultiSelectAction(
+                            icon = ImageVector.vectorResource(R.drawable.check_box_outline_blank_24px),
+                            contentDescription = stringResource(R.string.batch_clear_selection),
+                            onClick = { viewModel.clearSelection() }
+                        )
+                    }
+                    MultiSelectAction(
+                        icon = ImageVector.vectorResource(R.drawable.check_box_24px),
+                        contentDescription = stringResource(R.string.select_all),
+                        onClick = { viewModel.selectAllBookings() }
+                    )
+                }
             }
         },
         floatingActionButton = {
@@ -177,51 +194,4 @@ fun BookingScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MultiSelectTopBar(
-    selectedCount: Int,
-    onExitMultiSelect: () -> Unit,
-    onSelectAll: () -> Unit,
-    onClearSelection: () -> Unit,
-    onBatchCancel: () -> Unit,
-    isBatchProcessing: Boolean,
-) {
-    TopAppBar(
-        title = {
-            Text(
-                pluralStringResource(R.plurals.selected_count, selectedCount, selectedCount),
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = onExitMultiSelect) {
-                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.multi_select_exit))
-            }
-        },
-        actions = {
-            if (selectedCount > 0) {
-                IconButton(
-                    onClick = onBatchCancel,
-                    enabled = !isBatchProcessing,
-                ) {
-                    Icon(
-                        ImageVector.vectorResource(R.drawable.cancel_24px),
-                        contentDescription = stringResource(R.string.batch_cancel_selected),
-                    )
-                }
-                IconButton(onClick = onClearSelection) {
-                    Icon(
-                        ImageVector.vectorResource(R.drawable.check_box_outline_blank_24px),
-                        contentDescription = stringResource(R.string.batch_clear_selection),
-                    )
-                }
-            }
-            IconButton(onClick = onSelectAll) {
-                Icon(
-                    ImageVector.vectorResource(R.drawable.check_box_24px),
-                    contentDescription = stringResource(R.string.select_all),
-                )
-            }
-        },
-    )
-}
+

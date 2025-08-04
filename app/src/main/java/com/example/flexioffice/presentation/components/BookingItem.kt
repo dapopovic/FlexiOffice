@@ -34,6 +34,7 @@ import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.data.model.labelRes
+import com.example.flexioffice.ui.components.base.StatusBadge
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
@@ -193,68 +194,7 @@ fun BookingItem(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Card(
-                        colors =
-                            CardDefaults.cardColors(
-                                containerColor =
-                                    when (booking.status) {
-                                        BookingStatus
-                                            .APPROVED,
-                                        ->
-                                            MaterialTheme
-                                                .colorScheme
-                                                .primaryContainer
-                                        BookingStatus
-                                            .PENDING,
-                                        ->
-                                            MaterialTheme
-                                                .colorScheme
-                                                .tertiaryContainer
-                                        BookingStatus
-                                            .DECLINED,
-                                        ->
-                                            MaterialTheme
-                                                .colorScheme
-                                                .errorContainer
-                                        BookingStatus
-                                            .CANCELLED,
-                                        ->
-                                            MaterialTheme
-                                                .colorScheme
-                                                .surfaceVariant
-                                    },
-                            ),
-                        modifier = Modifier.padding(0.dp),
-                    ) {
-                        Text(
-                            text = stringResource(booking.status.labelRes()),
-                            style = MaterialTheme.typography.labelSmall,
-                            color =
-                                when (booking.status) {
-                                    BookingStatus.APPROVED ->
-                                        MaterialTheme
-                                            .colorScheme
-                                            .onPrimaryContainer
-                                    BookingStatus.PENDING ->
-                                        MaterialTheme
-                                            .colorScheme
-                                            .onTertiaryContainer
-                                    BookingStatus.DECLINED ->
-                                        MaterialTheme
-                                            .colorScheme
-                                            .onErrorContainer
-                                    BookingStatus.CANCELLED ->
-                                        MaterialTheme
-                                            .colorScheme
-                                            .onSurfaceVariant
-                                },
-                            modifier =
-                                Modifier.padding(
-                                    horizontal = 8.dp,
-                                    vertical = 4.dp,
-                                ),
-                        )
-                    }
+                    StatusBadge(status = booking.status)
                 }
 
                 // Comment if present

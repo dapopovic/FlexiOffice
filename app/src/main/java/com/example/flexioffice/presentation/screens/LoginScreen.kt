@@ -39,6 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.flexioffice.R
 import com.example.flexioffice.presentation.AuthViewModel
+import com.example.flexioffice.ui.components.base.FlexiOfficePrimaryButton
+import com.example.flexioffice.ui.components.base.FlexiOfficeTextButton
 
 private const val TAG = "LoginScreen"
 
@@ -147,7 +149,12 @@ fun LoginScreen(
         }
 
         // Login/Registration Button
-        Button(
+        FlexiOfficePrimaryButton(
+            text = if (isRegistering) {
+                stringResource(R.string.register_button)
+            } else {
+                stringResource(R.string.login_button)
+            },
             onClick = {
                 authViewModel.clearErrorMessage()
                 if (isRegistering) {
@@ -157,40 +164,21 @@ fun LoginScreen(
                 }
             },
             enabled = !uiState.isLoading && email.isNotBlank() && password.isNotBlank(),
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-        ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                )
-            } else {
-                Text(
-                    if (isRegistering) {
-                        stringResource(
-                            R.string.register_button,
-                        )
-                    } else {
-                        stringResource(R.string.login_button)
-                    },
-                )
-            }
-        }
+            isLoading = uiState.isLoading,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+        )
 
         // Switch between login and registration
-        TextButton(
+        FlexiOfficeTextButton(
+            text = if (isRegistering) {
+                stringResource(R.string.login_switch_text)
+            } else {
+                stringResource(R.string.register_switch_text)
+            },
             onClick = {
                 isRegistering = !isRegistering
                 authViewModel.clearErrorMessage()
-            },
-        ) {
-            Text(
-                if (isRegistering) {
-                    stringResource(R.string.login_switch_text)
-                } else {
-                    stringResource(R.string.register_switch_text)
-                },
-            )
-        }
+            }
+        )
     }
 }
