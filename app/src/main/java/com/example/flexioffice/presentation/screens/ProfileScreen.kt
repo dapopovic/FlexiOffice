@@ -38,6 +38,7 @@ import com.example.flexioffice.R
 import com.example.flexioffice.navigation.FlexiOfficeRoutes
 import com.example.flexioffice.presentation.AuthViewModel
 import com.example.flexioffice.presentation.MainViewModel
+import com.example.flexioffice.presentation.components.Header
 
 private const val TAG = "ProfileScreen"
 
@@ -59,25 +60,11 @@ fun ProfileScreen(
                     .padding(paddingValues)
                     .padding(16.dp),
         ) {
-            // Header
-            Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 24.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.padding(end = 8.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-                Text(
-                    text = stringResource(R.string.profile_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                )
-            }
+            Header(
+                title = stringResource(R.string.profile_title),
+                iconVector = Icons.Default.Person,
+                modifier = Modifier.padding(bottom = 16.dp),
+            )
 
             // User information
             mainUiState.currentUser?.let { user ->

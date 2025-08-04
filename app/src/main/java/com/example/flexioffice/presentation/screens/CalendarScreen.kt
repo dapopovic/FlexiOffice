@@ -51,13 +51,13 @@ import com.example.flexioffice.R
 import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.data.model.labelRes
 import com.example.flexioffice.navigation.FlexiOfficeRoutes
-import com.example.flexioffice.presentation.components.ConfirmationDialog
-import com.example.flexioffice.presentation.components.ConfirmationDialogType
 import com.example.flexioffice.presentation.CalendarUiState
 import com.example.flexioffice.presentation.CalendarViewModel
 import com.example.flexioffice.presentation.components.BookingDialog
 import com.example.flexioffice.presentation.components.BookingLegend
 import com.example.flexioffice.presentation.components.CalendarFilters
+import com.example.flexioffice.presentation.components.ConfirmationDialog
+import com.example.flexioffice.presentation.components.ConfirmationDialogType
 import com.example.flexioffice.presentation.components.EventsList
 import com.example.flexioffice.presentation.components.Filters
 import com.example.flexioffice.presentation.components.MonthCalendar
@@ -178,7 +178,7 @@ fun CalendarScreen(
         onDismiss = { viewModel.hideCancelDialog() },
         onConfirm = { viewModel.confirmCancelBooking() },
         title = stringResource(R.string.calendar_cancel_booking_title),
-        message = stringResource(R.string.calendar_cancel_booking_message)
+        message = stringResource(R.string.calendar_cancel_booking_message),
     )
 
     Scaffold(

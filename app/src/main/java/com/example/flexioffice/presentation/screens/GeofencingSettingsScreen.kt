@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.flexioffice.R
 import com.example.flexioffice.presentation.GeofencingSettingsViewModel
+import com.example.flexioffice.presentation.components.Header
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +55,7 @@ fun GeofencingSettingsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Permission launcher für Location-Berechtigungen
+    // Permission launcher for Location permissions
     val locationPermissionLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestMultiplePermissions(),
@@ -95,9 +96,13 @@ fun GeofencingSettingsScreen(
                     .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
-            // Header
-            GeofencingSettingsHeader(
+            Header(
+                title = stringResource(R.string.geofencing_title),
+                subtitle = stringResource(R.string.geofencing_subtitle),
+                iconVector = Icons.Default.LocationOn,
+                iconDescription = stringResource(R.string.geofencing_location_icon_desc),
                 onBackPressed = navigateBack,
+                hasBackButton = true,
             )
 
             // Location Permission Card
@@ -147,44 +152,6 @@ fun GeofencingSettingsScreen(
 
             // Info Card
             GeofencingInfoCard()
-        }
-    }
-}
-
-@Composable
-private fun GeofencingSettingsHeader(onBackPressed: () -> Unit = {}) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        IconButton(
-            onClick = onBackPressed,
-            modifier = Modifier.size(32.dp),
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.geofencing_back_desc),
-                tint = MaterialTheme.colorScheme.onSurface,
-            )
-        }
-        Icon(
-            imageVector = Icons.Default.LocationOn,
-            contentDescription = stringResource(R.string.geofencing_location_icon_desc),
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(32.dp),
-        )
-        Column {
-            Text(
-                text = stringResource(R.string.geofencing_title),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = stringResource(R.string.geofencing_subtitle),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }

@@ -50,8 +50,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.presentation.RequestsViewModel
-import com.example.flexioffice.presentation.components.EnterMultiSelectModeButton
 import com.example.flexioffice.presentation.components.Filters
+import com.example.flexioffice.presentation.components.Header
 import com.example.flexioffice.presentation.components.swipeableCard
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -91,24 +91,15 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
         ) {
-            // Header
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.assignment_24px),
-                    contentDescription = stringResource(R.string.requests_icon_desc),
-                    modifier = Modifier.padding(end = 8.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-                Text(text = stringResource(R.string.requests_title), style = MaterialTheme.typography.headlineMedium)
-                EnterMultiSelectModeButton(
-                    isMultiselectMode = uiState.isMultiSelectMode,
-                    onEnterMultiSelectMode = viewModel::startMultiSelectMode,
-                    isListEmpty = uiState.pendingRequests.isEmpty(),
-                )
-            }
+            Header(
+                modifier = Modifier.padding(bottom = 16.dp),
+                title = stringResource(R.string.requests_title),
+                iconVector = ImageVector.vectorResource(R.drawable.assignment_24px),
+                iconDescription = stringResource(R.string.requests_icon_desc),
+                isMultiSelectMode = uiState.isMultiSelectMode,
+                doNotShowMultiSelectButton = uiState.pendingRequests.isEmpty(),
+                onEnterMultiSelectMode = viewModel::startMultiSelectMode,
+            )
 
             Text(
                 text = stringResource(R.string.requests_subtitle),

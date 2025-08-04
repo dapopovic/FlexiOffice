@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -49,6 +48,7 @@ import com.example.flexioffice.data.model.User
 import com.example.flexioffice.presentation.TeamEvent
 import com.example.flexioffice.presentation.TeamViewModel
 import com.example.flexioffice.presentation.components.DeleteTeamMemberDialog
+import com.example.flexioffice.presentation.components.Header
 
 private const val TAG = "TeamsScreen"
 
@@ -375,7 +375,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
             userToDelete?.let { viewModel.removeMember(it.id) }
             showDeleteConfirmation = false
             userToDelete = null
-        }
+        },
     )
 
     // Team member invite dialog
@@ -613,22 +613,12 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
             modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
         ) {
             // Header
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.padding(end = 8.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-                Text(
-                    text = stringResource(R.string.teams_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.weight(1f),
-                )
-            }
+            Header(
+                title = stringResource(R.string.teams_title),
+                iconVector = Icons.Default.Person,
+                hasBackButton = false,
+                modifier = Modifier.padding(bottom = 16.dp),
+            )
 
             if (uiState.currentTeam == null && !uiState.isLoading) {
                 Column(

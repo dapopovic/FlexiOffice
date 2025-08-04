@@ -2,7 +2,10 @@ package com.example.flexioffice.presentation.screens
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,9 +14,11 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -21,6 +26,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -43,6 +49,7 @@ import com.example.flexioffice.presentation.components.BookingScreenHeader
 import com.example.flexioffice.presentation.components.CancelBookingDialog
 import com.example.flexioffice.presentation.components.EmptyBookingsCard
 import com.example.flexioffice.presentation.components.Filters
+import com.example.flexioffice.presentation.components.Header
 
 @Composable
 fun BookingScreen(
@@ -105,16 +112,35 @@ fun BookingScreen(
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             item {
-                BookingScreenHeader(
-                    showCancelledBookings = uiState.showCancelledBookings,
-                    onToggleCancelledBookings = { viewModel.toggleCancelledBookings() },
-                    onToggleMultiSelectView = { viewModel.startMultiSelectMode() },
-                    isMultiselectMode = uiState.isMultiSelectMode,
-                    isBookingListEmpty =
-                        uiState.userBookings.none { booking ->
-                            booking.status != BookingStatus.CANCELLED
-                        },
-                )
+                Column {
+                    Header(
+                        modifier = Modifier.padding(bottom = 16.dp),
+                        title = stringResource(R.string.booking_header_title),
+                        iconVector = ImageVector.vectorResource(R.drawable.schedule_24px),
+                        iconDescription = stringResource(R.string.booking_header_icon_desc),
+                        isMultiSelectMode = uiState.isMultiSelectMode,
+                        doNotShowMultiSelectButton =
+                            uiState.userBookings.none { booking ->
+                                booking.status != BookingStatus.CANCELLED
+                            },
+                        onEnterMultiSelectMode = viewModel::startMultiSelectMode,
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.booking_header_show_cancelled),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Switch(
+                            checked = uiState.showCancelledBookings,
+                            onCheckedChange = { viewModel.toggleCancelledBookings() },
+                        )
+                    }
+                }
             }
 
             item {
