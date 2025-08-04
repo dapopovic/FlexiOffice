@@ -51,6 +51,8 @@ import com.example.flexioffice.R
 import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.data.model.labelRes
 import com.example.flexioffice.navigation.FlexiOfficeRoutes
+import com.example.flexioffice.presentation.components.ConfirmationDialog
+import com.example.flexioffice.presentation.components.ConfirmationDialogType
 import com.example.flexioffice.presentation.CalendarUiState
 import com.example.flexioffice.presentation.CalendarViewModel
 import com.example.flexioffice.presentation.components.BookingDialog
@@ -170,23 +172,14 @@ fun CalendarScreen(
     }
 
     // Cancel-Dialog for Shake
-    if (uiState.showCancelDialog) {
-        AlertDialog(
-            onDismissRequest = { viewModel.hideCancelDialog() },
-            title = { Text(stringResource(R.string.calendar_cancel_booking_title)) },
-            text = { Text(stringResource(R.string.calendar_cancel_booking_message)) },
-            confirmButton = {
-                Button(onClick = { viewModel.confirmCancelBooking() }) {
-                    Text(stringResource(R.string.calendar_cancel_button))
-                }
-            },
-            dismissButton = {
-                Button(onClick = { viewModel.hideCancelDialog() }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-        )
-    }
+    ConfirmationDialog(
+        showDialog = uiState.showCancelDialog,
+        type = ConfirmationDialogType.CancelBooking,
+        onDismiss = { viewModel.hideCancelDialog() },
+        onConfirm = { viewModel.confirmCancelBooking() },
+        title = stringResource(R.string.calendar_cancel_booking_title),
+        message = stringResource(R.string.calendar_cancel_booking_message)
+    )
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
