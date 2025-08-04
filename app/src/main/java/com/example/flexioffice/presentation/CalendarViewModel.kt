@@ -388,27 +388,6 @@ class CalendarViewModel
             }
         }
 
-        fun loadDemoData() {
-            val teamId = _uiState.value.currentUser?.teamId
-            if (teamId.isNullOrEmpty() || teamId == User.NO_TEAM) return
-
-            viewModelScope.launch {
-                _uiState.value = _uiState.value.copy(isLoadingDemoData = true)
-                bookingRepository
-                    .createDemoBookings(teamId)
-                    .onSuccess {
-                        _uiState.value = _uiState.value.copy(isLoadingDemoData = false)
-                        loadBookingsForMonth(_uiState.value.currentMonth)
-                    }.onFailure { e: Throwable ->
-                        _uiState.value =
-                            _uiState.value.copy(
-                                isLoadingDemoData = false,
-                                errorMessage = e.message ?: "Fehler beim Laden der Demo-Daten",
-                            )
-                    }
-            }
-        }
-
         // Shake-to-cancel functionality
         private var sensorManager: android.hardware.SensorManager? = null
         private var shakeDetector: ShakeDetector? = null
