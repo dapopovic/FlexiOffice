@@ -168,7 +168,7 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         )
 
     val debugTree =
-        fileTree("${layout.buildDirectory}/tmp/kotlin-classes/debug") {
+        fileTree("${layout.buildDirectory.get().asFile}/tmp/kotlin-classes/debug") {
             exclude(fileFilter)
         }
 
@@ -177,7 +177,7 @@ tasks.register<JacocoReport>("jacocoTestReport") {
     sourceDirectories.setFrom(files(mainSrc))
     classDirectories.setFrom(files(debugTree))
     executionData.setFrom(
-        fileTree(layout.buildDirectory) {
+        fileTree(layout.buildDirectory.get().asFile) {
             include("**/*.exec", "**/*.ec")
         },
     )
