@@ -48,6 +48,7 @@ import com.example.flexioffice.R
 import com.example.flexioffice.data.model.User
 import com.example.flexioffice.presentation.TeamEvent
 import com.example.flexioffice.presentation.TeamViewModel
+import com.example.flexioffice.presentation.components.DeleteTeamMemberDialog
 
 private const val TAG = "TeamsScreen"
 
@@ -362,166 +363,20 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
         )
     }
 
-    // Delete confirmation dialog
-    if (showDeleteConfirmation && userToDelete != null) {
-        AlertDialog(
-            onDismissRequest = {
-                showDeleteConfirmation = false
-                userToDelete = null
-            },
-            title = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Card(
-                        modifier = Modifier.size(48.dp),
-                        colors =
-                            CardDefaults.cardColors(
-                                containerColor =
-                                    MaterialTheme.colorScheme.errorContainer,
-                            ),
-                        shape = MaterialTheme.shapes.small,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize().padding(12.dp),
-                            tint = MaterialTheme.colorScheme.onErrorContainer,
-                        )
-                    }
-                    Column {
-                        Text(
-                            stringResource(R.string.remove_team_member_title),
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Text(
-                            stringResource(R.string.remove_team_member_warning),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            },
-            text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(20.dp),
-                    modifier = Modifier.padding(top = 16.dp),
-                ) {
-                    // User Info Card
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors =
-                            CardDefaults.cardColors(
-                                containerColor =
-                                    MaterialTheme.colorScheme
-                                        .surfaceContainerHigh,
-                            ),
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(24.dp),
-                            )
-                            Column {
-                                Text(userToDelete!!.name)
-                                Text(
-                                    stringResource(R.string.remove_team_member_info),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
-                    }
-
-                    // Warning Card
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors =
-                            CardDefaults.cardColors(
-                                containerColor =
-                                    MaterialTheme.colorScheme.errorContainer,
-                            ),
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            verticalAlignment = Alignment.Top,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onErrorContainer,
-                                modifier = Modifier.size(20.dp),
-                            )
-                            Column {
-                                Text(
-                                    stringResource(R.string.warning),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.onErrorContainer,
-                                )
-                                Text(
-                                    stringResource(R.string.remove_team_member_lost_access),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onErrorContainer,
-                                )
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(
-                        onClick = {
-                            userToDelete?.let { viewModel.removeMember(it.id) }
-                            showDeleteConfirmation = false
-                            userToDelete = null
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = MaterialTheme.shapes.medium,
-                        colors =
-                            ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.error,
-                                contentColor = MaterialTheme.colorScheme.onError,
-                            ),
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.padding(vertical = 8.dp),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp),
-                            )
-                            Text(
-                                stringResource(R.string.team_member_remove_button),
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                        }
-                    }
-                    TextButton(
-                        onClick = {
-                            showDeleteConfirmation = false
-                            userToDelete = null
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text(stringResource(R.string.cancel)) }
-                }
-            },
-            dismissButton = null,
-        )
-    }
+    // Delete confirmation dialog - Using new ConfirmationDialog component
+    DeleteTeamMemberDialog(
+        showDialog = showDeleteConfirmation,
+        userToDelete = userToDelete,
+        onDismiss = {
+            showDeleteConfirmation = false
+            userToDelete = null
+        },
+        onConfirmDelete = {
+            userToDelete?.let { viewModel.removeMember(it.id) }
+            showDeleteConfirmation = false
+            userToDelete = null
+        }
+    )
 
     // Team member invite dialog
     if (uiState.isInviteDialogVisible) {
