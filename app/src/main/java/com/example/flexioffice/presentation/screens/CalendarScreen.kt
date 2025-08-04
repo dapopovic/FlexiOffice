@@ -43,10 +43,13 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.getString
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.example.flexioffice.R
+import com.example.flexioffice.data.model.BookingStatus
+import com.example.flexioffice.data.model.labelRes
 import com.example.flexioffice.navigation.FlexiOfficeRoutes
 import com.example.flexioffice.presentation.components.ConfirmationDialog
 import com.example.flexioffice.presentation.components.ConfirmationDialogType
@@ -56,6 +59,7 @@ import com.example.flexioffice.presentation.components.BookingDialog
 import com.example.flexioffice.presentation.components.BookingLegend
 import com.example.flexioffice.presentation.components.CalendarFilters
 import com.example.flexioffice.presentation.components.EventsList
+import com.example.flexioffice.presentation.components.Filters
 import com.example.flexioffice.presentation.components.MonthCalendar
 import com.example.flexioffice.presentation.components.TeamHomeOfficeSummary
 import com.example.flexioffice.presentation.components.WeekCalendar
@@ -208,14 +212,46 @@ fun CalendarScreen(
                 if (!uiState.currentUser?.teamId.isNullOrEmpty() &&
                     uiState.currentUser?.teamId != com.example.flexioffice.data.model.User.NO_TEAM
                 ) {
-                    CalendarFilters(
-                        teamMembers = uiState.teamMembers,
-                        selectedTeamMember = uiState.selectedTeamMember,
-                        selectedStatus = uiState.selectedStatus,
-                        onTeamMemberFilterChange = viewModel::setTeamMemberFilter,
-                        onStatusFilterChange = viewModel::setStatusFilter,
-                        onClearFilters = viewModel::clearFilters,
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Filters(
+                            modifier = Modifier.weight(1f),
+                            // items where the label is not "Cancelled"
+                            items =
+                                BookingStatus.entries
+                                    .map {
+                                        stringResource(it.labelRes())
+                                    }.filter {
+                                        it != stringResource(R.string.booking_item_status_cancelled)
+                                    },
+                            selectedItem = uiState.selectedStatus?.let { stringResource(it.labelRes()) },
+                            onItemSelected = { item ->
+                                val status = BookingStatus.entries.find { getString(context, it.labelRes()) == item }
+                                viewModel.setStatusFilter(status)
+                            },
+                            onClearFilters = { viewModel.clearFilters() },
+                            defaultItem = stringResource(R.string.filters_all_status),
+                        )
+                        Filters(
+                            modifier = Modifier.weight(2f),
+                            items = uiState.teamMembers.map { it.name },
+                            selectedItem =
+                                uiState.selectedTeamMember?.let { userId ->
+                                    uiState.teamMembers.find { it.id == userId }?.name
+                                },
+                            onItemSelected = { name ->
+                                viewModel.setTeamMemberFilter(
+                                    uiState.teamMembers
+                                        .find {
+                                            it.name == name
+                                        }?.id,
+                                )
+                            },
+                            onClearFilters = { viewModel.clearFilters() },
+                            defaultItem = stringResource(R.string.filters_all_members),
+                        )
+                    }
                 }
 
                 // Calendar View with loading indicator

@@ -22,7 +22,7 @@ class LocationPermissionManager
                     Manifest.permission.ACCESS_COARSE_LOCATION,
                 )
 
-            val BACKGROUND_LOCATION_PERMISSION = Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            const val BACKGROUND_LOCATION_PERMISSION = Manifest.permission.ACCESS_BACKGROUND_LOCATION
         }
 
         /**
@@ -61,7 +61,7 @@ class LocationPermissionManager
             }
 
             // Check background location permission (only for Android 10+)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !hasBackgroundLocationPermission()) {
+            if (!hasBackgroundLocationPermission()) {
                 missingPermissions.add(BACKGROUND_LOCATION_PERMISSION)
             }
 
