@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 plugins {
@@ -42,8 +43,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlinOptions {
-        jvmTarget = "21"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_21)
+        }
     }
     buildFeatures {
         compose = true
@@ -130,12 +133,12 @@ tasks.register<JacocoReport>("jacocoTestReport") {
     val fileFilter =
         listOf(
             "**/R.class",
-            "**/R\$*.class",
+            "**/R$*.class",
             "**/BuildConfig.*",
             "**/Manifest*.*",
             "**/*Test*.*",
             "android/**/*.*",
-            "**/Lambda\$*.class",
+            "**/Lambda$*.class",
             "**/Lambda.class",
             "**/*Lambda.class",
             "**/*Lambda*.class",
@@ -165,7 +168,7 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         )
 
     val debugTree =
-        fileTree("${project.buildDir}/tmp/kotlin-classes/debug") {
+        fileTree("${layout.buildDirectory}/tmp/kotlin-classes/debug") {
             exclude(fileFilter)
         }
 
@@ -174,7 +177,7 @@ tasks.register<JacocoReport>("jacocoTestReport") {
     sourceDirectories.setFrom(files(mainSrc))
     classDirectories.setFrom(files(debugTree))
     executionData.setFrom(
-        fileTree(project.buildDir) {
+        fileTree(layout.buildDirectory) {
             include("**/*.exec", "**/*.ec")
         },
     )

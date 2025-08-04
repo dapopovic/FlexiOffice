@@ -23,7 +23,7 @@ jobs:
             - name: ktlint
               uses: ScaCap/action-ktlint@master
               with:
-                  github_token: ${{ secrets.github_token }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
                   reporter: github-pr-review # Change reporter
                   fail_on_error: true # Fail on error
     test:
@@ -35,39 +35,10 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4
 
-            - name: Set up JDK 21
-              uses: actions/setup-java@v4
+            - name: Setup Android Build Environment
+              uses: ./.github/actions/setup-android-build
               with:
-                  java-version: "21"
-                  distribution: "temurin"
-
-            - name: Setup Android SDK
-              uses: android-actions/setup-android@v3
-
-            - name: Cache Gradle packages
-              uses: actions/cache@v4
-              with:
-                  path: |
-                      ~/.gradle/caches
-                      ~/.gradle/wrapper
-                  key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-                  restore-keys: |
-                      ${{ runner.os }}-gradle-
-
-            - name: Decrypt google-services.json
-              run: |
-                  mkdir -p app
-                  openssl aes-256-cbc -d \
-                      -pbkdf2 \
-                      -iter 100000 \
-                      -in app/google-services.json.enc \
-                      -out app/google-services.json \
-                      -k "${{ secrets.GMS_PASSPHRASE }}"
-              env:
-                  GMS_PASSPHRASE: ${{ secrets.GMS_PASSPHRASE }}
-
-            - name: Grant execute permission for gradlew
-              run: chmod +x gradlew
+                  gms-passphrase: ${{ secrets.GMS_PASSPHRASE }}
 
             - name: Run unit tests
               run: ./gradlew testDebugUnitTest
@@ -106,39 +77,10 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4
 
-            - name: Set up JDK 21
-              uses: actions/setup-java@v4
+            - name: Setup Android Build Environment
+              uses: ./.github/actions/setup-android-build
               with:
-                  java-version: "21"
-                  distribution: "temurin"
-
-            - name: Setup Android SDK
-              uses: android-actions/setup-android@v3
-
-            - name: Cache Gradle packages
-              uses: actions/cache@v4
-              with:
-                  path: |
-                      ~/.gradle/caches
-                      ~/.gradle/wrapper
-                  key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-                  restore-keys: |
-                      ${{ runner.os }}-gradle-
-
-            - name: Decrypt google-services.json
-              run: |
-                  mkdir -p app
-                  openssl aes-256-cbc -d \
-                      -pbkdf2 \
-                      -iter 100000 \
-                      -in app/google-services.json.enc \
-                      -out app/google-services.json \
-                      -k "${{ secrets.GMS_PASSPHRASE }}"
-              env:
-                  GMS_PASSPHRASE: ${{ secrets.GMS_PASSPHRASE }}
-
-            - name: Grant execute permission for gradlew
-              run: chmod +x gradlew
+                  gms-passphrase: ${{ secrets.GMS_PASSPHRASE }}
 
             - name: Build debug APK
               run: ./gradlew assembleDebug
