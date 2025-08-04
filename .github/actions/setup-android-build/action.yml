@@ -36,10 +36,8 @@ runs:
             -iter 100000 \
             -in app/google-services.json.enc \
             -out app/google-services.json \
-            -k "${{ inputs.gms-passphrase }}"
+            -pass env:GMS_PASSPHRASE
       shell: bash
-      env:
-        GMS_PASSPHRASE: ${{ inputs.gms-passphrase }}
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
