@@ -22,7 +22,18 @@ Willkommen im FlexiOffice Teamleiter-Handbuch! Hier finden Sie alle Anleitungen 
 
 ---
 
--
+## 🔧 Firebase-Setup für Entwickler
+
+### Schnellstart (4 Schritte)
+1. **Android Studio**: FlexiOffice-Projekt öffnen
+2. **Firebase-Projekt**: Neue App in Firebase Console erstellen  
+3. **google-services.json**: Datei herunterladen → **`app/`-Ordner** platzieren
+4. **Emulator**: `./scripts/start-emulator.sh` für lokale Tests
+
+### Wichtige Dateien
+- **`app/google-services.json`** ← Firebase-Konfiguration (Template: `google-services.json.template`)
+
+
 ## 🔗 Weiterführende Ressourcen
 
 ### App-bezogen
