@@ -51,7 +51,7 @@ import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.presentation.RequestsViewModel
 import com.example.flexioffice.presentation.components.EnterMultiSelectModeButton
-import com.example.flexioffice.presentation.components.RequestsFilters
+import com.example.flexioffice.presentation.components.Filters
 import com.example.flexioffice.presentation.components.swipeableCard
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -121,11 +121,22 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
             if (uiState.currentUser?.role == com.example.flexioffice.data.model.User.ROLE_MANAGER &&
                 uiState.teamMembers.isNotEmpty()
             ) {
-                RequestsFilters(
-                    teamMembers = uiState.teamMembers,
-                    selectedTeamMember = uiState.selectedTeamMember,
-                    onTeamMemberFilterChange = { viewModel.setTeamMemberFilter(it) },
+                Filters(
+                    items = uiState.teamMembers.map { it.name },
+                    selectedItem =
+                        uiState.selectedTeamMember?.let { userId ->
+                            uiState.teamMembers.find { it.id == userId }?.name
+                        },
+                    onItemSelected = { name ->
+                        viewModel.setTeamMemberFilter(
+                            uiState.teamMembers
+                                .find {
+                                    it.name == name
+                                }?.id,
+                        )
+                    },
                     onClearFilters = { viewModel.clearFilters() },
+                    defaultItem = stringResource(R.string.filters_all_members),
                     modifier = Modifier.padding(bottom = 16.dp),
                 )
             }

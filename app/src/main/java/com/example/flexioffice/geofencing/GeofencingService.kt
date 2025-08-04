@@ -18,7 +18,6 @@ import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.BookingRepository
 import com.example.flexioffice.data.UserRepository
 import com.example.flexioffice.data.model.BookingStatus
-import com.example.flexioffice.geofencing.GeofencingManager
 import com.example.flexioffice.geofencing.notifications.HomeOfficeNotificationManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope

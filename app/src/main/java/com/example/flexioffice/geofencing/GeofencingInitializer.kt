@@ -1,6 +1,8 @@
 package com.example.flexioffice.geofencing
 
+import android.Manifest
 import android.util.Log
+import androidx.annotation.RequiresPermission
 import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.UserRepository
 import com.example.flexioffice.geofencing.permissions.LocationPermissionManager
@@ -24,6 +26,7 @@ class GeofencingInitializer
         /**
          * Initializes geofencing on app start if all prerequisites are met
          */
+        @RequiresPermission(Manifest.permission.ACCESS_FINE_LOCATION)
         suspend fun initializeGeofencingOnAppStart() {
             try {
                 Log.d(TAG, "Checking if geofencing should be initialized...")
