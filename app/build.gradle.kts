@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 plugins {
@@ -6,8 +7,9 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.services)
     alias(libs.plugins.hilt.android)
-    alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.ktlint)
+    jacoco
 }
 
 android {
@@ -25,6 +27,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            enableUnitTestCoverage = true
+            enableAndroidTestCoverage = true
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -37,13 +43,20 @@ android {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlinOptions {
-        jvmTarget = "21"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_21)
+        }
     }
     buildFeatures {
         compose = true
         buildConfig = true
     }
+}
+
+// KSP Configuration
+ksp {
+    arg("dagger.hilt.android.internal.disableAndroidSuperclassValidation", "true")
 }
 
 ktlint {
@@ -69,8 +82,8 @@ dependencies {
 
     // Firebase
     implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.auth.ktx)
-    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
 
     // ViewModel and Lifecycle
@@ -78,7 +91,7 @@ dependencies {
 
     // Hilt for Dependency Injection
     implementation(libs.hilt.android)
-    kapt(libs.hilt.android.compiler)
+    ksp(libs.hilt.android.compiler)
     implementation(libs.hilt.navigation.compose)
 
     // Navigation
@@ -95,6 +108,10 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services)
 
     testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.androidx.arch.core.testing)
+    testImplementation(libs.turbine)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -106,4 +123,67 @@ dependencies {
 
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    testImplementation(kotlin("test"))
+}
+
+// Jacoco configuration for code coverage
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+
+    val fileFilter =
+        listOf(
+            "**/R.class",
+            "**/R$*.class",
+            "**/BuildConfig.*",
+            "**/Manifest*.*",
+            "**/*Test*.*",
+            "android/**/*.*",
+            "**/Lambda$*.class",
+            "**/Lambda.class",
+            "**/*Lambda.class",
+            "**/*Lambda*.class",
+            "**/*\$ViewInjector*.*",
+            "**/*\$ViewBinder*.*",
+            "**/*_MembersInjector.class",
+            "**/Dagger*Component*.class",
+            "**/*Module_*Factory.class",
+            "**/di/**",
+            "**/*_Factory*.*",
+            "**/*Module*.*",
+            "**/*Dagger*.*",
+            "**/*Hilt*.*",
+            "**/hilt_aggregated_deps/**",
+            "**/*_HiltModules.class",
+            "**/*_Provide*Factory*.*",
+            "**/*Extensions*.*",
+            // UI and Compose related exclusions
+            "**/*Activity*.*",
+            "**/*Fragment*.*",
+            "**/ui/**",
+            "**/compose/**",
+            "**/navigation/**",
+            "**/*Screen*.*",
+            "**/*Composable*.*",
+            "**/theme/**",
+        )
+
+    val debugTree =
+        fileTree("${layout.buildDirectory.get().asFile}/tmp/kotlin-classes/debug") {
+            exclude(fileFilter)
+        }
+
+    val mainSrc = "${project.projectDir}/src/main/java"
+
+    sourceDirectories.setFrom(files(mainSrc))
+    classDirectories.setFrom(files(debugTree))
+    executionData.setFrom(
+        fileTree(layout.buildDirectory.get().asFile) {
+            include("**/*.exec", "**/*.ec")
+        },
+    )
 }
