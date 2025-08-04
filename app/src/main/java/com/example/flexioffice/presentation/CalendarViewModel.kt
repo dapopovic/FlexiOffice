@@ -1,5 +1,6 @@
 package com.example.flexioffice.presentation
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.BuildConfig
@@ -60,13 +61,34 @@ class CalendarViewModel
         private val authRepository: AuthRepository,
         private val userRepository: UserRepository,
         private val bookingRepository: BookingRepository,
+        private val savedStateHandle: SavedStateHandle,
     ) : ViewModel() {
-        private val _uiState = MutableStateFlow(CalendarUiState())
-        val uiState: StateFlow<CalendarUiState> = _uiState.asStateFlow()
-
+        
         companion object {
             private const val TAG = "CalendarViewModel"
+            private const val SELECTED_DATE_KEY = "selected_date"
+            private const val CURRENT_MONTH_KEY = "current_month"
+            private const val IS_WEEK_VIEW_KEY = "is_week_view"
+            private const val SELECTED_TEAM_MEMBER_KEY = "selected_team_member"
+            private const val SELECTED_STATUS_KEY = "selected_status"
         }
+        
+        private val _uiState = MutableStateFlow(
+            CalendarUiState(
+                selectedDate = savedStateHandle.get<String>(SELECTED_DATE_KEY)?.let { 
+                    try { LocalDate.parse(it) } catch (e: Exception) { null }
+                },
+                currentMonth = savedStateHandle.get<String>(CURRENT_MONTH_KEY)?.let { 
+                    try { YearMonth.parse(it) } catch (e: Exception) { YearMonth.now() }
+                } ?: YearMonth.now(),
+                isWeekView = savedStateHandle.get<Boolean>(IS_WEEK_VIEW_KEY) ?: false,
+                selectedTeamMember = savedStateHandle.get<String>(SELECTED_TEAM_MEMBER_KEY),
+                selectedStatus = savedStateHandle.get<String>(SELECTED_STATUS_KEY)?.let { 
+                    try { BookingStatus.valueOf(it) } catch (e: Exception) { null }
+                }
+            )
+        )
+        val uiState: StateFlow<CalendarUiState> = _uiState.asStateFlow()
 
         init {
             viewModelScope.launch {
@@ -157,22 +179,27 @@ class CalendarViewModel
         }
 
         fun toggleViewMode() {
-            _uiState.value = _uiState.value.copy(isWeekView = !_uiState.value.isWeekView)
+            val newIsWeekView = !_uiState.value.isWeekView
+            _uiState.value = _uiState.value.copy(isWeekView = newIsWeekView)
+            savedStateHandle[IS_WEEK_VIEW_KEY] = newIsWeekView
         }
 
         fun selectDate(date: LocalDate) {
             _uiState.value = _uiState.value.copy(selectedDate = date)
+            savedStateHandle[SELECTED_DATE_KEY] = date.toString()
         }
 
         fun nextMonth() {
             val nextMonth = _uiState.value.currentMonth.plusMonths(1)
             _uiState.value = _uiState.value.copy(currentMonth = nextMonth)
+            savedStateHandle[CURRENT_MONTH_KEY] = nextMonth.toString()
             loadBookingsForMonth(nextMonth)
         }
 
         fun previousMonth() {
             val previousMonth = _uiState.value.currentMonth.minusMonths(1)
             _uiState.value = _uiState.value.copy(currentMonth = previousMonth)
+            savedStateHandle[CURRENT_MONTH_KEY] = previousMonth.toString()
             loadBookingsForMonth(previousMonth)
         }
 
@@ -183,11 +210,13 @@ class CalendarViewModel
         // Filter functions
         fun setTeamMemberFilter(userId: String?) {
             _uiState.value = _uiState.value.copy(selectedTeamMember = userId)
+            savedStateHandle[SELECTED_TEAM_MEMBER_KEY] = userId
             applyFilters()
         }
 
         fun setStatusFilter(status: BookingStatus?) {
             _uiState.value = _uiState.value.copy(selectedStatus = status)
+            savedStateHandle[SELECTED_STATUS_KEY] = status?.name
             applyFilters()
         }
 
@@ -197,6 +226,8 @@ class CalendarViewModel
                     selectedTeamMember = null,
                     selectedStatus = null,
                 )
+            savedStateHandle.remove<String>(SELECTED_TEAM_MEMBER_KEY)
+            savedStateHandle.remove<String>(SELECTED_STATUS_KEY)
             applyFilters()
         }
 

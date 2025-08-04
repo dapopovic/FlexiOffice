@@ -1,6 +1,7 @@
 package com.example.flexioffice.presentation
 
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.data.AuthRepository
@@ -61,10 +62,30 @@ class BookingViewModel
         private val authRepository: AuthRepository,
         private val notificationRepository: NotificationRepository,
         private val auth: FirebaseAuth,
+        private val savedStateHandle: SavedStateHandle,
     ) : ViewModel() {
+        
+        companion object {
+            private const val SELECTED_DATE_KEY = "booking_selected_date"
+            private const val SELECTED_STATUS_KEY = "booking_selected_status"
+            private const val IS_WEEK_VIEW_KEY = "booking_is_week_view"
+            private const val SHOW_CANCELLED_KEY = "booking_show_cancelled"
+            private const val COMMENT_KEY = "booking_comment"
+        }
+        
         private val _uiState =
             MutableStateFlow(
-                BookingUiState(),
+                BookingUiState(
+                    selectedDate = savedStateHandle.get<String>(SELECTED_DATE_KEY)?.let { 
+                        try { LocalDate.parse(it) } catch (e: Exception) { null }
+                    },
+                    selectedStatus = savedStateHandle.get<String>(SELECTED_STATUS_KEY)?.let { 
+                        try { BookingStatus.valueOf(it) } catch (e: Exception) { null }
+                    },
+                    isWeekView = savedStateHandle.get<Boolean>(IS_WEEK_VIEW_KEY) ?: false,
+                    showCancelledBookings = savedStateHandle.get<Boolean>(SHOW_CANCELLED_KEY) ?: false,
+                    comment = savedStateHandle.get<String>(COMMENT_KEY) ?: ""
+                ),
             )
         val uiState: StateFlow<BookingUiState> = _uiState
 
@@ -73,7 +94,9 @@ class BookingViewModel
         }
 
         fun toggleCalendarView() {
-            _uiState.update { it.copy(isWeekView = !it.isWeekView) }
+            val newIsWeekView = !_uiState.value.isWeekView
+            _uiState.update { it.copy(isWeekView = newIsWeekView) }
+            savedStateHandle[IS_WEEK_VIEW_KEY] = newIsWeekView
         }
 
         fun onDateLongPressed(date: LocalDate) {
@@ -199,10 +222,12 @@ class BookingViewModel
 
         fun updateSelectedDate(date: LocalDate) {
             _uiState.update { it.copy(selectedDate = date, showDatePicker = false) }
+            savedStateHandle[SELECTED_DATE_KEY] = date.toString()
         }
 
         fun updateComment(comment: String) {
             _uiState.update { it.copy(comment = comment) }
+            savedStateHandle[COMMENT_KEY] = comment
         }
 
         fun clearError() {
@@ -396,7 +421,9 @@ class BookingViewModel
         }
 
         fun toggleCancelledBookings() {
-            _uiState.update { it.copy(showCancelledBookings = !it.showCancelledBookings) }
+            val newShowCancelled = !_uiState.value.showCancelledBookings
+            _uiState.update { it.copy(showCancelledBookings = newShowCancelled) }
+            savedStateHandle[SHOW_CANCELLED_KEY] = newShowCancelled
         }
 
         // Multi-select functions
