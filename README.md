@@ -7,7 +7,7 @@ Willkommen im FlexiOffice Teamleiter-Handbuch! Hier finden Sie alle Anleitungen 
 ## 📖 Verfügbare Anleitungen
 
 ### 1. 📋 Umfassende Teamleiter-Anleitung
-**Datei**: [`teamleiter-anleitung.md`]((docs/teamleiter-anleitung.md))
+**Datei**: [`teamleiter-anleitung.md`](docs/teamleiter-anleitung.md)
 
 **Inhalt**:
 - Vollständige Funktionsübersicht
