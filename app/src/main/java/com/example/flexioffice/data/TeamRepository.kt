@@ -350,6 +350,10 @@ class TeamRepository
                             TeamInvitation.RESPONDED_AT_FIELD,
                             Date(),
                         )
+
+                        // Restore manager role for declined user so they can create teams again
+                        val userRef = firestore.collection("users").document(uid)
+                        transaction.update(userRef, "role", User.ROLE_MANAGER)
                     }.await()
 
                 Result.success(Unit)
