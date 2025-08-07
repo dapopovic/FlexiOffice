@@ -70,6 +70,7 @@ class BookingViewModel
             private const val IS_WEEK_VIEW_KEY = "booking_is_week_view"
             private const val SHOW_CANCELLED_KEY = "booking_show_cancelled"
             private const val COMMENT_KEY = "booking_comment"
+            private const val TAG = "BookingViewModel"
         }
 
         private val _uiState =
@@ -80,6 +81,7 @@ class BookingViewModel
                             try {
                                 LocalDate.parse(it)
                             } catch (e: Exception) {
+                                Log.e(TAG, "Error parsing date", e)
                                 null
                             }
                         },
@@ -88,7 +90,7 @@ class BookingViewModel
                             try {
                                 BookingStatus.valueOf(it)
                             } catch (e: Exception) {
-                                Log.e("BookingViewModel", "Error parsing booking status", e)
+                                Log.e(TAG, "Error parsing booking status", e)
                                 null
                             }
                         },

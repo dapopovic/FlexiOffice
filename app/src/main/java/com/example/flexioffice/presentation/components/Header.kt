@@ -31,7 +31,7 @@ fun Header(
     onBackPressed: () -> Unit = {},
     hasBackButton: Boolean = false,
     isMultiSelectMode: Boolean = false,
-    doNotShowMultiSelectButton: Boolean = true,
+    showMultiSelectButton: Boolean = false,
     onEnterMultiSelectMode: (Booking?) -> Unit = {},
 ) {
     Row(
@@ -72,7 +72,7 @@ fun Header(
         EnterMultiSelectModeButton(
             isMultiselectMode = isMultiSelectMode,
             onEnterMultiSelectMode = onEnterMultiSelectMode,
-            isListEmpty = doNotShowMultiSelectButton,
+            isListEmpty = !showMultiSelectButton,
         )
     }
 }

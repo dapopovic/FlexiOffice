@@ -109,8 +109,8 @@ fun BookingScreen(
                             iconVector = ImageVector.vectorResource(R.drawable.schedule_24px),
                             iconDescription = stringResource(R.string.booking_header_icon_desc),
                             isMultiSelectMode = uiState.isMultiSelectMode,
-                            doNotShowMultiSelectButton =
-                                uiState.userBookings.none { booking ->
+                            showMultiSelectButton =
+                                !uiState.userBookings.none { booking ->
                                     booking.status != BookingStatus.CANCELLED
                                 },
                             onEnterMultiSelectMode = viewModel::startMultiSelectMode,
