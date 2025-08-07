@@ -3,7 +3,7 @@ package com.example.flexioffice.presentation.components
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseOutQuart
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -13,6 +13,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -60,7 +61,7 @@ fun Modifier.swipeableCard(
             .offset { IntOffset(offsetX.value.roundToInt(), 0) }
             .pointerInput(isEnabled, isProcessing) {
                 if (!isEnabled || isProcessing) return@pointerInput
-                detectDragGestures(
+                detectHorizontalDragGestures(
                     onDragStart = {
                         isDragging = true
                         scope.launch {
@@ -100,24 +101,16 @@ fun Modifier.swipeableCard(
                             }
                         }
                     },
-                    onDragCancel = {
-                        isDragging = false
-                        scope.launch {
-                            offsetX.animateTo(
-                                targetValue = 0f,
-                                animationSpec = tween(durationMillis = animationDurationMs),
-                            )
-                        }
-                    },
-                ) { _, dragAmount ->
-                    if (!isProcessing && isDragging) {
-                        scope.launch {
-                            val newValue =
-                                (offsetX.value + dragAmount.x)
-                                    .coerceIn(-screenWidthPx * 0.8f, screenWidthPx * 0.8f) // Slight resistance at edges
-                            offsetX.snapTo(newValue)
+                    onHorizontalDrag = { _, dragAmount ->
+                        if (!isProcessing && isDragging) {
+                            scope.launch {
+                                val newValue =
+                                    (offsetX.value + dragAmount)
+                                        .coerceIn(-screenWidthPx * 0.8f, screenWidthPx * 0.8f) // Slight resistance at edges
+                                offsetX.snapTo(newValue)
+                            }
                         }
                     }
-                }
+                )
             }
     }
