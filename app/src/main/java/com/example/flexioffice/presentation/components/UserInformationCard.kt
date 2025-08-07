@@ -48,7 +48,7 @@ fun UserInformationCard(
                     value =
                         when {
                             userData.teamId.isEmpty() -> stringResource(R.string.no_team_assigned_status)
-                            userData.role == "manager" -> stringResource(R.string.team_manager)
+                            userData.role == User.ROLE_MANAGER -> stringResource(R.string.team_manager)
                             else -> stringResource(R.string.team_member)
                         },
                 )
@@ -73,9 +73,9 @@ fun UserInformationCard(
                     label = stringResource(R.string.role_label),
                     value =
                         when (userData.role) {
-                            "admin" -> stringResource(R.string.role_admin)
-                            "manager" -> stringResource(R.string.role_manager)
-                            "user" -> stringResource(R.string.role_user)
+                            User.ROLE_ADMIN -> stringResource(R.string.role_admin)
+                            User.ROLE_MANAGER -> stringResource(R.string.role_manager)
+                            User.ROLE_USER -> stringResource(R.string.role_user)
                             else -> userData.role
                         },
                 )

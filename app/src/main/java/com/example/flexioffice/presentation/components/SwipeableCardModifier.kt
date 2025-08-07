@@ -41,13 +41,9 @@ fun Modifier.swipeableCard(
     animationDurationMs: Int = 200,
 ): Modifier =
     composed {
-        val windowInfo = LocalWindowInfo.current
         val screenWidthPx =
-            with(LocalDensity.current) {
-                windowInfo.containerSize.width
-                    .toDp()
-                    .toPx()
-            }
+            LocalWindowInfo.current.containerSize.width
+                .toFloat()
         val swipeThreshold = screenWidthPx * swipeThresholdFraction
 
         val offsetX = remember { Animatable(0f) }

@@ -106,23 +106,16 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
                     modifier = Modifier.padding(bottom = 16.dp),
                 )
 
-                // Filter nur für Manager anzeigen
+                // Only show team member filter if user is a manager
                 if (uiState.currentUser?.role == com.example.flexioffice.data.model.User.ROLE_MANAGER &&
                     uiState.teamMembers.isNotEmpty()
                 ) {
                     Filters(
                         items = uiState.teamMembers.map { it.name },
-                        selectedItem =
-                            uiState.selectedTeamMember?.let { userId ->
-                                uiState.teamMembers.find { it.id == userId }?.name
-                            },
+                        selectedItem = uiState.teamMembers.find { it.id == uiState.selectedTeamMember }?.name,
                         onItemSelected = { name ->
-                            viewModel.setTeamMemberFilter(
-                                uiState.teamMembers
-                                    .find {
-                                        it.name == name
-                                    }?.id,
-                            )
+                            val selectedId = uiState.teamMembers.find { it.name == name }?.id
+                            viewModel.setTeamMemberFilter(selectedId)
                         },
                         onClearFilters = { viewModel.clearFilters() },
                         defaultItem = stringResource(R.string.filters_all_members),
