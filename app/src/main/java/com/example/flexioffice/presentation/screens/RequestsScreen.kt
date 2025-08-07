@@ -400,14 +400,30 @@ fun RequestsMultiSelectTopBar(
     onBatchDecline: () -> Unit,
     isBatchProcessing: Boolean,
 ) {
-    TopAppBar(
-        title = { Text("$selectedCount ausgewählt") },
-        navigationIcon = {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             IconButton(onClick = onExitMultiSelect) {
                 Icon(Icons.Default.Close, contentDescription = stringResource(R.string.multi_select_exit))
             }
-        },
-        actions = {
+            Text(
+                text = "$selectedCount ausgewählt",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(start = 8.dp),
+            )
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             if (selectedCount > 0) {
                 IconButton(
                     onClick = onBatchApprove,
@@ -440,6 +456,6 @@ fun RequestsMultiSelectTopBar(
                     contentDescription = stringResource(R.string.select_all),
                 )
             }
-        },
-    )
+        }
+    }
 }

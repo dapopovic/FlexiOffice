@@ -103,78 +103,78 @@ fun BookingScreen(
                 modifier = Modifier.fillMaxSize().padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-            item {
-                Column {
-                    Header(
-                        modifier = Modifier.padding(bottom = 16.dp),
-                        title = stringResource(R.string.booking_header_title),
-                        iconVector = ImageVector.vectorResource(R.drawable.schedule_24px),
-                        iconDescription = stringResource(R.string.booking_header_icon_desc),
-                        isMultiSelectMode = uiState.isMultiSelectMode,
-                        doNotShowMultiSelectButton =
-                            uiState.userBookings.none { booking ->
-                                booking.status != BookingStatus.CANCELLED
-                            },
-                        onEnterMultiSelectMode = viewModel::startMultiSelectMode,
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(
-                            text = stringResource(R.string.booking_header_show_cancelled),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                item {
+                    Column {
+                        Header(
+                            modifier = Modifier.padding(bottom = 16.dp),
+                            title = stringResource(R.string.booking_header_title),
+                            iconVector = ImageVector.vectorResource(R.drawable.schedule_24px),
+                            iconDescription = stringResource(R.string.booking_header_icon_desc),
+                            isMultiSelectMode = uiState.isMultiSelectMode,
+                            doNotShowMultiSelectButton =
+                                uiState.userBookings.none { booking ->
+                                    booking.status != BookingStatus.CANCELLED
+                                },
+                            onEnterMultiSelectMode = viewModel::startMultiSelectMode,
                         )
-                        Switch(
-                            checked = uiState.showCancelledBookings,
-                            onCheckedChange = { viewModel.toggleCancelledBookings() },
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(
+                                text = stringResource(R.string.booking_header_show_cancelled),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Switch(
+                                checked = uiState.showCancelledBookings,
+                                onCheckedChange = { viewModel.toggleCancelledBookings() },
+                            )
+                        }
                     }
                 }
-            }
 
-            item {
-                Filters(
-                    // items where the label is not "Cancelled"
-                    items =
-                        BookingStatus.entries
-                            .map {
-                                stringResource(it.labelRes())
-                            }.filter {
-                                it != stringResource(R.string.booking_item_status_cancelled)
-                            },
-                    selectedItem = uiState.selectedStatus?.let { stringResource(it.labelRes()) },
-                    onItemSelected = { item ->
-                        val status = BookingStatus.entries.find { getString(context, it.labelRes()) == item }
-                        viewModel.setStatusFilter(status)
-                    },
-                    onClearFilters = { viewModel.clearFilters() },
-                    defaultItem = stringResource(R.string.filters_all_status),
-                )
-            }
-
-            if (uiState.userBookings.isEmpty()) {
-                item { EmptyBookingsCard() }
-            } else {
-                items(
-                    uiState.userBookings
-                        .filter { booking ->
-                            uiState.showCancelledBookings ||
-                                booking.status != BookingStatus.CANCELLED
-                        }.sortedByDescending { it.date },
-                ) { booking ->
-                    BookingItem(
-                        booking = booking,
-                        onClick = { viewModel.showDetailsSheet(it) },
-                        onCancelClick = { viewModel.showCancelDialog(it) },
-                        onLongClick = { viewModel.startMultiSelectMode(booking) },
-                        isMultiSelectMode = uiState.isMultiSelectMode,
-                        isSelected = uiState.selectedBookings.contains(booking.id),
-                        onSelectionChanged = { viewModel.toggleBookingSelection(booking.id) },
+                item {
+                    Filters(
+                        // items where the label is not "Cancelled"
+                        items =
+                            BookingStatus.entries
+                                .map {
+                                    stringResource(it.labelRes())
+                                }.filter {
+                                    it != stringResource(R.string.booking_item_status_cancelled)
+                                },
+                        selectedItem = uiState.selectedStatus?.let { stringResource(it.labelRes()) },
+                        onItemSelected = { item ->
+                            val status = BookingStatus.entries.find { getString(context, it.labelRes()) == item }
+                            viewModel.setStatusFilter(status)
+                        },
+                        onClearFilters = { viewModel.clearFilters() },
+                        defaultItem = stringResource(R.string.filters_all_status),
                     )
                 }
+
+                if (uiState.userBookings.isEmpty()) {
+                    item { EmptyBookingsCard() }
+                } else {
+                    items(
+                        uiState.userBookings
+                            .filter { booking ->
+                                uiState.showCancelledBookings ||
+                                    booking.status != BookingStatus.CANCELLED
+                            }.sortedByDescending { it.date },
+                    ) { booking ->
+                        BookingItem(
+                            booking = booking,
+                            onClick = { viewModel.showDetailsSheet(it) },
+                            onCancelClick = { viewModel.showCancelDialog(it) },
+                            onLongClick = { viewModel.startMultiSelectMode(booking) },
+                            isMultiSelectMode = uiState.isMultiSelectMode,
+                            isSelected = uiState.selectedBookings.contains(booking.id),
+                            onSelectionChanged = { viewModel.toggleBookingSelection(booking.id) },
+                        )
+                    }
                 }
             }
 
@@ -182,13 +182,14 @@ fun BookingScreen(
             if (!uiState.isMultiSelectMode) {
                 BookingFloatingActionButton(
                     onCreateBookingClick = { viewModel.showBookingDialog() },
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(16.dp)
+                    modifier =
+                        Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(16.dp),
                 )
             }
         }
-    }    // Booking creation dialog
+    } // Booking creation dialog
     BookingDialog(
         showDialog = uiState.showBookingDialog,
         selectedDate = uiState.selectedDate,
@@ -228,18 +229,30 @@ fun MultiSelectTopBar(
     onBatchCancel: () -> Unit,
     isBatchProcessing: Boolean,
 ) {
-    TopAppBar(
-        title = {
-            Text(
-                pluralStringResource(R.plurals.selected_count, selectedCount, selectedCount),
-            )
-        },
-        navigationIcon = {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             IconButton(onClick = onExitMultiSelect) {
                 Icon(Icons.Default.Close, contentDescription = stringResource(R.string.multi_select_exit))
             }
-        },
-        actions = {
+            Text(
+                text = pluralStringResource(R.plurals.selected_count, selectedCount, selectedCount),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(start = 8.dp),
+            )
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             if (selectedCount > 0) {
                 IconButton(
                     onClick = onBatchCancel,
@@ -263,6 +276,6 @@ fun MultiSelectTopBar(
                     contentDescription = stringResource(R.string.select_all),
                 )
             }
-        },
-    )
+        }
+    }
 }
