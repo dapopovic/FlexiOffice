@@ -47,6 +47,23 @@
     <string name="invite_sending">Einladung wird gesendet...</string>
     <string name="invite_send_button">Einladung senden</string>
     <string name="team_member_invite_button">Mitglied einladen</string>
+    
+    <!-- Team Invitations -->
+    <string name="team_invitation_title">Team-Einladung</string>
+    <string name="team_invitation_team_label">Team: %1$s</string>
+    <string name="team_invitation_from_label">Von: %1$s</string>
+    <string name="team_invitation_accept">Akzeptieren</string>
+    <string name="team_invitation_decline">Ablehnen</string>
+    <string name="pending_invitations_title">Ausstehende Einladungen</string>
+    <string name="no_pending_invitations">Keine ausstehenden Einladungen</string>
+    <string name="invitation_accepted_success">Einladung erfolgreich akzeptiert</string>
+    <string name="invitation_declined_success">Einladung abgelehnt</string>
+    <string name="invitation_sent_success">Einladung erfolgreich gesendet</string>
+    <string name="team_invitation_accept_title">Einladung akzeptieren</string>
+    <string name="team_invitation_accept_message">Möchten Sie der Team-Einladung von "%1$s" beitreten?</string>
+    <string name="team_invitation_decline_title">Einladung ablehnen</string>
+    <string name="team_invitation_decline_message">Möchten Sie die Team-Einladung von "%1$s" ablehnen?</string>
+    
     <string name="teams_title">Teams</string>
     <string name="teams_icon">👥</string>
     <string name="no_team_assigned">Kein Team zugeordnet</string>

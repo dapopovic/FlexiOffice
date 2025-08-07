@@ -6,6 +6,7 @@ import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.TeamRepository
 import com.example.flexioffice.data.UserRepository
 import com.example.flexioffice.data.model.Team
+import com.example.flexioffice.data.model.TeamInvitation
 import com.example.flexioffice.data.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,6 +32,7 @@ data class TeamUiState(
     val currentTeam: Team? = null,
     val teamMembers: List<User> = emptyList(),
     val isInviteDialogVisible: Boolean = false,
+    val pendingInvitations: List<TeamInvitation> = emptyList(),
 ) {
     val canCreateTeam: Boolean =
         currentUser?.teamId == User.NO_TEAM &&
@@ -99,6 +101,7 @@ class TeamViewModel
 
         init {
             observeUserAndTeamData()
+            loadPendingInvitations()
         }
 
         /** Loads team details if the user is in a team */
@@ -278,9 +281,9 @@ class TeamViewModel
                     return@launch
                 }
 
-                // Use the atomic repository function which handles all logic
+                // Use the new invitation system
                 teamRepository
-                    .inviteUserToTeamAtomically(teamId, managerId, email)
+                    .createTeamInvitation(teamId, managerId, email)
                     .onSuccess {
                         _events.send(TeamEvent.InviteSuccess)
                         hideInviteDialog()
@@ -293,6 +296,56 @@ class TeamViewModel
                 _uiState.update { it.copy(isLoading = false) }
             }
         }
+
+        /** Loads pending invitations for the current user */
+        fun loadPendingInvitations() {
+            viewModelScope.launch {
+                teamRepository
+                    .getPendingInvitations()
+                    .onSuccess { invitations ->
+                        _uiState.update { it.copy(pendingInvitations = invitations) }
+                    }.onFailure { e ->
+                        _uiState.update { it.copy(errorMessage = "Fehler beim Laden der Einladungen: ${e.message}") }
+                    }
+            }
+        }
+
+        /** Accepts a team invitation */
+        fun acceptInvitation(invitationId: String) {
+            viewModelScope.launch {
+                _uiState.update { it.copy(isLoading = true) }
+                teamRepository
+                    .acceptTeamInvitation(invitationId)
+                    .onSuccess {
+                        _events.send(TeamEvent.InvitationAccepted)
+                        loadPendingInvitations() // Refresh invitations
+                        // The team data will be updated automatically via the existing flows
+                    }.onFailure { e ->
+                        _uiState.update {
+                            it.copy(
+                                errorMessage = "Fehler beim Akzeptieren der Einladung: ${e.message}",
+                            )
+                        }
+                    }
+                _uiState.update { it.copy(isLoading = false) }
+            }
+        }
+
+        /** Declines a team invitation */
+        fun declineInvitation(invitationId: String) {
+            viewModelScope.launch {
+                _uiState.update { it.copy(isLoading = true) }
+                teamRepository
+                    .declineTeamInvitation(invitationId)
+                    .onSuccess {
+                        _events.send(TeamEvent.InvitationDeclined)
+                        loadPendingInvitations() // Refresh invitations
+                    }.onFailure { e ->
+                        _uiState.update { it.copy(errorMessage = "Fehler beim Ablehnen der Einladung: ${e.message}") }
+                    }
+                _uiState.update { it.copy(isLoading = false) }
+            }
+        }
     }
 
 sealed class TeamEvent {
@@ -301,6 +354,10 @@ sealed class TeamEvent {
     object InviteSuccess : TeamEvent()
 
     object MemberRemoved : TeamEvent()
+
+    object InvitationAccepted : TeamEvent()
+
+    object InvitationDeclined : TeamEvent()
 
     data class Error(
         val message: String,

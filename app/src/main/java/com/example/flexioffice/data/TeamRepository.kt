@@ -1,6 +1,7 @@
 package com.example.flexioffice.data
 
 import com.example.flexioffice.data.model.Team
+import com.example.flexioffice.data.model.TeamInvitation
 import com.example.flexioffice.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
@@ -10,6 +11,8 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.util.Date
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -109,8 +112,8 @@ class TeamRepository
                 Result.failure(e)
             }
 
-        /** Invites a user to a team atomically */
-        suspend fun inviteUserToTeamAtomically(
+        /** Creates a team invitation instead of directly adding the user */
+        suspend fun createTeamInvitation(
             teamId: String,
             managerId: String,
             invitedUserEmail: String,
@@ -121,37 +124,79 @@ class TeamRepository
                 if (userQuerySnapshot.isEmpty) {
                     throw Exception("User with email $invitedUserEmail not found.")
                 }
+
                 val invitedUserDoc = userQuerySnapshot.documents.first()
                 val invitedUserId = invitedUserDoc.id
-                val invitedUserRef = invitedUserDoc.reference
+                val invitedUser =
+                    invitedUserDoc.toObject(User::class.java)
+                        ?: throw Exception("Could not parse invited user data.")
+
+                // Get current user info for invitation
+                val currentUserDoc =
+                    firestore
+                        .collection(User.COLLECTION_NAME)
+                        .document(managerId)
+                        .get()
+                        .await()
+                val currentUser =
+                    currentUserDoc.toObject(User::class.java)
+                        ?: throw Exception("Manager user not found.")
+
+                // Get team info for invitation
+                val teamDoc =
+                    firestore
+                        .collection(Team.COLLECTION_NAME)
+                        .document(teamId)
+                        .get()
+                        .await()
+                val team =
+                    teamDoc.toObject(Team::class.java)
+                        ?: throw Exception("Team not found.")
+
+                // Security Check: Ensure the person inviting is the manager
+                if (team.managerId != managerId) {
+                    throw Exception("Only the team manager can invite new members.")
+                }
+
+                // Check if the user is already in a team
+                if (invitedUser.teamId.isNotEmpty()) {
+                    throw Exception("This user is already in a team.")
+                }
+
+                // Check if there's already a pending invitation for this user to this team
+                val existingInvitations =
+                    firestore
+                        .collection(TeamInvitation.COLLECTION_NAME)
+                        .whereEqualTo(TeamInvitation.TEAM_ID_FIELD, teamId)
+                        .whereEqualTo(TeamInvitation.INVITED_USER_ID_FIELD, invitedUserId)
+                        .whereEqualTo(TeamInvitation.STATUS_FIELD, TeamInvitation.STATUS_PENDING)
+                        .get()
+                        .await()
+
+                if (!existingInvitations.isEmpty) {
+                    throw Exception("There is already a pending invitation for this user to this team.")
+                }
+
+                // Create the invitation
+                val invitation =
+                    TeamInvitation(
+                        id = UUID.randomUUID().toString(),
+                        teamId = teamId,
+                        teamName = team.name,
+                        invitedByUserId = managerId,
+                        invitedByUserName = currentUser.name,
+                        invitedUserEmail = invitedUserEmail,
+                        invitedUserId = invitedUserId,
+                        status = TeamInvitation.STATUS_PENDING,
+                        createdAt = Date(),
+                    )
+
                 firestore
-                    .runTransaction { transaction ->
-                        val teamDocRef = firestore.collection(Team.COLLECTION_NAME).document(teamId)
-                        val teamSnapshot = transaction.get(teamDocRef)
-                        val team =
-                            teamSnapshot.toObject(Team::class.java)
-                                ?: throw Exception("Team not found.")
+                    .collection(TeamInvitation.COLLECTION_NAME)
+                    .document(invitation.id)
+                    .set(invitation)
+                    .await()
 
-                        val userSnapshot = transaction.get(invitedUserRef)
-                        val invitedUser =
-                            userSnapshot.toObject(User::class.java)
-                                ?: throw Exception("Could not parse invited user data.")
-
-                        // Security Check: Ensure the person inviting is the manager
-                        if (team.managerId != managerId) {
-                            throw Exception("Only the team manager can invite new members.")
-                        }
-                        // Check if the user is already in a team
-                        if (invitedUser.teamId.isNotEmpty()) {
-                            throw Exception("This user is already in a team.")
-                        }
-
-                        // All checks passed, perform the atomic updates
-                        transaction.update(invitedUserRef, User.TEAM_ID_FIELD, teamId, User.ROLE_FIELD, User.ROLE_USER)
-                        transaction.update(teamDocRef, Team.MEMBERS_FIELD, FieldValue.arrayUnion(invitedUserId))
-
-                        // The transaction will automatically commit. A return value is not needed.
-                    }.await()
                 Result.success(Unit)
             } catch (e: Exception) {
                 Result.failure(e)
@@ -193,4 +238,122 @@ class TeamRepository
                 .limit(1)
                 .get()
                 .await()
+
+        /** Gets pending team invitations for the current user */
+        suspend fun getPendingInvitations(): Result<List<TeamInvitation>> =
+            try {
+                val uid = auth.currentUser?.uid ?: throw Exception("User not authenticated")
+
+                val invitations =
+                    firestore
+                        .collection(TeamInvitation.COLLECTION_NAME)
+                        .whereEqualTo(TeamInvitation.INVITED_USER_ID_FIELD, uid)
+                        .whereEqualTo(TeamInvitation.STATUS_FIELD, TeamInvitation.STATUS_PENDING)
+                        .get()
+                        .await()
+                        .documents
+                        .mapNotNull { it.toObject(TeamInvitation::class.java) }
+
+                Result.success(invitations)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+
+        /** Accepts a team invitation */
+        suspend fun acceptTeamInvitation(invitationId: String): Result<Unit> =
+            try {
+                val uid = auth.currentUser?.uid ?: throw Exception("User not authenticated")
+
+                firestore
+                    .runTransaction { transaction ->
+                        val invitationRef = firestore.collection(TeamInvitation.COLLECTION_NAME).document(invitationId)
+                        val invitationSnapshot = transaction.get(invitationRef)
+                        val invitation =
+                            invitationSnapshot.toObject(TeamInvitation::class.java)
+                                ?: throw Exception("Invitation not found.")
+
+                        // Verify this invitation is for the current user
+                        if (invitation.invitedUserId != uid) {
+                            throw Exception("This invitation is not for you.")
+                        }
+
+                        // Verify invitation is still pending
+                        if (invitation.status != TeamInvitation.STATUS_PENDING) {
+                            throw Exception("This invitation has already been responded to.")
+                        }
+
+                        // Check if user is still available (not in a team)
+                        val userRef = firestore.collection(User.COLLECTION_NAME).document(uid)
+                        val userSnapshot = transaction.get(userRef)
+                        val user =
+                            userSnapshot.toObject(User::class.java)
+                                ?: throw Exception("User not found.")
+
+                        if (user.teamId.isNotEmpty()) {
+                            throw Exception("You are already in a team.")
+                        }
+
+                        // Update invitation status
+                        transaction.update(
+                            invitationRef,
+                            TeamInvitation.STATUS_FIELD,
+                            TeamInvitation.STATUS_ACCEPTED,
+                            TeamInvitation.RESPONDED_AT_FIELD,
+                            Date(),
+                        )
+
+                        // Add user to team
+                        val teamRef = firestore.collection(Team.COLLECTION_NAME).document(invitation.teamId)
+                        transaction.update(
+                            userRef,
+                            User.TEAM_ID_FIELD,
+                            invitation.teamId,
+                            User.ROLE_FIELD,
+                            User.ROLE_USER,
+                        )
+                        transaction.update(teamRef, Team.MEMBERS_FIELD, FieldValue.arrayUnion(uid))
+                    }.await()
+
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+
+        /** Declines a team invitation */
+        suspend fun declineTeamInvitation(invitationId: String): Result<Unit> =
+            try {
+                val uid = auth.currentUser?.uid ?: throw Exception("User not authenticated")
+
+                firestore
+                    .runTransaction { transaction ->
+                        val invitationRef = firestore.collection(TeamInvitation.COLLECTION_NAME).document(invitationId)
+                        val invitationSnapshot = transaction.get(invitationRef)
+                        val invitation =
+                            invitationSnapshot.toObject(TeamInvitation::class.java)
+                                ?: throw Exception("Invitation not found.")
+
+                        // Verify this invitation is for the current user
+                        if (invitation.invitedUserId != uid) {
+                            throw Exception("This invitation is not for you.")
+                        }
+
+                        // Verify invitation is still pending
+                        if (invitation.status != TeamInvitation.STATUS_PENDING) {
+                            throw Exception("This invitation has already been responded to.")
+                        }
+
+                        // Update invitation status
+                        transaction.update(
+                            invitationRef,
+                            TeamInvitation.STATUS_FIELD,
+                            TeamInvitation.STATUS_DECLINED,
+                            TeamInvitation.RESPONDED_AT_FIELD,
+                            Date(),
+                        )
+                    }.await()
+
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
     }
