@@ -64,7 +64,6 @@ class BookingViewModel
         private val auth: FirebaseAuth,
         private val savedStateHandle: SavedStateHandle,
     ) : ViewModel() {
-        
         companion object {
             private const val SELECTED_DATE_KEY = "booking_selected_date"
             private const val SELECTED_STATUS_KEY = "booking_selected_status"
@@ -72,19 +71,30 @@ class BookingViewModel
             private const val SHOW_CANCELLED_KEY = "booking_show_cancelled"
             private const val COMMENT_KEY = "booking_comment"
         }
-        
+
         private val _uiState =
             MutableStateFlow(
                 BookingUiState(
-                    selectedDate = savedStateHandle.get<String>(SELECTED_DATE_KEY)?.let { 
-                        try { LocalDate.parse(it) } catch (e: Exception) { null }
-                    },
-                    selectedStatus = savedStateHandle.get<String>(SELECTED_STATUS_KEY)?.let { 
-                        try { BookingStatus.valueOf(it) } catch (e: Exception) { null }
-                    },
+                    selectedDate =
+                        savedStateHandle.get<String>(SELECTED_DATE_KEY)?.let {
+                            try {
+                                LocalDate.parse(it)
+                            } catch (e: Exception) {
+                                null
+                            }
+                        },
+                    selectedStatus =
+                        savedStateHandle.get<String>(SELECTED_STATUS_KEY)?.let {
+                            try {
+                                BookingStatus.valueOf(it)
+                            } catch (e: Exception) {
+                                Log.e("BookingViewModel", "Error parsing booking status", e)
+                                null
+                            }
+                        },
                     isWeekView = savedStateHandle.get<Boolean>(IS_WEEK_VIEW_KEY) ?: false,
                     showCancelledBookings = savedStateHandle.get<Boolean>(SHOW_CANCELLED_KEY) ?: false,
-                    comment = savedStateHandle.get<String>(COMMENT_KEY) ?: ""
+                    comment = savedStateHandle.get<String>(COMMENT_KEY) ?: "",
                 ),
             )
         val uiState: StateFlow<BookingUiState> = _uiState

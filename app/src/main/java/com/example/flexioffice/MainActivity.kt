@@ -44,9 +44,10 @@ fun MainFlexiOfficeApp(authViewModel: AuthViewModel = hiltViewModel()) {
             uiState.isLoggedIn -> {
                 // Only navigate to Calendar if we're currently on Login or Loading screen
                 val currentRoute = navController.currentDestination?.route
-                if (currentRoute == FlexiOfficeRoutes.Login.route || 
-                    currentRoute == FlexiOfficeRoutes.Loading.route || 
-                    currentRoute == null) {
+                if (currentRoute == FlexiOfficeRoutes.Login.route ||
+                    currentRoute == FlexiOfficeRoutes.Loading.route ||
+                    currentRoute == null
+                ) {
                     navController.navigate(FlexiOfficeRoutes.Calendar.route) {
                         popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
                     }

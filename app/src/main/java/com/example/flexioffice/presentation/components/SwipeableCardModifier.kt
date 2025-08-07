@@ -13,12 +13,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -43,8 +41,13 @@ fun Modifier.swipeableCard(
     animationDurationMs: Int = 200,
 ): Modifier =
     composed {
-        val configuration = LocalConfiguration.current
-        val screenWidthPx = with(LocalDensity.current) { configuration.screenWidthDp.dp.toPx() }
+        val windowInfo = LocalWindowInfo.current
+        val screenWidthPx =
+            with(LocalDensity.current) {
+                windowInfo.containerSize.width
+                    .toDp()
+                    .toPx()
+            }
         val swipeThreshold = screenWidthPx * swipeThresholdFraction
 
         val offsetX = remember { Animatable(0f) }
@@ -104,13 +107,14 @@ fun Modifier.swipeableCard(
                     onHorizontalDrag = { _, dragAmount ->
                         if (!isProcessing && isDragging) {
                             scope.launch {
+                                // Slight resistance at edges
                                 val newValue =
                                     (offsetX.value + dragAmount)
-                                        .coerceIn(-screenWidthPx * 0.8f, screenWidthPx * 0.8f) // Slight resistance at edges
+                                        .coerceIn(-screenWidthPx * 0.8f, screenWidthPx * 0.8f)
                                 offsetX.snapTo(newValue)
                             }
                         }
-                    }
+                    },
                 )
             }
     }

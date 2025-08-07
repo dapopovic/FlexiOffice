@@ -22,9 +22,10 @@ fun UserInfoRow(
     contentDescription: String? = null,
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(bottom = 12.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(

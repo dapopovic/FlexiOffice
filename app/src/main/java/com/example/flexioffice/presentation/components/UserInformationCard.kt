@@ -26,9 +26,10 @@ fun UserInformationCard(
     firebaseUser: FirebaseUser? = null,
 ) {
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(bottom = 16.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -44,37 +45,39 @@ fun UserInformationCard(
                 UserInfoRow(
                     icon = ImageVector.vectorResource(R.drawable.group_24px),
                     label = stringResource(R.string.team_status),
-                    value = when {
-                        userData.teamId.isEmpty() -> stringResource(R.string.no_team_assigned_status)
-                        userData.role == "manager" -> stringResource(R.string.team_manager)
-                        else -> stringResource(R.string.team_member)
-                    }
+                    value =
+                        when {
+                            userData.teamId.isEmpty() -> stringResource(R.string.no_team_assigned_status)
+                            userData.role == "manager" -> stringResource(R.string.team_manager)
+                            else -> stringResource(R.string.team_member)
+                        },
                 )
 
                 // Name
                 UserInfoRow(
                     icon = Icons.Default.Person,
                     label = stringResource(R.string.name_label),
-                    value = userData.name.ifEmpty { stringResource(R.string.not_specified) }
+                    value = userData.name.ifEmpty { stringResource(R.string.not_specified) },
                 )
 
                 // Email
                 UserInfoRow(
                     icon = Icons.Default.Email,
                     label = stringResource(R.string.email_address_label),
-                    value = userData.email.ifEmpty { stringResource(R.string.not_specified) }
+                    value = userData.email.ifEmpty { stringResource(R.string.not_specified) },
                 )
 
                 // Role
                 UserInfoRow(
                     icon = ImageVector.vectorResource(id = R.drawable.work_24px),
                     label = stringResource(R.string.role_label),
-                    value = when (userData.role) {
-                        "admin" -> stringResource(R.string.role_admin)
-                        "manager" -> stringResource(R.string.role_manager)
-                        "user" -> stringResource(R.string.role_user)
-                        else -> userData.role
-                    }
+                    value =
+                        when (userData.role) {
+                            "admin" -> stringResource(R.string.role_admin)
+                            "manager" -> stringResource(R.string.role_manager)
+                            "user" -> stringResource(R.string.role_user)
+                            else -> userData.role
+                        },
                 )
             } ?: run {
                 // Fallback if user data is not available, show Firebase user
@@ -82,7 +85,7 @@ fun UserInformationCard(
                     UserInfoRow(
                         icon = Icons.Default.Email,
                         label = stringResource(R.string.email_address_label),
-                        value = fbUser.email ?: stringResource(R.string.not_available)
+                        value = fbUser.email ?: stringResource(R.string.not_available),
                     )
                 }
             }

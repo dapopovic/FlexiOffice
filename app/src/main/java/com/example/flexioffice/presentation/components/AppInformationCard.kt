@@ -13,13 +13,12 @@ import androidx.compose.ui.unit.dp
 import com.example.flexioffice.R
 
 @Composable
-fun AppInformationCard(
-    modifier: Modifier = Modifier,
-) {
+fun AppInformationCard(modifier: Modifier = Modifier) {
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(bottom = 24.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),

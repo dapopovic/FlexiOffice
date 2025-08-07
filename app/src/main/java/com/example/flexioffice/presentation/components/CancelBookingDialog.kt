@@ -19,9 +19,10 @@ fun CancelBookingDialog(
         onDismiss = onDismiss,
         onConfirm = onConfirmCancel,
         isLoading = isLoading,
-        itemName = selectedBooking?.let { booking ->
-            "Home Office am ${booking.date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))}"
-        },
-        additionalInfo = selectedBooking?.comment?.takeIf { it.isNotBlank() }?.let { "Kommentar: $it" }
+        itemName =
+            selectedBooking?.let { booking ->
+                "Home Office am ${booking.date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))}"
+            },
+        additionalInfo = selectedBooking?.comment?.takeIf { it.isNotBlank() }?.let { "Kommentar: $it" },
     )
 }

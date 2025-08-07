@@ -49,17 +49,19 @@ fun InviteTeamMemberDialog(
                 ) {
                     Card(
                         modifier = Modifier.size(48.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        ),
+                        colors =
+                            CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            ),
                         shape = MaterialTheme.shapes.small,
                     ) {
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(12.dp),
+                            modifier =
+                                Modifier
+                                    .fillMaxSize()
+                                    .padding(12.dp),
                             tint = MaterialTheme.colorScheme.onSecondaryContainer,
                         )
                     }
@@ -85,9 +87,10 @@ fun InviteTeamMemberDialog(
                     // Email Input Card
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        ),
+                        colors =
+                            CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            ),
                     ) {
                         Column(
                             modifier = Modifier.padding(16.dp),
@@ -134,14 +137,16 @@ fun InviteTeamMemberDialog(
                     // Team Info Card
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        ),
+                        colors =
+                            CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            ),
                     ) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
@@ -160,8 +165,9 @@ fun InviteTeamMemberDialog(
                                 Text(
                                     text = stringResource(R.string.team_invite_info),
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer
-                                        .copy(alpha = 0.8f),
+                                    color =
+                                        MaterialTheme.colorScheme.onTertiaryContainer
+                                            .copy(alpha = 0.8f),
                                 )
                             }
                         }
@@ -171,14 +177,16 @@ fun InviteTeamMemberDialog(
                     if (errorMessage != null) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer,
-                            ),
+                            colors =
+                                CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                                ),
                         ) {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
                                 verticalAlignment = Alignment.Top,
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                             ) {
@@ -227,11 +235,12 @@ fun InviteTeamMemberDialog(
                                 )
                             }
                             Text(
-                                text = if (isLoading) {
-                                    stringResource(R.string.invite_sending)
-                                } else {
-                                    stringResource(R.string.invite_send_button)
-                                },
+                                text =
+                                    if (isLoading) {
+                                        stringResource(R.string.invite_sending)
+                                    } else {
+                                        stringResource(R.string.invite_send_button)
+                                    },
                                 style = MaterialTheme.typography.titleMedium,
                             )
                         }

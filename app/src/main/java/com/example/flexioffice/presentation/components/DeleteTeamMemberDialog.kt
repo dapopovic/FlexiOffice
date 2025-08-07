@@ -20,6 +20,6 @@ fun DeleteTeamMemberDialog(
         onConfirm = onConfirmDelete,
         isLoading = isLoading,
         itemName = userToDelete?.name,
-        additionalInfo = stringResource(R.string.remove_team_member_info)
+        additionalInfo = stringResource(R.string.remove_team_member_info),
     )
 }

@@ -49,17 +49,19 @@ fun CreateTeamDialog(
                 ) {
                     Card(
                         modifier = Modifier.size(48.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        ),
+                        colors =
+                            CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            ),
                         shape = MaterialTheme.shapes.small,
                     ) {
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(12.dp),
+                            modifier =
+                                Modifier
+                                    .fillMaxSize()
+                                    .padding(12.dp),
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
                     }
@@ -85,9 +87,10 @@ fun CreateTeamDialog(
                     // Team Name Card
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        ),
+                        colors =
+                            CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            ),
                     ) {
                         Column(
                             modifier = Modifier.padding(16.dp),
@@ -134,9 +137,10 @@ fun CreateTeamDialog(
                     // Team Description Card
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        ),
+                        colors =
+                            CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            ),
                     ) {
                         Column(
                             modifier = Modifier.padding(16.dp),
@@ -178,14 +182,16 @@ fun CreateTeamDialog(
                     // Team Benefits Info Card
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        ),
+                        colors =
+                            CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            ),
                     ) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
@@ -204,8 +210,9 @@ fun CreateTeamDialog(
                                 Text(
                                     text = stringResource(R.string.team_benefits_subtitle),
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer
-                                        .copy(alpha = 0.8f),
+                                    color =
+                                        MaterialTheme.colorScheme.onTertiaryContainer
+                                            .copy(alpha = 0.8f),
                                 )
                             }
                         }

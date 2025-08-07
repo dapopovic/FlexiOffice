@@ -46,41 +46,41 @@ fun ProfileScreen(
                 .fillMaxSize()
                 .padding(16.dp),
     ) {
-            Header(
-                title = stringResource(R.string.profile_title),
-                iconVector = Icons.Default.Person,
-                modifier = Modifier.padding(bottom = 16.dp),
-            )
+        Header(
+            title = stringResource(R.string.profile_title),
+            iconVector = Icons.Default.Person,
+            modifier = Modifier.padding(bottom = 16.dp),
+        )
 
-            // User information
-            UserInformationCard(
-                user = mainUiState.currentUser,
-                firebaseUser = authUiState.user
-            )
+        // User information
+        UserInformationCard(
+            user = mainUiState.currentUser,
+            firebaseUser = authUiState.user,
+        )
 
-            // App information
-            AppInformationCard()
+        // App information
+        AppInformationCard()
 
-            // Profile Actions (Geofencing Settings and Logout buttons)
-            ProfileActions(
-                isLoading = authUiState.isLoading,
-                onGeofencingSettingsClick = {
-                    navController?.navigate(FlexiOfficeRoutes.GeofencingSettings.route)
-                },
-                onLogoutClick = {
-                    authViewModel.signOut()
-                }
-            )
+        // Profile Actions (Geofencing Settings and Logout buttons)
+        ProfileActions(
+            isLoading = authUiState.isLoading,
+            onGeofencingSettingsClick = {
+                navController?.navigate(FlexiOfficeRoutes.GeofencingSettings.route)
+            },
+            onLogoutClick = {
+                authViewModel.signOut()
+            },
+        )
 
-            Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(1f))
 
-            // Footer
-            Text(
-                text = stringResource(R.string.footer_text),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
+        // Footer
+        Text(
+            text = stringResource(R.string.footer_text),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
+}

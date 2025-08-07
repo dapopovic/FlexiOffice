@@ -58,17 +58,19 @@ fun ConfirmationDialog(
                 ) {
                     Card(
                         modifier = Modifier.size(48.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = type.containerColor(),
-                        ),
+                        colors =
+                            CardDefaults.cardColors(
+                                containerColor = type.containerColor(),
+                            ),
                         shape = MaterialTheme.shapes.small,
                     ) {
                         Icon(
                             imageVector = type.icon,
                             contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(12.dp),
+                            modifier =
+                                Modifier
+                                    .fillMaxSize()
+                                    .padding(12.dp),
                             tint = type.onContainerColor(),
                         )
                     }
@@ -104,14 +106,16 @@ fun ConfirmationDialog(
                     if (itemName != null) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            ),
+                            colors =
+                                CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                ),
                         ) {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                             ) {
@@ -143,14 +147,16 @@ fun ConfirmationDialog(
                     if (type.isDestructive) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer,
-                            ),
+                            colors =
+                                CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                                ),
                         ) {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
                                 verticalAlignment = Alignment.Top,
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                             ) {
@@ -167,7 +173,10 @@ fun ConfirmationDialog(
                                         color = MaterialTheme.colorScheme.onErrorContainer,
                                     )
                                     Text(
-                                        text = stringResource(type.warningMessageRes ?: R.string.action_cannot_be_undone),
+                                        text =
+                                            stringResource(
+                                                type.warningMessageRes ?: R.string.action_cannot_be_undone,
+                                            ),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onErrorContainer,
                                     )
@@ -186,10 +195,11 @@ fun ConfirmationDialog(
                         enabled = !isLoading,
                         modifier = Modifier.fillMaxWidth(),
                         shape = MaterialTheme.shapes.medium,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = type.buttonColor(),
-                            contentColor = type.onButtonColor(),
-                        ),
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor = type.buttonColor(),
+                                contentColor = type.onButtonColor(),
+                            ),
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -211,11 +221,12 @@ fun ConfirmationDialog(
                             }
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = if (isLoading) {
-                                    stringResource(R.string.processing)
-                                } else {
-                                    stringResource(type.confirmButtonTextRes)
-                                },
+                                text =
+                                    if (isLoading) {
+                                        stringResource(R.string.processing)
+                                    } else {
+                                        stringResource(type.confirmButtonTextRes)
+                                    },
                                 style = MaterialTheme.typography.titleMedium,
                             )
                         }
@@ -248,28 +259,32 @@ sealed class ConfirmationDialogType(
     val isDestructive: Boolean = false,
 ) {
     @Composable
-    fun containerColor() = when {
-        isDestructive -> MaterialTheme.colorScheme.errorContainer
-        else -> MaterialTheme.colorScheme.primaryContainer
-    }
+    fun containerColor() =
+        when {
+            isDestructive -> MaterialTheme.colorScheme.errorContainer
+            else -> MaterialTheme.colorScheme.primaryContainer
+        }
 
     @Composable
-    fun onContainerColor() = when {
-        isDestructive -> MaterialTheme.colorScheme.onErrorContainer
-        else -> MaterialTheme.colorScheme.onPrimaryContainer
-    }
+    fun onContainerColor() =
+        when {
+            isDestructive -> MaterialTheme.colorScheme.onErrorContainer
+            else -> MaterialTheme.colorScheme.onPrimaryContainer
+        }
 
     @Composable
-    fun buttonColor() = when {
-        isDestructive -> MaterialTheme.colorScheme.error
-        else -> MaterialTheme.colorScheme.primary
-    }
+    fun buttonColor() =
+        when {
+            isDestructive -> MaterialTheme.colorScheme.error
+            else -> MaterialTheme.colorScheme.primary
+        }
 
     @Composable
-    fun onButtonColor() = when {
-        isDestructive -> MaterialTheme.colorScheme.onError
-        else -> MaterialTheme.colorScheme.onPrimary
-    }
+    fun onButtonColor() =
+        when {
+            isDestructive -> MaterialTheme.colorScheme.onError
+            else -> MaterialTheme.colorScheme.onPrimary
+        }
 
     // Spezifische Dialog-Typen
     data object CancelBooking : ConfirmationDialogType(

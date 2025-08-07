@@ -53,16 +53,16 @@ class RequestsViewModel
         private val auth: FirebaseAuth,
         private val savedStateHandle: SavedStateHandle,
     ) : ViewModel() {
-        
         companion object {
             private const val SELECTED_TEAM_MEMBER_KEY = "requests_selected_team_member"
         }
-        
-        private val _uiState = MutableStateFlow(
-            RequestsUiState(
-                selectedTeamMember = savedStateHandle.get<String>(SELECTED_TEAM_MEMBER_KEY)
+
+        private val _uiState =
+            MutableStateFlow(
+                RequestsUiState(
+                    selectedTeamMember = savedStateHandle.get<String>(SELECTED_TEAM_MEMBER_KEY),
+                ),
             )
-        )
         val uiState: StateFlow<RequestsUiState> = _uiState
 
         init {

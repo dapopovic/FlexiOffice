@@ -63,7 +63,6 @@ class CalendarViewModel
         private val bookingRepository: BookingRepository,
         private val savedStateHandle: SavedStateHandle,
     ) : ViewModel() {
-        
         companion object {
             private const val TAG = "CalendarViewModel"
             private const val SELECTED_DATE_KEY = "selected_date"
@@ -72,22 +71,39 @@ class CalendarViewModel
             private const val SELECTED_TEAM_MEMBER_KEY = "selected_team_member"
             private const val SELECTED_STATUS_KEY = "selected_status"
         }
-        
-        private val _uiState = MutableStateFlow(
-            CalendarUiState(
-                selectedDate = savedStateHandle.get<String>(SELECTED_DATE_KEY)?.let { 
-                    try { LocalDate.parse(it) } catch (e: Exception) { null }
-                },
-                currentMonth = savedStateHandle.get<String>(CURRENT_MONTH_KEY)?.let { 
-                    try { YearMonth.parse(it) } catch (e: Exception) { YearMonth.now() }
-                } ?: YearMonth.now(),
-                isWeekView = savedStateHandle.get<Boolean>(IS_WEEK_VIEW_KEY) ?: false,
-                selectedTeamMember = savedStateHandle.get<String>(SELECTED_TEAM_MEMBER_KEY),
-                selectedStatus = savedStateHandle.get<String>(SELECTED_STATUS_KEY)?.let { 
-                    try { BookingStatus.valueOf(it) } catch (e: Exception) { null }
-                }
+
+        private val _uiState =
+            MutableStateFlow(
+                CalendarUiState(
+                    selectedDate =
+                        savedStateHandle.get<String>(SELECTED_DATE_KEY)?.let {
+                            try {
+                                LocalDate.parse(it)
+                            } catch (e: Exception) {
+                                null
+                            }
+                        },
+                    currentMonth =
+                        savedStateHandle.get<String>(CURRENT_MONTH_KEY)?.let {
+                            try {
+                                YearMonth.parse(it)
+                            } catch (e: Exception) {
+                                YearMonth.now()
+                            }
+                        } ?: YearMonth.now(),
+                    isWeekView = savedStateHandle.get<Boolean>(IS_WEEK_VIEW_KEY) ?: false,
+                    selectedTeamMember = savedStateHandle.get<String>(SELECTED_TEAM_MEMBER_KEY),
+                    selectedStatus =
+                        savedStateHandle.get<String>(SELECTED_STATUS_KEY)?.let {
+                            try {
+                                BookingStatus.valueOf(it)
+                            } catch (e: Exception) {
+                                Logger.e(TAG, "Invalid status filter: $it", e)
+                                null
+                            }
+                        },
+                ),
             )
-        )
         val uiState: StateFlow<CalendarUiState> = _uiState.asStateFlow()
 
         init {

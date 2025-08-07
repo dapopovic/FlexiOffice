@@ -43,9 +43,10 @@ fun ProfileActions(
     Button(
         onClick = onLogoutClick,
         modifier = Modifier.fillMaxWidth(),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.error,
-        ),
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.error,
+            ),
     ) {
         if (isLoading) {
             CircularProgressIndicator(
