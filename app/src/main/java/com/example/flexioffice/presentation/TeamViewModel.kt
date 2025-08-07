@@ -77,18 +77,17 @@ class TeamViewModel
                     val updatedMembers = currentTeam.members.filter { it != userId }
                     val updatedTeam = currentTeam.copy(members = updatedMembers)
 
-                    teamRepository
-                        .updateTeam(updatedTeam)
+                    teamRepository.updateTeam(updatedTeam)
                         .onSuccess {
-                            // Then reset team ID in user
-                            userRepository
-                                .removeUserFromTeam(userId)
-                                .onSuccess {
-                                    _events.send(TeamEvent.MemberRemoved)
-                                }.onFailure { e ->
-                                    _events.send(TeamEvent.Error("Fehler beim Aktualisieren des Users: ${e.message}"))
-                                }
-                        }.onFailure { e ->
+                            // Then reset team ID and restore manager role for user
+                            val userUpdateSuccess = userRepository.removeUserFromTeam(userId)
+                            if (userUpdateSuccess) {
+                                _events.send(TeamEvent.MemberRemoved)
+                            } else {
+                                _events.send(TeamEvent.Error("Fehler beim Aktualisieren des Users"))
+                            }
+                        }
+                        .onFailure { e ->
                             _events.send(TeamEvent.Error("Fehler beim Aktualisieren des Teams: ${e.message}"))
                         }
                 } catch (e: Exception) {
