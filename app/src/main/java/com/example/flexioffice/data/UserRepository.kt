@@ -153,12 +153,12 @@ class UserRepository
                 // so they can create new teams if needed
                 val updates =
                     mapOf(
-                        "teamId" to "",
-                        "role" to User.ROLE_MANAGER,
+                        User.TEAM_ID_FIELD to "",
+                        User.ROLE_FIELD to User.ROLE_MANAGER,
                     )
 
                 firestore
-                    .collection("users")
+                    .collection(User.COLLECTION_NAME)
                     .document(userId)
                     .update(updates)
                     .await()
