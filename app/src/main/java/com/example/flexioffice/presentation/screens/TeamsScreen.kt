@@ -2,13 +2,13 @@ package com.example.flexioffice.presentation.screens
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,20 +17,12 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -48,6 +40,10 @@ import com.example.flexioffice.R
 import com.example.flexioffice.data.model.User
 import com.example.flexioffice.presentation.TeamEvent
 import com.example.flexioffice.presentation.TeamViewModel
+import com.example.flexioffice.presentation.components.CreateTeamDialog
+import com.example.flexioffice.presentation.components.DeleteTeamMemberDialog
+import com.example.flexioffice.presentation.components.Header
+import com.example.flexioffice.presentation.components.InviteTeamMemberDialog
 
 private const val TAG = "TeamsScreen"
 
@@ -150,630 +146,55 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
         }
     }
 
-    // Team creation dialog
-    if (showCreateTeamDialog) {
-        AlertDialog(
-            onDismissRequest = { showCreateTeamDialog = false },
-            title = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Card(
-                        modifier = Modifier.size(48.dp),
-                        colors =
-                            CardDefaults.cardColors(
-                                containerColor =
-                                    MaterialTheme.colorScheme.primaryContainer,
-                            ),
-                        shape = MaterialTheme.shapes.small,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize().padding(12.dp),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        )
-                    }
-                    Column {
-                        Text(
-                            stringResource(R.string.create_team_title),
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Text(
-                            stringResource(R.string.create_team_subtitle),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            },
-            text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(20.dp),
-                    modifier = Modifier.padding(top = 16.dp),
-                ) {
-                    // Team Name Card
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors =
-                            CardDefaults.cardColors(
-                                containerColor =
-                                    MaterialTheme.colorScheme
-                                        .surfaceContainerHigh,
-                            ),
-                    ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Star,
-                                    contentDescription = stringResource(R.string.team_name_content_desc),
-                                )
-                                Text(
-                                    stringResource(R.string.team_name_label),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                            OutlinedTextField(
-                                value = teamName,
-                                onValueChange = { teamName = it },
-                                placeholder = {
-                                    Text(
-                                        stringResource(R.string.team_name_placeholder),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                    )
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = MaterialTheme.shapes.medium,
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Person,
-                                        contentDescription = null,
-                                        tint =
-                                            MaterialTheme.colorScheme
-                                                .onSurfaceVariant,
-                                    )
-                                },
-                            )
-                        }
-                    }
+    // Team creation dialog - Using new CreateTeamDialog component
+    CreateTeamDialog(
+        showDialog = showCreateTeamDialog,
+        teamName = teamName,
+        teamDescription = teamDescription,
+        isLoading = uiState.isLoading,
+        onDismiss = { showCreateTeamDialog = false },
+        onTeamNameChange = { teamName = it },
+        onTeamDescriptionChange = { teamDescription = it },
+        onCreateTeam = { viewModel.createTeam(teamName, teamDescription) },
+    )
 
-                    // Team Description Card
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors =
-                            CardDefaults.cardColors(
-                                containerColor =
-                                    MaterialTheme.colorScheme
-                                        .surfaceContainerHigh,
-                            ),
-                    ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = stringResource(R.string.team_description_content_desc),
-                                )
-                                Text(
-                                    stringResource(R.string.team_description_label),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                            OutlinedTextField(
-                                value = teamDescription,
-                                onValueChange = { teamDescription = it },
-                                placeholder = {
-                                    Text(
-                                        stringResource(R.string.team_description_placeholder),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                    )
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                minLines = 3,
-                                maxLines = 5,
-                                shape = MaterialTheme.shapes.medium,
-                            )
-                        }
-                    }
-
-                    // Team Benefits Info Card
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors =
-                            CardDefaults.cardColors(
-                                containerColor =
-                                    MaterialTheme.colorScheme.tertiaryContainer,
-                            ),
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                                modifier = Modifier.size(24.dp),
-                            )
-                            Column {
-                                Text(
-                                    stringResource(R.string.team_benefits_title),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
-                                )
-                                Text(
-                                    stringResource(R.string.team_benefits_subtitle),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color =
-                                        MaterialTheme.colorScheme.onTertiaryContainer
-                                            .copy(alpha = 0.8f),
-                                )
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(
-                        onClick = { viewModel.createTeam(teamName, teamDescription) },
-                        enabled = teamName.isNotBlank(),
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = MaterialTheme.shapes.medium,
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.padding(vertical = 8.dp),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp),
-                            )
-                            Text(
-                                stringResource(R.string.create_team_button),
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                        }
-                    }
-                    TextButton(
-                        onClick = { showCreateTeamDialog = false },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text(stringResource(R.string.cancel)) }
-                }
-            },
-            dismissButton = null,
-        )
-    }
-
-    // Delete confirmation dialog
-    if (showDeleteConfirmation && userToDelete != null) {
-        AlertDialog(
-            onDismissRequest = {
-                showDeleteConfirmation = false
-                userToDelete = null
-            },
-            title = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Card(
-                        modifier = Modifier.size(48.dp),
-                        colors =
-                            CardDefaults.cardColors(
-                                containerColor =
-                                    MaterialTheme.colorScheme.errorContainer,
-                            ),
-                        shape = MaterialTheme.shapes.small,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize().padding(12.dp),
-                            tint = MaterialTheme.colorScheme.onErrorContainer,
-                        )
-                    }
-                    Column {
-                        Text(
-                            stringResource(R.string.remove_team_member_title),
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Text(
-                            stringResource(R.string.remove_team_member_warning),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            },
-            text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(20.dp),
-                    modifier = Modifier.padding(top = 16.dp),
-                ) {
-                    // User Info Card
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors =
-                            CardDefaults.cardColors(
-                                containerColor =
-                                    MaterialTheme.colorScheme
-                                        .surfaceContainerHigh,
-                            ),
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(24.dp),
-                            )
-                            Column {
-                                Text(userToDelete!!.name)
-                                Text(
-                                    stringResource(R.string.remove_team_member_info),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
-                    }
-
-                    // Warning Card
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors =
-                            CardDefaults.cardColors(
-                                containerColor =
-                                    MaterialTheme.colorScheme.errorContainer,
-                            ),
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            verticalAlignment = Alignment.Top,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onErrorContainer,
-                                modifier = Modifier.size(20.dp),
-                            )
-                            Column {
-                                Text(
-                                    stringResource(R.string.warning),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.onErrorContainer,
-                                )
-                                Text(
-                                    stringResource(R.string.remove_team_member_lost_access),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onErrorContainer,
-                                )
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(
-                        onClick = {
-                            userToDelete?.let { viewModel.removeMember(it.id) }
-                            showDeleteConfirmation = false
-                            userToDelete = null
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = MaterialTheme.shapes.medium,
-                        colors =
-                            ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.error,
-                                contentColor = MaterialTheme.colorScheme.onError,
-                            ),
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.padding(vertical = 8.dp),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp),
-                            )
-                            Text(
-                                stringResource(R.string.team_member_remove_button),
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                        }
-                    }
-                    TextButton(
-                        onClick = {
-                            showDeleteConfirmation = false
-                            userToDelete = null
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text(stringResource(R.string.cancel)) }
-                }
-            },
-            dismissButton = null,
-        )
-    }
-
-    // Team member invite dialog
-    if (uiState.isInviteDialogVisible) {
-        AlertDialog(
-            onDismissRequest = { viewModel.hideInviteDialog() },
-            title = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Card(
-                        modifier = Modifier.size(48.dp),
-                        colors =
-                            CardDefaults.cardColors(
-                                containerColor =
-                                    MaterialTheme.colorScheme.secondaryContainer,
-                            ),
-                        shape = MaterialTheme.shapes.small,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize().padding(12.dp),
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                        )
-                    }
-                    Column {
-                        Text(
-                            stringResource(R.string.invite_team_member_title),
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Text(
-                            stringResource(R.string.invite_team_member_subtitle),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            },
-            text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(20.dp),
-                    modifier = Modifier.padding(top = 16.dp),
-                ) {
-                    // Email Input Card
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors =
-                            CardDefaults.cardColors(
-                                containerColor =
-                                    MaterialTheme.colorScheme
-                                        .surfaceContainerHigh,
-                            ),
-                    ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = stringResource(R.string.email_content_desc),
-                                )
-                                Text(
-                                    stringResource(R.string.email_label),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                            OutlinedTextField(
-                                value = inviteEmail,
-                                onValueChange = { inviteEmail = it },
-                                placeholder = {
-                                    Text(
-                                        stringResource(R.string.email_placeholder),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                    )
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = MaterialTheme.shapes.medium,
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Person,
-                                        contentDescription = null,
-                                        tint =
-                                            MaterialTheme.colorScheme
-                                                .onSurfaceVariant,
-                                    )
-                                },
-                            )
-                        }
-                    }
-
-                    // Team Info Card
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors =
-                            CardDefaults.cardColors(
-                                containerColor =
-                                    MaterialTheme.colorScheme.tertiaryContainer,
-                            ),
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                                modifier = Modifier.size(24.dp),
-                            )
-                            Column {
-                                Text(
-                                    stringResource(R.string.team_invite_title),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
-                                )
-                                Text(
-                                    stringResource(R.string.team_invite_info),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color =
-                                        MaterialTheme.colorScheme.onTertiaryContainer
-                                            .copy(alpha = 0.8f),
-                                )
-                            }
-                        }
-                    }
-
-                    // Error Display
-                    if (uiState.errorMessage != null) {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors =
-                                CardDefaults.cardColors(
-                                    containerColor =
-                                        MaterialTheme.colorScheme.errorContainer,
-                                ),
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                                verticalAlignment = Alignment.Top,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = stringResource(R.string.error_content_desc),
-                                    tint = MaterialTheme.colorScheme.onErrorContainer,
-                                    modifier = Modifier.size(20.dp),
-                                )
-                                Text(
-                                    text = uiState.errorMessage!!,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onErrorContainer,
-                                )
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(
-                        onClick = { viewModel.inviteUserByEmail(inviteEmail) },
-                        enabled = inviteEmail.isNotBlank() && !uiState.isLoading,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = MaterialTheme.shapes.medium,
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.padding(vertical = 8.dp),
-                        ) {
-                            if (uiState.isLoading) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(20.dp),
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    strokeWidth = 2.dp,
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp),
-                                )
-                            }
-                            Text(
-                                if (uiState.isLoading) {
-                                    stringResource(R.string.invite_sending)
-                                } else {
-                                    stringResource(R.string.invite_send_button)
-                                },
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                        }
-                    }
-                    TextButton(
-                        onClick = { viewModel.hideInviteDialog() },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text(stringResource(R.string.cancel)) }
-                }
-            },
-            dismissButton = null,
-        )
-    }
-
-    Scaffold(
-        floatingActionButton = {
-            // show FAB only if the user has no team and is allowed to create one
-            if (uiState.canCreateTeam && uiState.currentTeam == null) {
-                ExtendedFloatingActionButton(
-                    onClick = { showCreateTeamDialog = true },
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.create_team_button))
-                }
-            } else if (uiState.currentTeam?.managerId == uiState.currentUser?.id) {
-                ExtendedFloatingActionButton(
-                    onClick = { viewModel.showInviteDialog() },
-                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                    text = { Text(stringResource(R.string.team_member_invite_button)) },
-                    expanded = true,
-                )
-            }
+    // Delete confirmation dialog - Using new ConfirmationDialog component
+    DeleteTeamMemberDialog(
+        showDialog = showDeleteConfirmation,
+        userToDelete = userToDelete,
+        onDismiss = {
+            showDeleteConfirmation = false
+            userToDelete = null
         },
-    ) { padding ->
+        onConfirmDelete = {
+            userToDelete?.let { viewModel.removeMember(it.id) }
+            showDeleteConfirmation = false
+            userToDelete = null
+        },
+    )
+
+    // Team member invite dialog - Using new InviteTeamMemberDialog component
+    InviteTeamMemberDialog(
+        showDialog = uiState.isInviteDialogVisible,
+        inviteEmail = inviteEmail,
+        isLoading = uiState.isLoading,
+        errorMessage = uiState.errorMessage,
+        onDismiss = { viewModel.hideInviteDialog() },
+        onEmailChange = { inviteEmail = it },
+        onInvite = { viewModel.inviteUserByEmail(inviteEmail) },
+    )
+
+    Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
+            modifier = Modifier.fillMaxSize(),
         ) {
             // Header
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.padding(end = 8.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-                Text(
-                    text = stringResource(R.string.teams_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.weight(1f),
-                )
-            }
+            Header(
+                title = stringResource(R.string.teams_title),
+                iconVector = Icons.Default.Person,
+                hasBackButton = false,
+                modifier = Modifier.padding(bottom = 16.dp),
+            )
 
             if (uiState.currentTeam == null && !uiState.isLoading) {
                 Column(
@@ -858,6 +279,31 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                     }
                 }
             }
+        }
+
+        // Floating Action Button positioned at bottom right
+        // show FAB only if the user has no team and is allowed to create one
+        if (uiState.canCreateTeam && uiState.currentTeam == null) {
+            ExtendedFloatingActionButton(
+                onClick = { showCreateTeamDialog = true },
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomEnd),
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.create_team_button))
+            }
+        } else if (uiState.currentTeam?.managerId == uiState.currentUser?.id) {
+            ExtendedFloatingActionButton(
+                onClick = { viewModel.showInviteDialog() },
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomEnd),
+                icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                text = { Text(stringResource(R.string.team_member_invite_button)) },
+                expanded = true,
+            )
         }
     }
 }

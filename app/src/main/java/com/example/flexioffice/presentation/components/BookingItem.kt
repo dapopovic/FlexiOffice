@@ -74,7 +74,7 @@ fun BookingItem(
                 .swipeableCard(
                     onSwipeLeft = { if (!isStorniert) onCancelClick(booking) },
                     onSwipeRight = { onClick(booking) },
-                    swipeThresholdFraction = 0.5f,
+                    swipeThresholdFraction = 0.6f,
                     onOffsetChange = { offsetX, threshold ->
                         swipeBackgroundColor =
                             when {

@@ -42,9 +42,15 @@ fun MainFlexiOfficeApp(authViewModel: AuthViewModel = hiltViewModel()) {
                 }
             }
             uiState.isLoggedIn -> {
-                // If the user is logged in, navigate to the home screen
-                navController.navigate(FlexiOfficeRoutes.Calendar.route) {
-                    popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+                // Only navigate to Calendar if we're currently on Login or Loading screen
+                val currentRoute = navController.currentDestination?.route
+                if (currentRoute == FlexiOfficeRoutes.Login.route ||
+                    currentRoute == FlexiOfficeRoutes.Loading.route ||
+                    currentRoute == null
+                ) {
+                    navController.navigate(FlexiOfficeRoutes.Calendar.route) {
+                        popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+                    }
                 }
             }
             else -> {

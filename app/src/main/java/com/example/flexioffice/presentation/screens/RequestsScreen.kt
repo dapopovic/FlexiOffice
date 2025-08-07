@@ -5,6 +5,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,11 +27,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -50,8 +49,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.presentation.RequestsViewModel
-import com.example.flexioffice.presentation.components.EnterMultiSelectModeButton
-import com.example.flexioffice.presentation.components.RequestsFilters
+import com.example.flexioffice.presentation.components.Filters
+import com.example.flexioffice.presentation.components.Header
 import com.example.flexioffice.presentation.components.swipeableCard
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -72,129 +71,129 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        topBar = {
-            if (uiState.isMultiSelectMode) {
-                RequestsMultiSelectTopBar(
-                    selectedCount = uiState.selectedRequests.size,
-                    onExitMultiSelect = { viewModel.exitMultiSelectMode() },
-                    onSelectAll = { viewModel.selectAllRequests() },
-                    onClearSelection = { viewModel.clearSelection() },
-                    onBatchApprove = { viewModel.batchApproveRequests() },
-                    onBatchDecline = { viewModel.batchDeclineRequests() },
-                    isBatchProcessing = uiState.isBatchProcessing,
-                )
-            }
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
-        ) {
-            // Header
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.assignment_24px),
-                    contentDescription = stringResource(R.string.requests_icon_desc),
-                    modifier = Modifier.padding(end = 8.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-                Text(text = stringResource(R.string.requests_title), style = MaterialTheme.typography.headlineMedium)
-                EnterMultiSelectModeButton(
-                    isMultiselectMode = uiState.isMultiSelectMode,
-                    onEnterMultiSelectMode = viewModel::startMultiSelectMode,
-                    isListEmpty = uiState.pendingRequests.isEmpty(),
-                )
-            }
-
-            Text(
-                text = stringResource(R.string.requests_subtitle),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 16.dp),
+    Column(modifier = Modifier.fillMaxSize()) {
+        // TopBar when in multi-select mode
+        if (uiState.isMultiSelectMode) {
+            RequestsMultiSelectTopBar(
+                selectedCount = uiState.selectedRequests.size,
+                onExitMultiSelect = { viewModel.exitMultiSelectMode() },
+                onSelectAll = { viewModel.selectAllRequests() },
+                onClearSelection = { viewModel.clearSelection() },
+                onBatchApprove = { viewModel.batchApproveRequests() },
+                onBatchDecline = { viewModel.batchDeclineRequests() },
+                isBatchProcessing = uiState.isBatchProcessing,
             )
+        }
 
-            // Filter nur für Manager anzeigen
-            if (uiState.currentUser?.role == com.example.flexioffice.data.model.User.ROLE_MANAGER &&
-                uiState.teamMembers.isNotEmpty()
-            ) {
-                RequestsFilters(
-                    teamMembers = uiState.teamMembers,
-                    selectedTeamMember = uiState.selectedTeamMember,
-                    onTeamMemberFilterChange = { viewModel.setTeamMemberFilter(it) },
-                    onClearFilters = { viewModel.clearFilters() },
+        Box(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+        ) {
+            Column {
+                Header(
+                    modifier = Modifier.padding(bottom = 16.dp),
+                    title = stringResource(R.string.requests_title),
+                    iconVector = ImageVector.vectorResource(R.drawable.assignment_24px),
+                    iconDescription = stringResource(R.string.requests_icon_desc),
+                    isMultiSelectMode = uiState.isMultiSelectMode,
+                    showMultiSelectButton = !uiState.pendingRequests.isEmpty(),
+                    onEnterMultiSelectMode = viewModel::startMultiSelectMode,
+                )
+
+                Text(
+                    text = stringResource(R.string.requests_subtitle),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 16.dp),
                 )
-            }
 
-            if (uiState.isLoading) {
-                // Loading state
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
+                // Only show team member filter if user is a manager
+                if (uiState.currentUser?.role == com.example.flexioffice.data.model.User.ROLE_MANAGER &&
+                    uiState.teamMembers.isNotEmpty()
                 ) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                    Text(
-                        text = stringResource(R.string.requests_loading),
-                        modifier = Modifier.padding(start = 8.dp),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    Filters(
+                        items = uiState.teamMembers.map { it.name },
+                        selectedItem = uiState.teamMembers.find { it.id == uiState.selectedTeamMember }?.name,
+                        onItemSelected = { name ->
+                            val selectedId = uiState.teamMembers.find { it.name == name }?.id
+                            viewModel.setTeamMemberFilter(selectedId)
+                        },
+                        onClearFilters = { viewModel.clearFilters() },
+                        defaultItem = stringResource(R.string.filters_all_members),
+                        modifier = Modifier.padding(bottom = 16.dp),
                     )
                 }
-            } else if (uiState.pendingRequests.isEmpty()) {
-                // Empty state
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(24.dp).fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
+
+                if (uiState.isLoading) {
+                    // Loading state
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(
-                            painter = painterResource(R.drawable.assignment_24px),
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
                         Text(
-                            text = stringResource(R.string.requests_empty_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(top = 16.dp),
-                        )
-                        Text(
-                            text = stringResource(R.string.requests_empty_subtitle),
+                            text = stringResource(R.string.requests_loading),
+                            modifier = Modifier.padding(start = 8.dp),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 8.dp),
                         )
                     }
-                }
-            } else {
-                // List of pending requests
-                LazyColumn(
-                    modifier = Modifier.padding(top = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    items(uiState.pendingRequests) { booking ->
-                        RequestItem(
-                            booking = booking,
-                            isProcessing = viewModel.isProcessingRequest(booking.id),
-                            onApprove = { viewModel.approveRequest(booking) },
-                            onDecline = { viewModel.declineRequest(booking) },
-                            onLongClick = { viewModel.startMultiSelectMode(booking) },
-                            isMultiSelectMode = uiState.isMultiSelectMode,
-                            isSelected = uiState.selectedRequests.contains(booking.id),
-                            onSelectionChanged = {
-                                viewModel.toggleRequestSelection(booking.id)
-                            },
-                        )
+                } else if (uiState.pendingRequests.isEmpty()) {
+                    // Empty state
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp).fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.assignment_24px),
+                                contentDescription = null,
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                text = stringResource(R.string.requests_empty_title),
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(top = 16.dp),
+                            )
+                            Text(
+                                text = stringResource(R.string.requests_empty_subtitle),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 8.dp),
+                            )
+                        }
+                    }
+                } else {
+                    // List of pending requests
+                    LazyColumn(
+                        modifier = Modifier.padding(top = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        items(uiState.pendingRequests) { booking ->
+                            RequestItem(
+                                booking = booking,
+                                isProcessing = viewModel.isProcessingRequest(booking.id),
+                                onApprove = { viewModel.approveRequest(booking) },
+                                onDecline = { viewModel.declineRequest(booking) },
+                                onLongClick = { viewModel.startMultiSelectMode(booking) },
+                                isMultiSelectMode = uiState.isMultiSelectMode,
+                                isSelected = uiState.selectedRequests.contains(booking.id),
+                                onSelectionChanged = {
+                                    viewModel.toggleRequestSelection(booking.id)
+                                },
+                            )
+                        }
                     }
                 }
             }
+            // Snackbar Host for error messages
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter),
+            )
         }
     }
 }
@@ -401,14 +400,30 @@ fun RequestsMultiSelectTopBar(
     onBatchDecline: () -> Unit,
     isBatchProcessing: Boolean,
 ) {
-    TopAppBar(
-        title = { Text("$selectedCount ausgewählt") },
-        navigationIcon = {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             IconButton(onClick = onExitMultiSelect) {
                 Icon(Icons.Default.Close, contentDescription = stringResource(R.string.multi_select_exit))
             }
-        },
-        actions = {
+            Text(
+                text = stringResource(R.string.multi_select_count, selectedCount),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(start = 8.dp),
+            )
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             if (selectedCount > 0) {
                 IconButton(
                     onClick = onBatchApprove,
@@ -441,6 +456,6 @@ fun RequestsMultiSelectTopBar(
                     contentDescription = stringResource(R.string.select_all),
                 )
             }
-        },
-    )
+        }
+    }
 }

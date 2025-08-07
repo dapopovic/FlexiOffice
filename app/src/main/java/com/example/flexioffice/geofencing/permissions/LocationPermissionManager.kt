@@ -3,7 +3,6 @@ package com.example.flexioffice.geofencing.permissions
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.os.Build
 import androidx.core.app.ActivityCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -22,7 +21,7 @@ class LocationPermissionManager
                     Manifest.permission.ACCESS_COARSE_LOCATION,
                 )
 
-            val BACKGROUND_LOCATION_PERMISSION = Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            const val BACKGROUND_LOCATION_PERMISSION = Manifest.permission.ACCESS_BACKGROUND_LOCATION
         }
 
         /**
@@ -61,7 +60,7 @@ class LocationPermissionManager
             }
 
             // Check background location permission (only for Android 10+)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !hasBackgroundLocationPermission()) {
+            if (!hasBackgroundLocationPermission()) {
                 missingPermissions.add(BACKGROUND_LOCATION_PERMISSION)
             }
 

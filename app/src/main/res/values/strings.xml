@@ -189,6 +189,7 @@
         <item quantity="one">%1$d ausgewählt</item>
         <item quantity="other">%1$d ausgewählt</item>
     </plurals>
+    <string name="multi_select_count">%1$d selected</string>
     <string name="multi_select_exit">Multi-Select beenden</string>
     <string name="batch_cancel_selected">Ausgewählte stornieren</string>
     <string name="batch_clear_selection">Auswahl aufheben</string>
@@ -273,4 +274,18 @@
     
     <string name="geofencing_title">Erinnerungen</string>
     <string name="booking_legend_title">Legende</string>
+
+    <!-- ConfirmationDialog Strings -->
+    <string name="cancel_booking_dialog_subtitle">Bestätigung erforderlich</string>
+    <string name="cancel_booking_warning">Diese Aktion kann nicht rückgängig gemacht werden.</string>
+    <string name="delete_dialog_title">Element löschen</string>
+    <string name="delete_dialog_subtitle">Bestätigung erforderlich</string>
+    <string name="delete_dialog_message">Möchten Sie dieses Element wirklich löschen?</string>
+    <string name="delete_button">Löschen</string>
+    <string name="confirm_action_title">Aktion bestätigen</string>
+    <string name="confirm_action_subtitle">Bestätigung erforderlich</string>
+    <string name="confirm_action_message">Möchten Sie diese Aktion wirklich ausführen?</string>
+    <string name="confirm_button">Bestätigen</string>
+    <string name="action_cannot_be_undone">Diese Aktion kann nicht rückgängig gemacht werden.</string>
+    <string name="processing">Verarbeitung läuft...</string>
 </resources>

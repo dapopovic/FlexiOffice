@@ -15,8 +15,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,11 +24,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -43,17 +41,22 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.getString
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.example.flexioffice.R
+import com.example.flexioffice.data.model.BookingStatus
+import com.example.flexioffice.data.model.labelRes
 import com.example.flexioffice.navigation.FlexiOfficeRoutes
 import com.example.flexioffice.presentation.CalendarUiState
 import com.example.flexioffice.presentation.CalendarViewModel
 import com.example.flexioffice.presentation.components.BookingDialog
 import com.example.flexioffice.presentation.components.BookingLegend
-import com.example.flexioffice.presentation.components.CalendarFilters
+import com.example.flexioffice.presentation.components.ConfirmationDialog
+import com.example.flexioffice.presentation.components.ConfirmationDialogType
 import com.example.flexioffice.presentation.components.EventsList
+import com.example.flexioffice.presentation.components.Filters
 import com.example.flexioffice.presentation.components.MonthCalendar
 import com.example.flexioffice.presentation.components.TeamHomeOfficeSummary
 import com.example.flexioffice.presentation.components.WeekCalendar
@@ -134,7 +137,7 @@ fun CalendarScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
 
     // Shake-Erkennung registrieren
-    androidx.compose.runtime.DisposableEffect(Unit) {
+    DisposableEffect(Unit) {
         viewModel.registerShakeDetection(context)
         onDispose {
             viewModel.unregisterShakeDetection()
@@ -166,27 +169,16 @@ fun CalendarScreen(
     }
 
     // Cancel-Dialog for Shake
-    if (uiState.showCancelDialog) {
-        AlertDialog(
-            onDismissRequest = { viewModel.hideCancelDialog() },
-            title = { Text(stringResource(R.string.calendar_cancel_booking_title)) },
-            text = { Text(stringResource(R.string.calendar_cancel_booking_message)) },
-            confirmButton = {
-                Button(onClick = { viewModel.confirmCancelBooking() }) {
-                    Text(stringResource(R.string.calendar_cancel_button))
-                }
-            },
-            dismissButton = {
-                Button(onClick = { viewModel.hideCancelDialog() }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-        )
-    }
+    ConfirmationDialog(
+        showDialog = uiState.showCancelDialog,
+        type = ConfirmationDialogType.CancelBooking,
+        onDismiss = { viewModel.hideCancelDialog() },
+        onConfirm = { viewModel.confirmCancelBooking() },
+        title = stringResource(R.string.calendar_cancel_booking_title),
+        message = stringResource(R.string.calendar_cancel_booking_message),
+    )
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-    ) { padding ->
+    Box(modifier = Modifier.fillMaxSize()) {
         if (uiState.isLoading) {
             // Show full screen loading only for initial app loading
             Box(
@@ -198,7 +190,6 @@ fun CalendarScreen(
                 modifier =
                     Modifier
                         .fillMaxSize()
-                        .padding(padding)
                         .padding(16.dp)
                         .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -215,14 +206,46 @@ fun CalendarScreen(
                 if (!uiState.currentUser?.teamId.isNullOrEmpty() &&
                     uiState.currentUser?.teamId != com.example.flexioffice.data.model.User.NO_TEAM
                 ) {
-                    CalendarFilters(
-                        teamMembers = uiState.teamMembers,
-                        selectedTeamMember = uiState.selectedTeamMember,
-                        selectedStatus = uiState.selectedStatus,
-                        onTeamMemberFilterChange = viewModel::setTeamMemberFilter,
-                        onStatusFilterChange = viewModel::setStatusFilter,
-                        onClearFilters = viewModel::clearFilters,
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Filters(
+                            modifier = Modifier.weight(1f),
+                            // items where the label is not "Cancelled"
+                            items =
+                                BookingStatus.entries
+                                    .map {
+                                        stringResource(it.labelRes())
+                                    }.filter {
+                                        it != stringResource(R.string.booking_item_status_cancelled)
+                                    },
+                            selectedItem = uiState.selectedStatus?.let { stringResource(it.labelRes()) },
+                            onItemSelected = { item ->
+                                val status = BookingStatus.entries.find { getString(context, it.labelRes()) == item }
+                                viewModel.setStatusFilter(status)
+                            },
+                            onClearFilters = { viewModel.clearFilters() },
+                            defaultItem = stringResource(R.string.filters_all_status),
+                        )
+                        Filters(
+                            modifier = Modifier.weight(2f),
+                            items = uiState.teamMembers.map { it.name },
+                            selectedItem =
+                                uiState.selectedTeamMember?.let { userId ->
+                                    uiState.teamMembers.find { it.id == userId }?.name
+                                },
+                            onItemSelected = { name ->
+                                viewModel.setTeamMemberFilter(
+                                    uiState.teamMembers
+                                        .find {
+                                            it.name == name
+                                        }?.id,
+                                )
+                            },
+                            onClearFilters = { viewModel.clearFilters() },
+                            defaultItem = stringResource(R.string.filters_all_members),
+                        )
+                    }
                 }
 
                 // Calendar View with loading indicator
@@ -275,6 +298,11 @@ fun CalendarScreen(
                 }
             }
         }
+        // Snackbar Host for error messages
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
     }
 }
 

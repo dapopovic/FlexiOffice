@@ -1,17 +1,11 @@
 package com.example.flexioffice.presentation.components
 
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.example.flexioffice.R
 import com.example.flexioffice.data.model.Booking
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @Composable
 fun CancelBookingDialog(
@@ -21,27 +15,22 @@ fun CancelBookingDialog(
     onDismiss: () -> Unit,
     onConfirmCancel: () -> Unit,
 ) {
-    if (showDialog && selectedBooking != null) {
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text(stringResource(R.string.cancel_booking_dialog_title)) },
-            text = { Text(stringResource(R.string.cancel_booking_dialog_message)) },
-            confirmButton = {
-                Button(
-                    onClick = onConfirmCancel,
-                    enabled = !isLoading,
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp,
-                        )
-                    } else {
-                        Text(stringResource(R.string.calendar_cancel_button))
-                    }
-                }
+    ConfirmationDialog(
+        showDialog = showDialog,
+        type = ConfirmationDialogType.CancelBooking,
+        onDismiss = onDismiss,
+        onConfirm = onConfirmCancel,
+        isLoading = isLoading,
+        itemName =
+            selectedBooking?.let { booking ->
+                stringResource(
+                    R.string.request_item_date,
+                    booking.date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)),
+                )
             },
-            dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
-        )
-    }
+        additionalInfo =
+            selectedBooking?.comment?.takeIf { it.isNotBlank() }?.let { comment ->
+                stringResource(R.string.request_item_comment, comment)
+            },
+    )
 }

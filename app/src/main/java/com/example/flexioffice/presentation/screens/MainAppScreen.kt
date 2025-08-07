@@ -1,7 +1,6 @@
 package com.example.flexioffice.presentation.screens
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -45,7 +44,6 @@ fun MainAppScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (uiState.availableNavItems.isNotEmpty()) {
                 NavigationBar(

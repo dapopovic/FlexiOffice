@@ -16,9 +16,13 @@ import androidx.compose.ui.unit.dp
 import com.example.flexioffice.R
 
 @Composable
-fun BookingFloatingActionButton(onCreateBookingClick: () -> Unit) {
+fun BookingFloatingActionButton(
+    onCreateBookingClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     ExtendedFloatingActionButton(
         onClick = onCreateBookingClick,
+        modifier = modifier,
         containerColor = MaterialTheme.colorScheme.primaryContainer,
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ) {
