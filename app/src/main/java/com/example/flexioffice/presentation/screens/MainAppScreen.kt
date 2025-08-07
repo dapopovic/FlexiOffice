@@ -45,7 +45,6 @@ fun MainAppScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (uiState.availableNavItems.isNotEmpty()) {
                 NavigationBar(

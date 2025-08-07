@@ -31,6 +31,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -140,7 +141,7 @@ fun CalendarScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
 
     // Shake-Erkennung registrieren
-    androidx.compose.runtime.DisposableEffect(Unit) {
+    DisposableEffect(Unit) {
         viewModel.registerShakeDetection(context)
         onDispose {
             viewModel.unregisterShakeDetection()
@@ -181,127 +182,122 @@ fun CalendarScreen(
         message = stringResource(R.string.calendar_cancel_booking_message),
     )
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-    ) { padding ->
-        if (uiState.isLoading) {
-            // Show full screen loading only for initial app loading
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) { CircularProgressIndicator() }
-        } else {
-            Column(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .padding(16.dp)
-                        .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+    if (uiState.isLoading) {
+        // Show full screen loading only for initial app loading
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) { CircularProgressIndicator() }
+    } else {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            // Header with title and view toggle
+            CalendarHeader(
+                isWeekView = uiState.isWeekView,
+                onToggleView = viewModel::toggleViewMode,
+                onRefresh = { viewModel.loadBookingsForMonth(uiState.currentMonth) },
+                isLoadingDemoData = uiState.isLoadingDemoData,
+            )
+
+            // Filters for team members and status
+            if (!uiState.currentUser?.teamId.isNullOrEmpty() &&
+                uiState.currentUser?.teamId != com.example.flexioffice.data.model.User.NO_TEAM
             ) {
-                // Header with title and view toggle
-                CalendarHeader(
-                    isWeekView = uiState.isWeekView,
-                    onToggleView = viewModel::toggleViewMode,
-                    onRefresh = { viewModel.loadBookingsForMonth(uiState.currentMonth) },
-                    isLoadingDemoData = uiState.isLoadingDemoData,
-                )
-
-                // Filters for team members and status
-                if (!uiState.currentUser?.teamId.isNullOrEmpty() &&
-                    uiState.currentUser?.teamId != com.example.flexioffice.data.model.User.NO_TEAM
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Filters(
-                            modifier = Modifier.weight(1f),
-                            // items where the label is not "Cancelled"
-                            items =
-                                BookingStatus.entries
-                                    .map {
-                                        stringResource(it.labelRes())
-                                    }.filter {
-                                        it != stringResource(R.string.booking_item_status_cancelled)
-                                    },
-                            selectedItem = uiState.selectedStatus?.let { stringResource(it.labelRes()) },
-                            onItemSelected = { item ->
-                                val status = BookingStatus.entries.find { getString(context, it.labelRes()) == item }
-                                viewModel.setStatusFilter(status)
-                            },
-                            onClearFilters = { viewModel.clearFilters() },
-                            defaultItem = stringResource(R.string.filters_all_status),
-                        )
-                        Filters(
-                            modifier = Modifier.weight(2f),
-                            items = uiState.teamMembers.map { it.name },
-                            selectedItem =
-                                uiState.selectedTeamMember?.let { userId ->
-                                    uiState.teamMembers.find { it.id == userId }?.name
+                    Filters(
+                        modifier = Modifier.weight(1f),
+                        // items where the label is not "Cancelled"
+                        items =
+                            BookingStatus.entries
+                                .map {
+                                    stringResource(it.labelRes())
+                                }.filter {
+                                    it != stringResource(R.string.booking_item_status_cancelled)
                                 },
-                            onItemSelected = { name ->
-                                viewModel.setTeamMemberFilter(
-                                    uiState.teamMembers
-                                        .find {
-                                            it.name == name
-                                        }?.id,
-                                )
+                        selectedItem = uiState.selectedStatus?.let { stringResource(it.labelRes()) },
+                        onItemSelected = { item ->
+                            val status = BookingStatus.entries.find { getString(context, it.labelRes()) == item }
+                            viewModel.setStatusFilter(status)
+                        },
+                        onClearFilters = { viewModel.clearFilters() },
+                        defaultItem = stringResource(R.string.filters_all_status),
+                    )
+                    Filters(
+                        modifier = Modifier.weight(2f),
+                        items = uiState.teamMembers.map { it.name },
+                        selectedItem =
+                            uiState.selectedTeamMember?.let { userId ->
+                                uiState.teamMembers.find { it.id == userId }?.name
                             },
-                            onClearFilters = { viewModel.clearFilters() },
-                            defaultItem = stringResource(R.string.filters_all_members),
-                        )
-                    }
-                }
-
-                // Calendar View with loading indicator
-                CalendarViewWithLoading(
-                    uiState = uiState,
-                    onDateSelected = viewModel::selectDate,
-                    onDateLongPress = { date ->
-                        // Show booking dialog on long press
-                        viewModel.showBookingDialog(date)
-                    },
-                    onDateDoubleClick = { date ->
-                        // Book a direct booking on double click
-                        viewModel.createDirectBooking(date)
-                    },
-                    onMonthChanged = { month ->
-                        if (month != uiState.currentMonth) {
-                            if (month.isAfter(uiState.currentMonth)) {
-                                viewModel.nextMonth()
-                            } else {
-                                viewModel.previousMonth()
-                            }
-                        }
-                    },
-                )
-
-                // Team Summary
-                if (uiState.events.isNotEmpty()) {
-                    TeamHomeOfficeSummary(events = uiState.events)
-                }
-
-                // Events List
-                EventsList(
-                    selectedDate = uiState.selectedDate,
-                    events = uiState.events,
-                )
-
-                // Legend (only show if no team available)
-                if (!uiState.currentUser?.teamId.isNullOrEmpty() &&
-                    uiState.currentUser?.teamId != com.example.flexioffice.data.model.User.NO_TEAM
-                ) {
-                    BookingLegend()
-                }
-
-                if (uiState.events.isEmpty()) {
-                    // Show empty state if no events but has team
-                    EmptyStateOrDemoButton(
-                        hasTeam = !uiState.currentUser?.teamId.isNullOrEmpty(),
-                        navigationController,
+                        onItemSelected = { name ->
+                            viewModel.setTeamMemberFilter(
+                                uiState.teamMembers
+                                    .find {
+                                        it.name == name
+                                    }?.id,
+                            )
+                        },
+                        onClearFilters = { viewModel.clearFilters() },
+                        defaultItem = stringResource(R.string.filters_all_members),
                     )
                 }
+            }
+
+            // Calendar View with loading indicator
+            CalendarViewWithLoading(
+                uiState = uiState,
+                onDateSelected = viewModel::selectDate,
+                onDateLongPress = { date ->
+                    // Show booking dialog on long press
+                    viewModel.showBookingDialog(date)
+                },
+                onDateDoubleClick = { date ->
+                    // Book a direct booking on double click
+                    viewModel.createDirectBooking(date)
+                },
+                onMonthChanged = { month ->
+                    if (month != uiState.currentMonth) {
+                        if (month.isAfter(uiState.currentMonth)) {
+                            viewModel.nextMonth()
+                        } else {
+                            viewModel.previousMonth()
+                        }
+                    }
+                },
+            )
+
+            // Team Summary
+            if (uiState.events.isNotEmpty()) {
+                TeamHomeOfficeSummary(events = uiState.events)
+            }
+
+            // Events List
+            EventsList(
+                selectedDate = uiState.selectedDate,
+                events = uiState.events,
+            )
+
+            // Legend (only show if no team available)
+            if (!uiState.currentUser?.teamId.isNullOrEmpty() &&
+                uiState.currentUser?.teamId != com.example.flexioffice.data.model.User.NO_TEAM
+            ) {
+                BookingLegend()
+            }
+
+            if (uiState.events.isEmpty()) {
+                // Show empty state if no events but has team
+                EmptyStateOrDemoButton(
+                    hasTeam = !uiState.currentUser?.teamId.isNullOrEmpty(),
+                    navigationController,
+                )
             }
         }
     }

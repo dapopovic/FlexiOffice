@@ -26,7 +26,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -72,24 +71,22 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        topBar = {
-            if (uiState.isMultiSelectMode) {
-                RequestsMultiSelectTopBar(
-                    selectedCount = uiState.selectedRequests.size,
-                    onExitMultiSelect = { viewModel.exitMultiSelectMode() },
-                    onSelectAll = { viewModel.selectAllRequests() },
-                    onClearSelection = { viewModel.clearSelection() },
-                    onBatchApprove = { viewModel.batchApproveRequests() },
-                    onBatchDecline = { viewModel.batchDeclineRequests() },
-                    isBatchProcessing = uiState.isBatchProcessing,
-                )
-            }
-        },
-    ) { padding ->
+    Column(modifier = Modifier.fillMaxSize()) {
+        // TopBar when in multi-select mode
+        if (uiState.isMultiSelectMode) {
+            RequestsMultiSelectTopBar(
+                selectedCount = uiState.selectedRequests.size,
+                onExitMultiSelect = { viewModel.exitMultiSelectMode() },
+                onSelectAll = { viewModel.selectAllRequests() },
+                onClearSelection = { viewModel.clearSelection() },
+                onBatchApprove = { viewModel.batchApproveRequests() },
+                onBatchDecline = { viewModel.batchDeclineRequests() },
+                isBatchProcessing = uiState.isBatchProcessing,
+            )
+        }
+
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
         ) {
             Header(
                 modifier = Modifier.padding(bottom = 16.dp),
