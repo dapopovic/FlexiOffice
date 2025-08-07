@@ -259,6 +259,38 @@ class TeamRepository
                 Result.failure(e)
             }
 
+        /** Listens for pending invitations in real-time */
+        fun getPendingInvitationsFlow(): Flow<Result<List<TeamInvitation>>> =
+            callbackFlow {
+                val uid = auth.currentUser?.uid
+                if (uid == null) {
+                    trySend(Result.success(emptyList()))
+                    awaitClose {}
+                    return@callbackFlow
+                }
+
+                val listenerRegistration =
+                    firestore
+                        .collection(TeamInvitation.COLLECTION_NAME)
+                        .whereEqualTo(TeamInvitation.INVITED_USER_ID_FIELD, uid)
+                        .whereEqualTo(TeamInvitation.STATUS_FIELD, TeamInvitation.STATUS_PENDING)
+                        .addSnapshotListener { snapshot, error ->
+                            if (error != null) {
+                                trySend(Result.failure(error))
+                                return@addSnapshotListener
+                            }
+
+                            val invitations =
+                                snapshot?.documents?.mapNotNull {
+                                    it.toObject(TeamInvitation::class.java)
+                                } ?: emptyList()
+
+                            trySend(Result.success(invitations))
+                        }
+
+                awaitClose { listenerRegistration.remove() }
+            }
+
         /** Accepts a team invitation */
         suspend fun acceptTeamInvitation(invitationId: String): Result<Unit> =
             try {

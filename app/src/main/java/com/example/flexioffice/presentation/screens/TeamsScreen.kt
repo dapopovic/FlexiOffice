@@ -226,8 +226,8 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
 
     Scaffold(
         floatingActionButton = {
-            // show FAB only if the user has no team and is allowed to create one
-            if (uiState.canCreateTeam && uiState.currentTeam == null) {
+            // show FAB only if the user has no team, is allowed to create one, AND has no pending invitations
+            if (uiState.canCreateTeam && uiState.currentTeam == null && uiState.pendingInvitations.isEmpty()) {
                 ExtendedFloatingActionButton(
                     onClick = { showCreateTeamDialog = true },
                 ) {

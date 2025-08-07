@@ -100,7 +100,7 @@ class TeamViewModel
 
         init {
             observeUserAndTeamData()
-            loadPendingInvitations()
+            observePendingInvitations()
         }
 
         /** Loads team details if the user is in a team */
@@ -297,6 +297,27 @@ class TeamViewModel
         }
 
         /** Loads pending invitations for the current user */
+
+        /** Observes pending invitations in real-time */
+        private fun observePendingInvitations() {
+            viewModelScope.launch {
+                teamRepository
+                    .getPendingInvitationsFlow()
+                    .collect { result ->
+                        result
+                            .onSuccess { invitations ->
+                                _uiState.update { it.copy(pendingInvitations = invitations) }
+                            }.onFailure { e ->
+                                _uiState.update {
+                                    it.copy(
+                                        errorMessage = "Fehler beim Laden der Einladungen: ${e.message}",
+                                    )
+                                }
+                            }
+                    }
+            }
+        }
+
         fun loadPendingInvitations() {
             viewModelScope.launch {
                 teamRepository
