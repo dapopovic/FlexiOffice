@@ -296,9 +296,7 @@ class TeamViewModel
             }
         }
 
-        /** Loads pending invitations for the current user */
-
-        /** Observes pending invitations in real-time */
+        /** Loads pending invitations for the current user and observes pending invitations in real-time */
         private fun observePendingInvitations() {
             viewModelScope.launch {
                 teamRepository
@@ -338,16 +336,16 @@ class TeamViewModel
                     .acceptTeamInvitation(invitationId)
                     .onSuccess {
                         _events.send(TeamEvent.InvitationAccepted)
-                        loadPendingInvitations() // Refresh invitations
                         // The team data will be updated automatically via the existing flows
+                        // Don't set isLoading = false here, let the flows handle the state update
                     }.onFailure { e ->
                         _uiState.update {
                             it.copy(
                                 errorMessage = "Fehler beim Akzeptieren der Einladung: ${e.message}",
+                                isLoading = false,
                             )
                         }
                     }
-                _uiState.update { it.copy(isLoading = false) }
             }
         }
 
@@ -359,11 +357,15 @@ class TeamViewModel
                     .declineTeamInvitation(invitationId)
                     .onSuccess {
                         _events.send(TeamEvent.InvitationDeclined)
-                        loadPendingInvitations() // Refresh invitations
+                        // Don't set isLoading = false here, let the flows handle the state update
                     }.onFailure { e ->
-                        _uiState.update { it.copy(errorMessage = "Fehler beim Ablehnen der Einladung: ${e.message}") }
+                        _uiState.update {
+                            it.copy(
+                                errorMessage = "Fehler beim Ablehnen der Einladung: ${e.message}",
+                                isLoading = false,
+                            )
+                        }
                     }
-                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }
