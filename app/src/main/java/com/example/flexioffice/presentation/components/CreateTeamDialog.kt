@@ -82,7 +82,6 @@ fun CreateTeamDialog(
             text = {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(20.dp),
-                    modifier = Modifier.padding(top = 16.dp),
                 ) {
                     // Team Name Card
                     Card(
@@ -93,7 +92,6 @@ fun CreateTeamDialog(
                             ),
                     ) {
                         Column(
-                            modifier = Modifier.padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             Row(
@@ -143,7 +141,6 @@ fun CreateTeamDialog(
                             ),
                     ) {
                         Column(
-                            modifier = Modifier.padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             Row(

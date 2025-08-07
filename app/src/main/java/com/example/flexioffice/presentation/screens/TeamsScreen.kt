@@ -288,8 +288,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                 onClick = { showCreateTeamDialog = true },
                 modifier =
                     Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(16.dp),
+                        .align(Alignment.BottomEnd),
             ) {
                 Icon(Icons.Default.Add, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
@@ -300,8 +299,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                 onClick = { viewModel.showInviteDialog() },
                 modifier =
                     Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(16.dp),
+                        .align(Alignment.BottomEnd),
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
                 text = { Text(stringResource(R.string.team_member_invite_button)) },
                 expanded = true,

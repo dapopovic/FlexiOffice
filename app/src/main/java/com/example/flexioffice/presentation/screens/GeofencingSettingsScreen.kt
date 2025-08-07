@@ -4,6 +4,7 @@ import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +22,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -80,70 +82,77 @@ fun GeofencingSettingsScreen(
         }
     }
 
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(24.dp),
-    ) {
-        Header(
-            title = stringResource(R.string.geofencing_title),
-            subtitle = stringResource(R.string.geofencing_subtitle),
-            iconVector = Icons.Default.LocationOn,
-            iconDescription = stringResource(R.string.geofencing_location_icon_desc),
-            onBackPressed = navigateBack,
-            hasBackButton = true,
-        )
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+        ) {
+            Header(
+                title = stringResource(R.string.geofencing_title),
+                subtitle = stringResource(R.string.geofencing_subtitle),
+                iconVector = Icons.Default.LocationOn,
+                iconDescription = stringResource(R.string.geofencing_location_icon_desc),
+                onBackPressed = navigateBack,
+                hasBackButton = true,
+            )
 
-        // Location Permission Card
-        LocationPermissionCard(
-            hasLocationPermissions = uiState.hasLocationPermissions,
-            hasBackgroundPermission = uiState.hasBackgroundLocationPermission,
-            onRequestLocationPermissions = {
-                val permissions =
-                    arrayOf(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION,
-                    )
-                locationPermissionLauncher.launch(permissions)
-            },
-            onRequestBackgroundPermissions = {
-                val permissions =
-                    arrayOf(
-                        Manifest.permission.ACCESS_BACKGROUND_LOCATION,
-                    )
-                locationPermissionLauncher.launch(permissions)
-            },
-        )
+            // Location Permission Card
+            LocationPermissionCard(
+                hasLocationPermissions = uiState.hasLocationPermissions,
+                hasBackgroundPermission = uiState.hasBackgroundLocationPermission,
+                onRequestLocationPermissions = {
+                    val permissions =
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                        )
+                    locationPermissionLauncher.launch(permissions)
+                },
+                onRequestBackgroundPermissions = {
+                    val permissions =
+                        arrayOf(
+                            Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+                        )
+                    locationPermissionLauncher.launch(permissions)
+                },
+            )
 
-        // Home Location Card
-        HomeLocationCard(
-            hasLocationPermissions = uiState.hasLocationPermissions,
-            hasHomeLocation = uiState.user?.hasHomeLocation == true,
-            homeLatitude = uiState.user?.homeLatitude ?: 0.0,
-            homeLongitude = uiState.user?.homeLongitude ?: 0.0,
-            isLoading = uiState.isSettingHomeLocation,
-            onSetCurrentLocation = viewModel::setCurrentLocationAsHome,
-        )
+            // Home Location Card
+            HomeLocationCard(
+                hasLocationPermissions = uiState.hasLocationPermissions,
+                hasHomeLocation = uiState.user?.hasHomeLocation == true,
+                homeLatitude = uiState.user?.homeLatitude ?: 0.0,
+                homeLongitude = uiState.user?.homeLongitude ?: 0.0,
+                isLoading = uiState.isSettingHomeLocation,
+                onSetCurrentLocation = viewModel::setCurrentLocationAsHome,
+            )
 
-        // Geofencing Toggle Card
-        GeofencingToggleCard(
-            isGeofencingEnabled = uiState.isGeofencingActive,
-            canEnableGeofencing = uiState.canEnableGeofencing,
-            isLoading = uiState.isTogglingGeofencing,
-            onToggleGeofencing = { enabled ->
-                if (enabled) {
-                    viewModel.enableGeofencing()
-                } else {
-                    viewModel.disableGeofencing()
-                }
-            },
-        )
+            // Geofencing Toggle Card
+            GeofencingToggleCard(
+                isGeofencingEnabled = uiState.isGeofencingActive,
+                canEnableGeofencing = uiState.canEnableGeofencing,
+                isLoading = uiState.isTogglingGeofencing,
+                onToggleGeofencing = { enabled ->
+                    if (enabled) {
+                        viewModel.enableGeofencing()
+                    } else {
+                        viewModel.disableGeofencing()
+                    }
+                },
+            )
 
-        // Info Card
-        GeofencingInfoCard()
+            // Info Card
+            GeofencingInfoCard()
+        }
+        // Snackbar Host for error and success messages
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
     }
 }
 
