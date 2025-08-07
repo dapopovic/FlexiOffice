@@ -189,6 +189,7 @@
         <item quantity="one">%1$d ausgewählt</item>
         <item quantity="other">%1$d ausgewählt</item>
     </plurals>
+    <string name="multi_select_count">%1$d selected</string>
     <string name="multi_select_exit">Multi-Select beenden</string>
     <string name="batch_cancel_selected">Ausgewählte stornieren</string>
     <string name="batch_clear_selection">Auswahl aufheben</string>

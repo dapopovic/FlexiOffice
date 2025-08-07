@@ -415,7 +415,7 @@ fun RequestsMultiSelectTopBar(
                 Icon(Icons.Default.Close, contentDescription = stringResource(R.string.multi_select_exit))
             }
             Text(
-                text = "$selectedCount ausgewählt",
+                text = stringResource(R.string.multi_select_count, selectedCount),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(start = 8.dp),
             )
