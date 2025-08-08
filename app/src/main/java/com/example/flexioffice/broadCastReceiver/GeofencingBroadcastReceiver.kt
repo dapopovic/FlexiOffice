@@ -12,9 +12,9 @@ import com.google.android.gms.location.GeofencingEvent
 class GeofencingBroadcastReceiver : BroadcastReceiver() {
     companion object {
         private const val TAG = "GeofencingReceiver"
-    private const val PREFS_NAME = "geofence_receiver_prefs"
-    private const val KEY_LAST_EXIT_TS = "last_exit_timestamp"
-    private const val EXIT_DEBOUNCE_MS = 60_000L
+        private const val PREFS_NAME = "geofence_receiver_prefs"
+        private const val KEY_LAST_EXIT_TS = "last_exit_timestamp"
+        private const val EXIT_DEBOUNCE_MS = 60_000L
     }
 
     override fun onReceive(
@@ -49,7 +49,7 @@ class GeofencingBroadcastReceiver : BroadcastReceiver() {
                     val now = System.currentTimeMillis()
                     val lastExit = prefs.getLong(KEY_LAST_EXIT_TS, 0L)
                     if (now - lastExit < EXIT_DEBOUNCE_MS) {
-                        Log.d(TAG, "Exit event debounced (within ${EXIT_DEBOUNCE_MS/1000}s)")
+                        Log.d(TAG, "Exit event debounced (within ${EXIT_DEBOUNCE_MS / 1000}s)")
                         return
                     }
                     prefs.edit().putLong(KEY_LAST_EXIT_TS, now).apply()

@@ -8,8 +8,8 @@ import com.example.flexioffice.data.UserRepository
 import com.example.flexioffice.geofencing.permissions.LocationPermissionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 

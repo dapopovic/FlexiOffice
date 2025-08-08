@@ -11,19 +11,19 @@ import androidx.core.content.edit
 import com.example.flexioffice.broadCastReceiver.GeofencingBroadcastReceiver
 import com.example.flexioffice.data.model.User
 import com.example.flexioffice.geofencing.permissions.LocationPermissionManager
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofenceStatusCodes
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
-import com.google.android.gms.location.GeofenceStatusCodes
-import com.google.android.gms.common.GoogleApiAvailability
-import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.common.api.ResolvableApiException
-import kotlinx.coroutines.tasks.await
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,7 +44,7 @@ class GeofencingManager
             private const val KEY_LAST_HOME_LOCATION_LNG = "last_home_lng"
         }
 
-    private val geofencingClient: GeofencingClient = LocationServices.getGeofencingClient(context)
+        private val geofencingClient: GeofencingClient = LocationServices.getGeofencingClient(context)
         private val sharedPrefs: SharedPreferences = context.getSharedPreferences(GEOFENCE_PREFS, Context.MODE_PRIVATE)
 
         private val geofencePendingIntent: PendingIntent by lazy {
@@ -84,7 +84,12 @@ class GeofencingManager
 
                 // Check device location settings (non-blocking). Geofencing does not require GPS-only; balanced accuracy is sufficient.
                 val settingsClient = LocationServices.getSettingsClient(context)
-                val locationRequest = LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 60_000L).build()
+                val locationRequest =
+                    LocationRequest
+                        .Builder(
+                            Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                            60_000L,
+                        ).build()
                 val settingsRequest =
                     com.google.android.gms.location.LocationSettingsRequest
                         .Builder()
@@ -96,9 +101,15 @@ class GeofencingManager
                 } catch (e: Exception) {
                     // Do not hard-fail here: on many devices precise GPS off triggers RESOLUTION_REQUIRED though geofencing still works.
                     if (e is ResolvableApiException) {
-                        Log.w(TAG, "Location settings require user action (resolvable): ${e.message}. Proceeding with geofence registration.")
+                        Log.w(
+                            TAG,
+                            "Location settings require user action (resolvable): ${e.message}. Proceeding with geofence registration.",
+                        )
                     } else {
-                        Log.w(TAG, "Location settings check failed: ${e.message}. Proceeding with geofence registration.")
+                        Log.w(
+                            TAG,
+                            "Location settings check failed: ${e.message}. Proceeding with geofence registration.",
+                        )
                     }
                 }
 
@@ -117,8 +128,7 @@ class GeofencingManager
                         // Include ENTER so the system resets state on re-entry, allowing subsequent EXIT events
                         .setTransitionTypes(
                             Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT,
-                        )
-                        .setNotificationResponsiveness(0) // Sofortige Benachrichtigung
+                        ).setNotificationResponsiveness(0) // Sofortige Benachrichtigung
                         .build()
 
                 val geofencingRequest =
