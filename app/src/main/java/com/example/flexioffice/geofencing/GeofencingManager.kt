@@ -37,7 +37,7 @@ class GeofencingManager
         companion object {
             private const val TAG = "GeofencingManager"
             private const val HOME_GEOFENCE_ID = "home_geofence"
-            private const val GEOFENCE_RADIUS_METERS = 200f // 200 meter radius for home geofence
+            private const val GEOFENCE_RADIUS_METERS = 300f // 300m radius improves reliability with approx. location
             const val GEOFENCE_PREFS = "geofence_prefs"
             const val KEY_GEOFENCE_ACTIVE = "geofence_active"
             private const val KEY_LAST_HOME_LOCATION_LAT = "last_home_lat"
@@ -128,14 +128,15 @@ class GeofencingManager
                         // Include ENTER so the system resets state on re-entry, allowing subsequent EXIT events
                         .setTransitionTypes(
                             Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT,
-                        ).setNotificationResponsiveness(0) // Sofortige Benachrichtigung
+                        ).setNotificationResponsiveness(10_000) // Up to 10s latency helps reduce false negatives
                         .build()
 
                 val geofencingRequest =
                     GeofencingRequest
                         .Builder()
-                        .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_EXIT)
-                        .addGeofence(geofence)
+                        .setInitialTrigger(
+                            GeofencingRequest.INITIAL_TRIGGER_ENTER or GeofencingRequest.INITIAL_TRIGGER_EXIT,
+                        ).addGeofence(geofence)
                         .build()
 
                 Log.d(

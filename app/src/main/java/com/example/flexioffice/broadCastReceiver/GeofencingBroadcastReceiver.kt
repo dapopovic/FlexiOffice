@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.util.Log
+import androidx.core.content.edit
 import com.example.flexioffice.geofencing.GeofencingService
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
@@ -52,7 +53,7 @@ class GeofencingBroadcastReceiver : BroadcastReceiver() {
                         Log.d(TAG, "Exit event debounced (within ${EXIT_DEBOUNCE_MS / 1000}s)")
                         return
                     }
-                    prefs.edit().putLong(KEY_LAST_EXIT_TS, now).apply()
+                    prefs.edit { putLong(KEY_LAST_EXIT_TS, now) }
 
                     Log.d(TAG, "User left home geofence - starting GeofencingService")
                     val serviceIntent = Intent(context, GeofencingService::class.java)
