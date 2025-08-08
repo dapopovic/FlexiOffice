@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.TeamRepository
 import com.example.flexioffice.data.UserRepository
+import com.example.flexioffice.data.NotificationRepository
 import com.example.flexioffice.data.model.Team
 import com.example.flexioffice.data.model.TeamInvitation
 import com.example.flexioffice.data.model.User
@@ -51,6 +52,7 @@ class TeamViewModel
         private val teamRepository: TeamRepository,
         private val userRepository: UserRepository,
         private val authRepository: AuthRepository,
+    private val notificationRepository: NotificationRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(TeamUiState())
         val uiState: StateFlow<TeamUiState> = _uiState.asStateFlow()
@@ -298,8 +300,12 @@ class TeamViewModel
                 // Use the new invitation system
                 teamRepository
                     .createTeamInvitation(teamId, managerId, email)
-                    .onSuccess {
+                    .onSuccess { invitation ->
                         _events.send(TeamEvent.InviteSuccess)
+                        // Fire-and-forget notification to invited user
+                        launch {
+                            notificationRepository.sendTeamInvitationNotification(invitation)
+                        }
                         hideInviteDialog()
                     }.onFailure { e ->
                         _uiState.update {
@@ -374,8 +380,12 @@ class TeamViewModel
                 _uiState.update { it.copy(isLoading = true) }
                 teamRepository
                     .acceptTeamInvitation(invitationId)
-                    .onSuccess {
+                    .onSuccess { updatedInvitation ->
                         _events.send(TeamEvent.InvitationAccepted)
+                        // Notify manager of acceptance
+                        launch {
+                            notificationRepository.sendTeamInvitationResponseNotification(updatedInvitation)
+                        }
                         // The team data will be updated automatically via the existing flows
                         // Don't set isLoading = false here, let the flows handle the state update
                     }.onFailure { e ->
@@ -395,8 +405,12 @@ class TeamViewModel
                 _uiState.update { it.copy(isLoading = true) }
                 teamRepository
                     .declineTeamInvitation(invitationId)
-                    .onSuccess {
+                    .onSuccess { updatedInvitation ->
                         _events.send(TeamEvent.InvitationDeclined)
+                        // Notify manager of decline
+                        launch {
+                            notificationRepository.sendTeamInvitationResponseNotification(updatedInvitation)
+                        }
                         _uiState.update { it.copy(isLoading = false) }
                     }.onFailure { e ->
                         _uiState.update {
@@ -415,8 +429,12 @@ class TeamViewModel
                 _uiState.update { it.copy(isLoading = true) }
                 teamRepository
                     .cancelTeamInvitation(invitationId)
-                    .onSuccess {
+                    .onSuccess { cancelledInvitation ->
                         _events.send(TeamEvent.InvitationCancelled)
+                        // Notify invitee of cancellation (best-effort)
+                        launch {
+                            notificationRepository.sendTeamInvitationCancelledNotification(cancelledInvitation)
+                        }
                         _uiState.update { it.copy(isLoading = false) }
                     }.onFailure { e ->
                         _uiState.update {

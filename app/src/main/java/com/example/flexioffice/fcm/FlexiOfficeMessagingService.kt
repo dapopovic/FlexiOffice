@@ -76,10 +76,13 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
      */
     private fun handleDataMessage(data: Map<String, String>) {
         val type = data["type"]
-        val bookingId = data["bookingId"]
-        val status = data["status"]
-        val userName = data["userName"]
-        val date = data["date"]
+    val bookingId = data["bookingId"]
+    val status = data["status"]
+    val userName = data["userName"]
+    val date = data["date"]
+    val teamName = data["teamName"]
+    val invitedByUserName = data["invitedByUserName"]
+    val invitedUserEmail = data["invitedUserEmail"]
 
         when (type) {
             "booking_status_update" -> {
@@ -103,6 +106,27 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
                 val title = "Neue Buchungsanfrage 📋"
                 val body = "${userName ?: "Ein Mitarbeiter"} möchte Home-Office${date?.let { " am $it" } ?: ""}"
                 showNotificationWithType(title, body, type, bookingId, userName, date)
+            }
+            "team_invitation" -> {
+                val title = "Team-Einladung"
+                val body = "${invitedByUserName ?: "Ein Manager"} hat Sie in das Team ${teamName?.let { "\"$it\"" } ?: ""} eingeladen."
+                showNotificationWithType(title, body, type)
+            }
+            "team_invitation_response" -> {
+                val accepted = status?.equals("accepted", ignoreCase = true) == true
+                val title = if (accepted) "Einladung akzeptiert" else "Einladung abgelehnt"
+                val body =
+                    if (accepted) {
+                        "${invitedUserEmail ?: "Ein Nutzer"} ist dem Team ${teamName?.let { "\"$it\"" } ?: ""} beigetreten."
+                    } else {
+                        "${invitedUserEmail ?: "Ein Nutzer"} hat die Einladung für ${teamName?.let { "\"$it\"" } ?: "das Team"} abgelehnt."
+                    }
+                showNotificationWithType(title, body, type)
+            }
+            "team_invitation_cancelled" -> {
+                val title = "Einladung storniert"
+                val body = "Die Einladung für das Team ${teamName?.let { "\"$it\"" } ?: ""} wurde storniert."
+                showNotificationWithType(title, body, type)
             }
             else -> {
                 Log.w(TAG, "Unknown message type: $type")

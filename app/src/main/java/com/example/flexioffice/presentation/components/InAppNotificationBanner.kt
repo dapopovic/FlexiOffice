@@ -255,6 +255,9 @@ fun InAppNotificationBanner(
             when (type) {
                 "booking_status_update" -> MaterialTheme.colorScheme.primaryContainer
                 "new_booking_request" -> MaterialTheme.colorScheme.secondaryContainer
+                "team_invitation" -> MaterialTheme.colorScheme.tertiaryContainer
+                "team_invitation_response" -> MaterialTheme.colorScheme.primaryContainer
+                "team_invitation_cancelled" -> MaterialTheme.colorScheme.errorContainer
                 else -> MaterialTheme.colorScheme.surfaceVariant
             }
 
@@ -262,6 +265,9 @@ fun InAppNotificationBanner(
             when (type) {
                 "booking_status_update" -> Icons.Default.CheckCircle
                 "new_booking_request" -> Icons.Default.Notifications
+                "team_invitation" -> Icons.Default.Notifications
+                "team_invitation_response" -> Icons.Default.CheckCircle
+                "team_invitation_cancelled" -> Icons.Default.Notifications
                 else -> Icons.Default.Notifications
             }
         Card(
@@ -292,6 +298,18 @@ fun InAppNotificationBanner(
                                                 alpha = 0.0f,
                                             ),
                                         ),
+                                )
+                            }
+                            "team_invitation" -> {
+                                // Subtle shimmer to draw attention
+                                Modifier.customShimmerEffect(isEnabled = true)
+                            }
+                            "team_invitation_cancelled" -> {
+                                // Pulse glow for cancelled/urgent-like
+                                Modifier.customPulseGlow(
+                                    isEnabled = true,
+                                    glowColor = MaterialTheme.colorScheme.error.copy(alpha = 0.25f),
+                                    pulseSpeed = 900,
                                 )
                             }
                             "urgent" -> {

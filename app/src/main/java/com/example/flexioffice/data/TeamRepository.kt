@@ -113,11 +113,11 @@ class TeamRepository
             }
 
         /** Creates a team invitation instead of directly adding the user */
-        suspend fun createTeamInvitation(
+    suspend fun createTeamInvitation(
             teamId: String,
             managerId: String,
             invitedUserEmail: String,
-        ): Result<Unit> =
+    ): Result<TeamInvitation> =
             try {
                 val userQuerySnapshot = findUserByEmail(invitedUserEmail)
 
@@ -197,7 +197,7 @@ class TeamRepository
                     .set(invitation)
                     .await()
 
-                Result.success(Unit)
+                Result.success(invitation)
             } catch (e: Exception) {
                 Result.failure(e)
             }
@@ -317,12 +317,12 @@ class TeamRepository
             }
 
         /** Accepts a team invitation */
-        suspend fun acceptTeamInvitation(invitationId: String): Result<Unit> =
+    suspend fun acceptTeamInvitation(invitationId: String): Result<TeamInvitation> =
             try {
                 val uid = auth.currentUser?.uid ?: throw Exception("User not authenticated")
 
-                firestore
-                    .runTransaction { transaction ->
+        val updated = firestore
+            .runTransaction { transaction ->
                         val invitationRef = firestore.collection(TeamInvitation.COLLECTION_NAME).document(invitationId)
                         val invitationSnapshot = transaction.get(invitationRef)
                         val invitation =
@@ -369,20 +369,23 @@ class TeamRepository
                             User.ROLE_USER,
                         )
                         transaction.update(teamRef, Team.MEMBERS_FIELD, FieldValue.arrayUnion(uid))
+
+                        // Return updated invitation model
+                        invitation.copy(status = TeamInvitation.STATUS_ACCEPTED, respondedAt = Date())
                     }.await()
 
-                Result.success(Unit)
+                Result.success(updated)
             } catch (e: Exception) {
                 Result.failure(e)
             }
 
         /** Declines a team invitation */
-        suspend fun declineTeamInvitation(invitationId: String): Result<Unit> =
+    suspend fun declineTeamInvitation(invitationId: String): Result<TeamInvitation> =
             try {
                 val uid = auth.currentUser?.uid ?: throw Exception("User not authenticated")
 
-                firestore
-                    .runTransaction { transaction ->
+        val updated = firestore
+            .runTransaction { transaction ->
                         val invitationRef = firestore.collection(TeamInvitation.COLLECTION_NAME).document(invitationId)
                         val invitationSnapshot = transaction.get(invitationRef)
                         val invitation =
@@ -411,20 +414,23 @@ class TeamRepository
                         // Restore manager role for declined user so they can create teams again
                         val userRef = firestore.collection(User.COLLECTION_NAME).document(uid)
                         transaction.update(userRef, User.ROLE_FIELD, User.ROLE_MANAGER)
+
+                        // Return updated invitation model
+                        invitation.copy(status = TeamInvitation.STATUS_DECLINED, respondedAt = Date())
                     }.await()
 
-                Result.success(Unit)
+                Result.success(updated)
             } catch (e: Exception) {
                 Result.failure(e)
             }
 
         /** Cancels a pending team invitation (manager only). */
-        suspend fun cancelTeamInvitation(invitationId: String): Result<Unit> =
+    suspend fun cancelTeamInvitation(invitationId: String): Result<TeamInvitation> =
             try {
                 val uid = auth.currentUser?.uid ?: throw Exception("User not authenticated")
 
-                firestore
-                    .runTransaction { transaction ->
+        val cancelled = firestore
+            .runTransaction { transaction ->
                         val invitationRef = firestore.collection(TeamInvitation.COLLECTION_NAME).document(invitationId)
                         val invitationSnapshot = transaction.get(invitationRef)
                         val invitation =
@@ -441,9 +447,10 @@ class TeamRepository
 
                         // Simpler approach: delete the invitation document
                         transaction.delete(invitationRef)
+                        invitation
                     }.await()
 
-                Result.success(Unit)
+                Result.success(cancelled)
             } catch (e: Exception) {
                 Result.failure(e)
             }
