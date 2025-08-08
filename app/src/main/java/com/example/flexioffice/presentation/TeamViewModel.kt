@@ -1,5 +1,6 @@
 package com.example.flexioffice.presentation
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.data.AuthRepository
@@ -33,6 +34,7 @@ data class TeamUiState(
     val teamMembers: List<User> = emptyList(),
     val isInviteDialogVisible: Boolean = false,
     val pendingInvitations: List<TeamInvitation> = emptyList(),
+    val teamPendingInvitations: List<TeamInvitation> = emptyList(), // outgoing invites for manager
 ) {
     val canCreateTeam: Boolean =
         currentUser?.teamId == User.NO_TEAM &&
@@ -101,6 +103,7 @@ class TeamViewModel
         init {
             observeUserAndTeamData()
             observePendingInvitations()
+            observeTeamPendingInvitations()
         }
 
         /** Loads team details if the user is in a team */
@@ -153,8 +156,20 @@ class TeamViewModel
                         // Handle errors from the upstream flows
                         _uiState.update { it.copy(errorMessage = e.message) }
                     }.collect { state ->
-                        // Update the main UI state
-                        _uiState.value = state
+                        // Update the main UI state, but preserve fields managed by other flows
+                        // like pendingInvitations and transient UI flags (e.g., dialogs)
+                        _uiState.update { prev ->
+                            val preservedPendingInvites =
+                                if (state.currentUser == null) emptyList() else prev.pendingInvitations
+                            val preservedTeamPendingInvites =
+                                if (state.currentTeam == null) emptyList() else prev.teamPendingInvitations
+
+                            state.copy(
+                                pendingInvitations = preservedPendingInvites,
+                                teamPendingInvitations = preservedTeamPendingInvites,
+                                isInviteDialogVisible = prev.isInviteDialogVisible,
+                            )
+                        }
                     }
             }
         }
@@ -304,6 +319,7 @@ class TeamViewModel
                     .collect { result ->
                         result
                             .onSuccess { invitations ->
+                                Log.d("TeamViewModel", "Loaded pending invitations: ${invitations.size}")
                                 _uiState.update { it.copy(pendingInvitations = invitations) }
                             }.onFailure { e ->
                                 _uiState.update {
@@ -311,6 +327,29 @@ class TeamViewModel
                                         errorMessage = "Fehler beim Laden der Einladungen: ${e.message}",
                                     )
                                 }
+                            }
+                    }
+            }
+        }
+
+        /** Observes outgoing team invitations for the current team (manager view). */
+        private fun observeTeamPendingInvitations() {
+            viewModelScope.launch {
+                // React to changes of currentTeam id from UI state
+                uiState
+                    .map { it.currentTeam?.id }
+                    .distinctUntilChanged()
+                    .flatMapLatest { teamId ->
+                        if (teamId.isNullOrEmpty()) flowOf<Result<List<TeamInvitation>>>(Result.success(emptyList()))
+                        else teamRepository.getTeamPendingInvitationsFlow(teamId)
+                    }
+                    .collect { result ->
+                        result
+                            .onSuccess { invitations ->
+                                _uiState.update { it.copy(teamPendingInvitations = invitations) }
+                            }
+                            .onFailure { e ->
+                                _uiState.update { it.copy(errorMessage = e.message) }
                             }
                     }
             }
@@ -357,11 +396,32 @@ class TeamViewModel
                     .declineTeamInvitation(invitationId)
                     .onSuccess {
                         _events.send(TeamEvent.InvitationDeclined)
-                        // Don't set isLoading = false here, let the flows handle the state update
+                        _uiState.update { it.copy(isLoading = false) }
                     }.onFailure { e ->
                         _uiState.update {
                             it.copy(
                                 errorMessage = "Fehler beim Ablehnen der Einladung: ${e.message}",
+                                isLoading = false,
+                            )
+                        }
+                    }
+            }
+        }
+
+        /** Cancels an outgoing team invitation (manager only). */
+        fun cancelTeamInvitation(invitationId: String) {
+            viewModelScope.launch {
+                _uiState.update { it.copy(isLoading = true) }
+                teamRepository
+                    .cancelTeamInvitation(invitationId)
+                    .onSuccess {
+                        _events.send(TeamEvent.InvitationCancelled)
+                        _uiState.update { it.copy(isLoading = false) }
+                    }
+                    .onFailure { e ->
+                        _uiState.update {
+                            it.copy(
+                                errorMessage = "Fehler beim Stornieren der Einladung: ${e.message}",
                                 isLoading = false,
                             )
                         }
@@ -380,6 +440,8 @@ sealed class TeamEvent {
     object InvitationAccepted : TeamEvent()
 
     object InvitationDeclined : TeamEvent()
+
+    object InvitationCancelled : TeamEvent()
 
     data class Error(
         val message: String,

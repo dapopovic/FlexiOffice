@@ -2,35 +2,28 @@ package com.example.flexioffice.presentation.screens
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -45,11 +38,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.flexioffice.R
+import com.example.flexioffice.data.model.TeamInvitation
 import com.example.flexioffice.data.model.User
 import com.example.flexioffice.presentation.TeamEvent
 import com.example.flexioffice.presentation.TeamViewModel
 import com.example.flexioffice.presentation.components.CreateTeamDialog
 import com.example.flexioffice.presentation.components.DeleteTeamMemberDialog
+import com.example.flexioffice.presentation.components.Header
 import com.example.flexioffice.presentation.components.InvitationAction
 import com.example.flexioffice.presentation.components.InvitationConfirmationDialog
 import com.example.flexioffice.presentation.components.InviteTeamMemberDialog
@@ -162,6 +157,10 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                     Log.e(TAG, "Error: ${event.message}")
                     // Here you could show a Toast or Snackbar
                 }
+                TeamEvent.InvitationCancelled -> {
+                    Log.d(TAG, "Invitation cancelled successfully")
+                    // The UI will automatically update due to state changes
+                }
             }
         }
     }
@@ -224,49 +223,20 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
         },
     )
 
-    Scaffold(
-        floatingActionButton = {
-            // show FAB only if the user has no team, is allowed to create one, AND has no pending invitations
-            if (uiState.canCreateTeam && uiState.currentTeam == null && uiState.pendingInvitations.isEmpty()) {
-                ExtendedFloatingActionButton(
-                    onClick = { showCreateTeamDialog = true },
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.create_team_button))
-                }
-            } else if (uiState.currentTeam?.managerId == uiState.currentUser?.id) {
-                ExtendedFloatingActionButton(
-                    onClick = { viewModel.showInviteDialog() },
-                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                    text = { Text(stringResource(R.string.team_member_invite_button)) },
-                    expanded = true,
-                )
-            }
-        },
-    ) { padding ->
+    Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
+            modifier = Modifier.fillMaxSize(),
         ) {
             // Header
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.padding(end = 8.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-                Text(
-                    text = stringResource(R.string.teams_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.weight(1f),
-                )
-            }
+            Header(
+                title = stringResource(R.string.teams_title),
+                iconVector = Icons.Default.Person,
+                hasBackButton = false,
+                modifier = Modifier.padding(bottom = 16.dp),
+            )
 
             // Pending invitations section (show when user has no team)
+            Log.d(TAG, "Pending invitations: ${uiState.pendingInvitations.size}, $pendingInvitationAction")
             if (uiState.pendingInvitations.isNotEmpty() && uiState.currentTeam == null) {
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
@@ -375,9 +345,82 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                                 )
                             }
                         }
+
+                        // Outgoing invitations (visible to manager only)
+                        if (uiState.isTeamManager && uiState.teamPendingInvitations.isNotEmpty()) {
+                            Spacer(modifier = Modifier.padding(top = 16.dp))
+                            Text(
+                                text = stringResource(R.string.outgoing_invitations_title),
+                                style = MaterialTheme.typography.titleSmall,
+                                modifier = Modifier.padding(bottom = 8.dp),
+                            )
+                            LazyColumn {
+                                items(uiState.teamPendingInvitations) { invitation ->
+                                    OutgoingInvitationItem(
+                                        invitation = invitation,
+                                        onCancel = { viewModel.cancelTeamInvitation(invitation.id) },
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
+        }
+        // Floating Action Button positioned at bottom right
+        // show FAB only if the user has no team and is allowed to create one
+        if (uiState.canCreateTeam && uiState.currentTeam == null) {
+            ExtendedFloatingActionButton(
+                onClick = { showCreateTeamDialog = true },
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomEnd),
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.create_team_button))
+            }
+        } else if (uiState.currentTeam?.managerId == uiState.currentUser?.id) {
+            ExtendedFloatingActionButton(
+                onClick = { viewModel.showInviteDialog() },
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomEnd),
+                icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                text = { Text(stringResource(R.string.team_member_invite_button)) },
+                expanded = true,
+            )
+        }
+    }
+}
+
+@Composable
+private fun OutgoingInvitationItem(
+    invitation: TeamInvitation,
+    onCancel: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column {
+            Text(
+                text = invitation.invitedUserEmail,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            Text(
+                text = stringResource(R.string.team_invitation_title),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        IconButton(onClick = onCancel) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = stringResource(R.string.cancel_invitation),
+                tint = MaterialTheme.colorScheme.error,
+            )
         }
     }
 }

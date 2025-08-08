@@ -71,6 +71,8 @@
     <string name="manage_team_and_invite">Verwalten Sie Ihr Team und laden Sie Mitglieder ein</string>
     <string name="my_team">Mein Team</string>
     <string name="team_members_count">Teammitglieder (%1$d)</string>
+    <string name="outgoing_invitations_title">Ausstehende Einladungen (vom Team)</string>
+    <string name="cancel_invitation">Einladung stornieren</string>
     
     <!-- Profile Screen -->
     <string name="profile_title">Profil</string>

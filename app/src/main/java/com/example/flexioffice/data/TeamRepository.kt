@@ -1,5 +1,6 @@
 package com.example.flexioffice.data
 
+import android.util.Log
 import com.example.flexioffice.data.model.Team
 import com.example.flexioffice.data.model.TeamInvitation
 import com.example.flexioffice.data.model.User
@@ -291,6 +292,31 @@ class TeamRepository
                 awaitClose { listenerRegistration.remove() }
             }
 
+        /** Listens for pending invitations for a given team (outgoing, visible to manager) */
+        fun getTeamPendingInvitationsFlow(teamId: String): Flow<Result<List<TeamInvitation>>> =
+            callbackFlow {
+                val listenerRegistration =
+                    firestore
+                        .collection(TeamInvitation.COLLECTION_NAME)
+                        .whereEqualTo(TeamInvitation.TEAM_ID_FIELD, teamId)
+                        .whereEqualTo(TeamInvitation.STATUS_FIELD, TeamInvitation.STATUS_PENDING)
+                        .addSnapshotListener { snapshot, error ->
+                            if (error != null) {
+                                trySend(Result.failure(error))
+                                return@addSnapshotListener
+                            }
+
+                            val invitations =
+                                snapshot?.documents?.mapNotNull {
+                                    it.toObject(TeamInvitation::class.java)
+                                } ?: emptyList()
+
+                            trySend(Result.success(invitations))
+                        }
+
+                awaitClose { listenerRegistration.remove() }
+            }
+
         /** Accepts a team invitation */
         suspend fun acceptTeamInvitation(invitationId: String): Result<Unit> =
             try {
@@ -386,6 +412,36 @@ class TeamRepository
                         // Restore manager role for declined user so they can create teams again
                         val userRef = firestore.collection(User.COLLECTION_NAME).document(uid)
                         transaction.update(userRef, User.ROLE_FIELD, User.ROLE_MANAGER)
+                    }.await()
+
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+
+        /** Cancels a pending team invitation (manager only). */
+        suspend fun cancelTeamInvitation(invitationId: String): Result<Unit> =
+            try {
+                val uid = auth.currentUser?.uid ?: throw Exception("User not authenticated")
+
+                firestore
+                    .runTransaction { transaction ->
+                        val invitationRef = firestore.collection(TeamInvitation.COLLECTION_NAME).document(invitationId)
+                        val invitationSnapshot = transaction.get(invitationRef)
+                        val invitation =
+                            invitationSnapshot.toObject(TeamInvitation::class.java)
+                                ?: throw Exception("Invitation not found.")
+
+                        // Only manager who created it can cancel, and only when pending
+                        if (invitation.invitedByUserId != uid) {
+                            throw Exception("Keine Berechtigung, diese Einladung zu stornieren.")
+                        }
+                        if (invitation.status != TeamInvitation.STATUS_PENDING) {
+                            throw Exception("Einladung ist nicht mehr ausstehend.")
+                        }
+
+                        // Simpler approach: delete the invitation document
+                        transaction.delete(invitationRef)
                     }.await()
 
                 Result.success(Unit)
