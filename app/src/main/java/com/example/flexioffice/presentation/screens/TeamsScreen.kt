@@ -265,7 +265,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                 }
             }
 
-            if (uiState.currentTeam == null && !uiState.isLoading) {
+            if (uiState.currentTeam == null) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
