@@ -153,13 +153,13 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                     Log.d(TAG, "Invitation declined")
                     // The UI will automatically update due to state changes
                 }
+                is TeamEvent.InvitationCancelled -> {
+                    Log.d(TAG, "Invitation cancelled successfully")
+                    // The UI will automatically update due to state changes
+                }
                 is TeamEvent.Error -> {
                     Log.e(TAG, "Error: ${event.message}")
                     // Here you could show a Toast or Snackbar
-                }
-                TeamEvent.InvitationCancelled -> {
-                    Log.d(TAG, "Invitation cancelled successfully")
-                    // The UI will automatically update due to state changes
                 }
             }
         }
