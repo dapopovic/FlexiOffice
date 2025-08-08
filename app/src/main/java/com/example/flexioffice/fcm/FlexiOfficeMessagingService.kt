@@ -76,13 +76,13 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
      */
     private fun handleDataMessage(data: Map<String, String>) {
         val type = data["type"]
-    val bookingId = data["bookingId"]
-    val status = data["status"]
-    val userName = data["userName"]
-    val date = data["date"]
-    val teamName = data["teamName"]
-    val invitedByUserName = data["invitedByUserName"]
-    val invitedUserEmail = data["invitedUserEmail"]
+        val bookingId = data["bookingId"]
+        val status = data["status"]
+        val userName = data["userName"]
+        val date = data["date"]
+        val teamName = data["teamName"]
+        val invitedByUserName = data["invitedByUserName"]
+        val invitedUserEmail = data["invitedUserEmail"]
 
         when (type) {
             "booking_status_update" -> {
@@ -109,7 +109,9 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
             }
             "team_invitation" -> {
                 val title = "Team-Einladung"
-                val body = "${invitedByUserName ?: "Ein Manager"} hat Sie in das Team ${teamName?.let { "\"$it\"" } ?: ""} eingeladen."
+                val body = "${invitedByUserName ?: "Ein Manager"} hat Sie in das Team ${teamName?.let {
+                    "\"$it\""
+                } ?: ""} eingeladen."
                 showNotificationWithType(title, body, type)
             }
             "team_invitation_response" -> {
@@ -117,9 +119,13 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
                 val title = if (accepted) "Einladung akzeptiert" else "Einladung abgelehnt"
                 val body =
                     if (accepted) {
-                        "${invitedUserEmail ?: "Ein Nutzer"} ist dem Team ${teamName?.let { "\"$it\"" } ?: ""} beigetreten."
+                        "${invitedUserEmail ?: "Ein Nutzer"} ist dem Team ${teamName?.let {
+                            "\"$it\""
+                        } ?: ""} beigetreten."
                     } else {
-                        "${invitedUserEmail ?: "Ein Nutzer"} hat die Einladung für ${teamName?.let { "\"$it\"" } ?: "das Team"} abgelehnt."
+                        "${invitedUserEmail ?: "Ein Nutzer"} hat die Einladung für ${teamName?.let {
+                            "\"$it\""
+                        } ?: "das Team"} abgelehnt."
                     }
                 showNotificationWithType(title, body, type)
             }

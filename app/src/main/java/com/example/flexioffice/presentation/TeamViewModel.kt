@@ -4,9 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.data.AuthRepository
+import com.example.flexioffice.data.NotificationRepository
 import com.example.flexioffice.data.TeamRepository
 import com.example.flexioffice.data.UserRepository
-import com.example.flexioffice.data.NotificationRepository
 import com.example.flexioffice.data.model.Team
 import com.example.flexioffice.data.model.TeamInvitation
 import com.example.flexioffice.data.model.User
@@ -52,7 +52,7 @@ class TeamViewModel
         private val teamRepository: TeamRepository,
         private val userRepository: UserRepository,
         private val authRepository: AuthRepository,
-    private val notificationRepository: NotificationRepository,
+        private val notificationRepository: NotificationRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(TeamUiState())
         val uiState: StateFlow<TeamUiState> = _uiState.asStateFlow()

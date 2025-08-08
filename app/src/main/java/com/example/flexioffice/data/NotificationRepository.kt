@@ -3,8 +3,8 @@ package com.example.flexioffice.data
 import android.util.Log
 import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.data.model.BookingStatus
-import com.example.flexioffice.data.model.User
 import com.example.flexioffice.data.model.TeamInvitation
+import com.example.flexioffice.data.model.User
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -35,7 +35,8 @@ class NotificationRepository
                         "type" to "team_invitation",
                         "fcmToken" to inviteeToken,
                         "title" to "Team-Einladung",
-                        "body" to "${invitation.invitedByUserName} hat Sie in das Team \"${invitation.teamName}\" eingeladen.",
+                        "body" to
+                            "${invitation.invitedByUserName} hat Sie in das Team \"${invitation.teamName}\" eingeladen.",
                         "data" to
                             mapOf(
                                 "type" to "team_invitation",
@@ -55,7 +56,7 @@ class NotificationRepository
                 Log.e(TAG, "Error sending team invitation notification", e)
                 Result.failure(e)
             }
-    }
+        }
 
         /** Sends a notification to the manager when a user responds to an invitation */
         suspend fun sendTeamInvitationResponseNotification(invitation: TeamInvitation): Result<Unit> {
@@ -100,7 +101,7 @@ class NotificationRepository
                 Log.e(TAG, "Error sending team invitation response notification", e)
                 Result.failure(e)
             }
-    }
+        }
 
         /** Sends a notification that an invitation was cancelled by the manager */
         suspend fun sendTeamInvitationCancelledNotification(invitation: TeamInvitation): Result<Unit> {
@@ -134,7 +135,8 @@ class NotificationRepository
                 Log.e(TAG, "Error sending team invitation cancelled notification", e)
                 Result.failure(e)
             }
-    }
+        }
+
         /** Sends a notification about a booking status change */
         suspend fun sendBookingStatusNotification(
             booking: Booking,
