@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -240,7 +241,6 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
             if (uiState.pendingInvitations.isNotEmpty() && uiState.currentTeam == null) {
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Text(
                         text = stringResource(R.string.pending_invitations_title),
@@ -249,18 +249,26 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                         modifier = Modifier.padding(bottom = 8.dp),
                     )
 
-                    uiState.pendingInvitations.forEach { invitation ->
-                        TeamInvitationCard(
-                            invitation = invitation,
-                            onAccept = {
-                                pendingInvitationAction = InvitationAction.Accept(invitation)
-                                showInvitationConfirmation = true
-                            },
-                            onDecline = {
-                                pendingInvitationAction = InvitationAction.Decline(invitation)
-                                showInvitationConfirmation = true
-                            },
-                        )
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        items(
+                            items = uiState.pendingInvitations,
+                            key = { it.id },
+                        ) { invitation ->
+                            TeamInvitationCard(
+                                invitation = invitation,
+                                onAccept = {
+                                    pendingInvitationAction = InvitationAction.Accept(invitation)
+                                    showInvitationConfirmation = true
+                                },
+                                onDecline = {
+                                    pendingInvitationAction = InvitationAction.Decline(invitation)
+                                    showInvitationConfirmation = true
+                                },
+                            )
+                        }
                     }
                 }
             }
