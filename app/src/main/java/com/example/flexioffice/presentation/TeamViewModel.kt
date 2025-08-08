@@ -386,8 +386,7 @@ class TeamViewModel
                         launch {
                             notificationRepository.sendTeamInvitationResponseNotification(updatedInvitation)
                         }
-                        // The team data will be updated automatically via the existing flows
-                        // Don't set isLoading = false here, let the flows handle the state update
+                        _uiState.update { it.copy(isLoading = false) }
                     }.onFailure { e ->
                         _uiState.update {
                             it.copy(

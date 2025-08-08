@@ -35,6 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -260,6 +261,7 @@ fun InAppNotificationBanner(
                 "team_invitation_cancelled" -> MaterialTheme.colorScheme.errorContainer
                 else -> MaterialTheme.colorScheme.surfaceVariant
             }
+        val contentColor = contentColorFor(backgroundColor)
 
         val icon =
             when (type) {
@@ -350,12 +352,12 @@ fun InAppNotificationBanner(
                         text = title,
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = contentColor,
                     )
                     Text(
                         text = message,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = contentColor,
                     )
                 }
 
@@ -415,7 +417,7 @@ fun InAppNotificationBanner(
                         imageVector = Icons.Default.Close,
                         contentDescription = stringResource(R.string.in_app_notification_close),
                         modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = contentColor,
                     )
                 }
             }

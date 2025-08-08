@@ -265,7 +265,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                 }
             }
 
-            if (uiState.currentTeam == null) {
+            if (uiState.currentTeam == null && !uiState.isLoading) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -300,7 +300,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                         modifier = Modifier.padding(bottom = 32.dp),
                     )
                 }
-            } else {
+            } else if (!uiState.isLoading) {
                 // show Team details
                 Text(
                     text = stringResource(R.string.manage_team_and_invite),
