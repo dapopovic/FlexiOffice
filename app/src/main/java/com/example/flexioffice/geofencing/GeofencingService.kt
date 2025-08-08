@@ -137,8 +137,14 @@ class GeofencingService : Service() {
             return
         }
 
-        var attempt = 0
+        var attempt = 0 // Netzwerk- bzw. allgemeine Retry-Zählung (exponentielles Backoff)
+        var totalAttempts = 0 // Zählt ALLE Fehlversuche (Timeout, IO, Netzwerk etc.)
         while (true) {
+            if (totalAttempts >= MAX_RETRY_COUNT) {
+                Log.w(TAG, "Abbruch nach $totalAttempts Gesamt-Versuchen (Limit $MAX_RETRY_COUNT)")
+                sharedPrefs.edit { putInt(KEY_RETRY_COUNT, 0) }
+                return
+            }
             try {
                 if (!isNetworkAvailable()) {
                     if (attempt >= MAX_RETRY_COUNT) {
@@ -147,13 +153,14 @@ class GeofencingService : Service() {
                         return
                     }
                     attempt += 1
+                    totalAttempts += 1
                     sharedPrefs.edit { putInt(KEY_RETRY_COUNT, attempt) }
                     val delayMs = 30000L * (1 shl (attempt - 1))
-                    Log.d(TAG, "No network - retry $attempt/$MAX_RETRY_COUNT in ${delayMs / 1000}s")
+                    Log.d(TAG, "No network - retry $attempt/$MAX_RETRY_COUNT (total=$totalAttempts) in ${delayMs / 1000}s")
                     delay(delayMs)
                     continue
                 }
-                Log.d(TAG, "Network connection available - continuing with home office check")
+                Log.d(TAG, "Network connection available - continuing with home office check (totalAttempts=$totalAttempts)")
 
                 // With timeout for network operations
                 withTimeout(NETWORK_TIMEOUT_MS) {
@@ -203,31 +210,36 @@ class GeofencingService : Service() {
                         sharedPrefs.edit { putInt(KEY_RETRY_COUNT, 0) }
                     }
                 }
-                // Completed without throwing => stop loop
-                return
+                return // Erfolg oder keine Notification nötig -> beenden
             } catch (e: TimeoutCancellationException) {
-                Log.w(TAG, "Timeout while checking home office status - will retry later ${e.message}")
+                totalAttempts += 1
+                Log.w(TAG, "Timeout while checking home office status (attempt=$attempt, total=$totalAttempts): ${e.message}")
             } catch (e: UnknownHostException) {
-                Log.w(TAG, "DNS resolution error - no internet connection: ${e.message}")
+                totalAttempts += 1
+                Log.w(TAG, "DNS resolution error (attempt=$attempt, total=$totalAttempts): ${e.message}")
             } catch (e: SocketTimeoutException) {
-                Log.w(TAG, "Socket timeout - weak connection: ${e.message}")
+                totalAttempts += 1
+                Log.w(TAG, "Socket timeout (attempt=$attempt, total=$totalAttempts): ${e.message}")
             } catch (e: IOException) {
-                Log.w(TAG, "Network I/O error: ${e.message}")
+                totalAttempts += 1
+                Log.w(TAG, "Network I/O error (attempt=$attempt, total=$totalAttempts): ${e.message}")
             } catch (e: Exception) {
                 Log.e(TAG, "Unexpected error while checking home office status", e)
-                // Don't retry for unexpected errors
-                return
-            }
-
-            if (attempt >= MAX_RETRY_COUNT) {
-                Log.w(TAG, "Maximum number of retries reached - giving up")
                 sharedPrefs.edit { putInt(KEY_RETRY_COUNT, 0) }
                 return
             }
+
+            if (totalAttempts >= MAX_RETRY_COUNT) {
+                Log.w(TAG, "Maximum total attempts reached ($totalAttempts) - giving up")
+                sharedPrefs.edit { putInt(KEY_RETRY_COUNT, 0) }
+                return
+            }
+
+            // Exponentielles Backoff nur anhand attempt (wird nur bei Netzwerk-Fehler erhöht)
             attempt += 1
             sharedPrefs.edit { putInt(KEY_RETRY_COUNT, attempt) }
-            val delayMs = 30000L * (1 shl (attempt - 1))
-            Log.d(TAG, "Retry $attempt/$MAX_RETRY_COUNT in ${delayMs / 1000}s")
+            val delayMs = 30000L * (1 shl ((attempt - 1).coerceAtMost(5)))
+            Log.d(TAG, "Retry general failure attempt=$attempt (total=$totalAttempts) in ${delayMs / 1000}s")
             delay(delayMs)
         }
     }
