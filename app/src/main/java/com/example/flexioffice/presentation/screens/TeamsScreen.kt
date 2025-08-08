@@ -334,14 +334,19 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                             )
                         }
 
-                        Text(
-                            text = stringResource(R.string.team_members_count, uiState.teamMembers.size),
-                            style = MaterialTheme.typography.titleSmall,
-                            modifier = Modifier.padding(bottom = 8.dp),
-                        )
-
-                        LazyColumn {
-                            items(uiState.teamMembers) { member ->
+                        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                            // Header für Mitglieder
+                            item {
+                                Text(
+                                    text = stringResource(R.string.team_members_count, uiState.teamMembers.size),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 4.dp, bottom = 8.dp),
+                                )
+                            }
+                            // Mitgliederliste
+                            items(uiState.teamMembers, key = { it.id }) { member ->
                                 TeamMemberItem(
                                     member = member,
                                     isManager = member.id == uiState.currentTeam?.managerId,
@@ -352,18 +357,18 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                                     },
                                 )
                             }
-                        }
-
-                        // Outgoing invitations (visible to manager only)
-                        if (uiState.isTeamManager && uiState.teamPendingInvitations.isNotEmpty()) {
-                            Spacer(modifier = Modifier.padding(top = 16.dp))
-                            Text(
-                                text = stringResource(R.string.outgoing_invitations_title),
-                                style = MaterialTheme.typography.titleSmall,
-                                modifier = Modifier.padding(bottom = 8.dp),
-                            )
-                            LazyColumn {
-                                items(uiState.teamPendingInvitations) { invitation ->
+                            // Ausgehende Einladungen
+                            if (uiState.isTeamManager && uiState.teamPendingInvitations.isNotEmpty()) {
+                                item {
+                                    Text(
+                                        text = stringResource(R.string.outgoing_invitations_title),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 16.dp, bottom = 8.dp),
+                                    )
+                                }
+                                items(uiState.teamPendingInvitations, key = { it.id }) { invitation ->
                                     OutgoingInvitationItem(
                                         invitation = invitation,
                                         onCancel = { viewModel.cancelTeamInvitation(invitation.id) },
@@ -414,7 +419,7 @@ private fun OutgoingInvitationItem(
     ) {
         Column {
             Text(
-                text = invitation.invitedUserEmail,
+                text = invitation.invitedUserDisplayName.ifBlank { invitation.invitedUserEmail },
                 style = MaterialTheme.typography.bodyLarge,
             )
             Text(
