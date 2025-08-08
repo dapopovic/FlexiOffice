@@ -340,15 +340,16 @@ class TeamViewModel
                     .map { it.currentTeam?.id }
                     .distinctUntilChanged()
                     .flatMapLatest { teamId ->
-                        if (teamId.isNullOrEmpty()) flowOf<Result<List<TeamInvitation>>>(Result.success(emptyList()))
-                        else teamRepository.getTeamPendingInvitationsFlow(teamId)
-                    }
-                    .collect { result ->
+                        if (teamId.isNullOrEmpty()) {
+                            flowOf<Result<List<TeamInvitation>>>(Result.success(emptyList()))
+                        } else {
+                            teamRepository.getTeamPendingInvitationsFlow(teamId)
+                        }
+                    }.collect { result ->
                         result
                             .onSuccess { invitations ->
                                 _uiState.update { it.copy(teamPendingInvitations = invitations) }
-                            }
-                            .onFailure { e ->
+                            }.onFailure { e ->
                                 _uiState.update { it.copy(errorMessage = e.message) }
                             }
                     }
@@ -417,8 +418,7 @@ class TeamViewModel
                     .onSuccess {
                         _events.send(TeamEvent.InvitationCancelled)
                         _uiState.update { it.copy(isLoading = false) }
-                    }
-                    .onFailure { e ->
+                    }.onFailure { e ->
                         _uiState.update {
                             it.copy(
                                 errorMessage = "Fehler beim Stornieren der Einladung: ${e.message}",

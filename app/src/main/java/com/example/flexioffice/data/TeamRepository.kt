@@ -1,6 +1,5 @@
 package com.example.flexioffice.data
 
-import android.util.Log
 import com.example.flexioffice.data.model.Team
 import com.example.flexioffice.data.model.TeamInvitation
 import com.example.flexioffice.data.model.User
