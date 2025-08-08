@@ -35,6 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -255,13 +256,20 @@ fun InAppNotificationBanner(
             when (type) {
                 "booking_status_update" -> MaterialTheme.colorScheme.primaryContainer
                 "new_booking_request" -> MaterialTheme.colorScheme.secondaryContainer
+                "team_invitation" -> MaterialTheme.colorScheme.tertiaryContainer
+                "team_invitation_response" -> MaterialTheme.colorScheme.primaryContainer
+                "team_invitation_cancelled" -> MaterialTheme.colorScheme.errorContainer
                 else -> MaterialTheme.colorScheme.surfaceVariant
             }
+        val contentColor = contentColorFor(backgroundColor)
 
         val icon =
             when (type) {
                 "booking_status_update" -> Icons.Default.CheckCircle
                 "new_booking_request" -> Icons.Default.Notifications
+                "team_invitation" -> Icons.Default.Notifications
+                "team_invitation_response" -> Icons.Default.CheckCircle
+                "team_invitation_cancelled" -> Icons.Default.Notifications
                 else -> Icons.Default.Notifications
             }
         Card(
@@ -292,6 +300,18 @@ fun InAppNotificationBanner(
                                                 alpha = 0.0f,
                                             ),
                                         ),
+                                )
+                            }
+                            "team_invitation" -> {
+                                // Subtle shimmer to draw attention
+                                Modifier.customShimmerEffect(isEnabled = true)
+                            }
+                            "team_invitation_cancelled" -> {
+                                // Pulse glow for cancelled/urgent-like
+                                Modifier.customPulseGlow(
+                                    isEnabled = true,
+                                    glowColor = MaterialTheme.colorScheme.error.copy(alpha = 0.25f),
+                                    pulseSpeed = 900,
                                 )
                             }
                             "urgent" -> {
@@ -332,12 +352,12 @@ fun InAppNotificationBanner(
                         text = title,
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = contentColor,
                     )
                     Text(
                         text = message,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = contentColor,
                     )
                 }
 
@@ -397,7 +417,7 @@ fun InAppNotificationBanner(
                         imageVector = Icons.Default.Close,
                         contentDescription = stringResource(R.string.in_app_notification_close),
                         modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = contentColor,
                     )
                 }
             }

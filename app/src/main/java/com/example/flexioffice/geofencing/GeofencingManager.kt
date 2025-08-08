@@ -11,11 +11,19 @@ import androidx.core.content.edit
 import com.example.flexioffice.broadCastReceiver.GeofencingBroadcastReceiver
 import com.example.flexioffice.data.model.User
 import com.example.flexioffice.geofencing.permissions.LocationPermissionManager
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofenceStatusCodes
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.GeofencingRequest
+import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,7 +37,7 @@ class GeofencingManager
         companion object {
             private const val TAG = "GeofencingManager"
             private const val HOME_GEOFENCE_ID = "home_geofence"
-            private const val GEOFENCE_RADIUS_METERS = 200f // 200 meter radius for home geofence
+            private const val GEOFENCE_RADIUS_METERS = 300f // 300m radius improves reliability with approx. location
             const val GEOFENCE_PREFS = "geofence_prefs"
             const val KEY_GEOFENCE_ACTIVE = "geofence_active"
             private const val KEY_LAST_HOME_LOCATION_LAT = "last_home_lat"
@@ -54,7 +62,7 @@ class GeofencingManager
          * Configures geofencing for the user's home location
          */
         @RequiresPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-        fun setupHomeGeofence(user: User): Result<Unit> {
+        suspend fun setupHomeGeofence(user: User): Result<Unit> {
             return try {
                 if (!user.hasHomeLocation) {
                     Log.w(TAG, "User has no home location configured")
@@ -64,6 +72,45 @@ class GeofencingManager
                 if (!locationPermissionManager.hasAllRequiredPermissions()) {
                     Log.w(TAG, "No location permissions granted")
                     return Result.failure(SecurityException("No location permissions granted"))
+                }
+
+                // Ensure Google Play services are available
+                val gpAvailability = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context)
+                if (gpAvailability != ConnectionResult.SUCCESS) {
+                    val msg = "Google Play-Dienste nicht verfügbar (Code $gpAvailability)"
+                    Log.w(TAG, msg)
+                    return Result.failure(IllegalStateException(msg))
+                }
+
+                // Check device location settings (non-blocking). Geofencing does not require GPS-only; balanced accuracy is sufficient.
+                val settingsClient = LocationServices.getSettingsClient(context)
+                val locationRequest =
+                    LocationRequest
+                        .Builder(
+                            Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                            60_000L,
+                        ).build()
+                val settingsRequest =
+                    com.google.android.gms.location.LocationSettingsRequest
+                        .Builder()
+                        .addLocationRequest(locationRequest)
+                        .setAlwaysShow(false)
+                        .build()
+                try {
+                    settingsClient.checkLocationSettings(settingsRequest).await()
+                } catch (e: Exception) {
+                    // Do not hard-fail here: on many devices precise GPS off triggers RESOLUTION_REQUIRED though geofencing still works.
+                    if (e is ResolvableApiException) {
+                        Log.w(
+                            TAG,
+                            "Location settings require user action (resolvable): ${e.message}. Proceeding with geofence registration.",
+                        )
+                    } else {
+                        Log.w(
+                            TAG,
+                            "Location settings check failed: ${e.message}. Proceeding with geofence registration.",
+                        )
+                    }
                 }
 
                 // Remove previous geofences if any
@@ -78,22 +125,36 @@ class GeofencingManager
                             user.homeLongitude,
                             GEOFENCE_RADIUS_METERS,
                         ).setExpirationDuration(Geofence.NEVER_EXPIRE)
-                        .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_EXIT)
-                        .setNotificationResponsiveness(0) // Sofortige Benachrichtigung
+                        // Include ENTER so the system resets state on re-entry, allowing subsequent EXIT events
+                        .setTransitionTypes(
+                            Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT,
+                        ).setNotificationResponsiveness(10_000) // Up to 10s latency helps reduce false negatives
                         .build()
 
                 val geofencingRequest =
                     GeofencingRequest
                         .Builder()
-                        .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_EXIT)
-                        .addGeofence(geofence)
+                        .setInitialTrigger(
+                            GeofencingRequest.INITIAL_TRIGGER_ENTER or GeofencingRequest.INITIAL_TRIGGER_EXIT,
+                        ).addGeofence(geofence)
                         .build()
 
                 Log.d(
                     TAG,
                     "Activating home geofence for coordinates: ${user.homeLatitude}, ${user.homeLongitude}",
                 )
-                geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)
+                // Await the async task to catch failures properly
+                try {
+                    geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent).await()
+                } catch (e: Exception) {
+                    if (e is ApiException) {
+                        val code = e.statusCode
+                        val codeStr = GeofenceStatusCodes.getStatusCodeString(code)
+                        Log.e(TAG, "addGeofences failed: $code ($codeStr)", e)
+                        return Result.failure(IllegalStateException("Geofencing fehlgeschlagen: $codeStr ($code)"))
+                    }
+                    throw e
+                }
                 // Save status in SharedPreferences
                 sharedPrefs.edit {
                     putString(KEY_LAST_HOME_LOCATION_LAT, user.homeLatitude.toString())
@@ -115,9 +176,10 @@ class GeofencingManager
         /**
          * Removes all active geofences
          */
-        fun removeGeofences(): Result<Unit> =
+        suspend fun removeGeofences(): Result<Unit> =
             try {
-                geofencingClient.removeGeofences(geofencePendingIntent)
+                // Await removal to ensure state is consistent
+                geofencingClient.removeGeofences(geofencePendingIntent).await()
 
                 // Remove status from SharedPreferences
                 sharedPrefs

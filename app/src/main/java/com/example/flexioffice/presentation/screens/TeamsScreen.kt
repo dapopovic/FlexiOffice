@@ -8,12 +8,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
@@ -37,13 +39,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.flexioffice.R
+import com.example.flexioffice.data.model.TeamInvitation
 import com.example.flexioffice.data.model.User
 import com.example.flexioffice.presentation.TeamEvent
 import com.example.flexioffice.presentation.TeamViewModel
 import com.example.flexioffice.presentation.components.CreateTeamDialog
 import com.example.flexioffice.presentation.components.DeleteTeamMemberDialog
 import com.example.flexioffice.presentation.components.Header
+import com.example.flexioffice.presentation.components.InvitationAction
+import com.example.flexioffice.presentation.components.InvitationConfirmationDialog
 import com.example.flexioffice.presentation.components.InviteTeamMemberDialog
+import com.example.flexioffice.presentation.components.TeamInvitationCard
 
 private const val TAG = "TeamsScreen"
 
@@ -121,6 +127,8 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
     var teamDescription by remember { mutableStateOf("") }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var userToDelete by remember { mutableStateOf<User?>(null) }
+    var showInvitationConfirmation by remember { mutableStateOf(false) }
+    var pendingInvitationAction by remember { mutableStateOf<InvitationAction?>(null) }
 
     // Event-Handling
     LaunchedEffect(Unit) {
@@ -136,6 +144,18 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                 }
                 is TeamEvent.MemberRemoved -> {
                     Log.d(TAG, "Member successfully removed")
+                    // The UI will automatically update due to state changes
+                }
+                is TeamEvent.InvitationAccepted -> {
+                    Log.d(TAG, "Invitation accepted successfully")
+                    // The UI will automatically update due to state changes
+                }
+                is TeamEvent.InvitationDeclined -> {
+                    Log.d(TAG, "Invitation declined")
+                    // The UI will automatically update due to state changes
+                }
+                is TeamEvent.InvitationCancelled -> {
+                    Log.d(TAG, "Invitation cancelled successfully")
                     // The UI will automatically update due to state changes
                 }
                 is TeamEvent.Error -> {
@@ -184,6 +204,26 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
         onInvite = { viewModel.inviteUserByEmail(inviteEmail) },
     )
 
+    // Invitation confirmation dialog
+    InvitationConfirmationDialog(
+        showDialog = showInvitationConfirmation,
+        action = pendingInvitationAction,
+        isLoading = uiState.isLoading,
+        onDismiss = {
+            showInvitationConfirmation = false
+            pendingInvitationAction = null
+        },
+        onConfirm = {
+            when (val action = pendingInvitationAction) {
+                is InvitationAction.Accept -> viewModel.acceptInvitation(action.invitation.id)
+                is InvitationAction.Decline -> viewModel.declineInvitation(action.invitation.id)
+                null -> { /* Do nothing */ }
+            }
+            showInvitationConfirmation = false
+            pendingInvitationAction = null
+        },
+    )
+
     Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -195,6 +235,43 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                 hasBackButton = false,
                 modifier = Modifier.padding(bottom = 16.dp),
             )
+
+            // Pending invitations section (show when user has no team)
+            Log.d(TAG, "Pending invitations: ${uiState.pendingInvitations.size}, $pendingInvitationAction")
+            if (uiState.pendingInvitations.isNotEmpty() && uiState.currentTeam == null) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.pending_invitations_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        items(
+                            items = uiState.pendingInvitations,
+                            key = { it.id },
+                        ) { invitation ->
+                            TeamInvitationCard(
+                                invitation = invitation,
+                                onAccept = {
+                                    pendingInvitationAction = InvitationAction.Accept(invitation)
+                                    showInvitationConfirmation = true
+                                },
+                                onDecline = {
+                                    pendingInvitationAction = InvitationAction.Decline(invitation)
+                                    showInvitationConfirmation = true
+                                },
+                            )
+                        }
+                    }
+                }
+            }
 
             if (uiState.currentTeam == null && !uiState.isLoading) {
                 Column(
@@ -231,7 +308,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                         modifier = Modifier.padding(bottom = 32.dp),
                     )
                 }
-            } else {
+            } else if (!uiState.isLoading) {
                 // show Team details
                 Text(
                     text = stringResource(R.string.manage_team_and_invite),
@@ -257,14 +334,20 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                             )
                         }
 
-                        Text(
-                            text = stringResource(R.string.team_members_count, uiState.teamMembers.size),
-                            style = MaterialTheme.typography.titleSmall,
-                            modifier = Modifier.padding(bottom = 8.dp),
-                        )
-
-                        LazyColumn {
-                            items(uiState.teamMembers) { member ->
+                        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                            // Header für Mitglieder
+                            item {
+                                Text(
+                                    text = stringResource(R.string.team_members_count, uiState.teamMembers.size),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 4.dp, bottom = 8.dp),
+                                )
+                            }
+                            // Mitgliederliste
+                            items(uiState.teamMembers, key = { it.id }) { member ->
                                 TeamMemberItem(
                                     member = member,
                                     isManager = member.id == uiState.currentTeam?.managerId,
@@ -275,12 +358,30 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                                     },
                                 )
                             }
+                            // Ausgehende Einladungen
+                            if (uiState.isTeamManager && uiState.teamPendingInvitations.isNotEmpty()) {
+                                item {
+                                    Text(
+                                        text = stringResource(R.string.outgoing_invitations_title),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .padding(top = 16.dp, bottom = 8.dp),
+                                    )
+                                }
+                                items(uiState.teamPendingInvitations, key = { it.id }) { invitation ->
+                                    OutgoingInvitationItem(
+                                        invitation = invitation,
+                                        onCancel = { viewModel.cancelTeamInvitation(invitation.id) },
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-
         // Floating Action Button positioned at bottom right
         // show FAB only if the user has no team and is allowed to create one
         if (uiState.canCreateTeam && uiState.currentTeam == null) {
@@ -303,6 +404,37 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
                 text = { Text(stringResource(R.string.team_member_invite_button)) },
                 expanded = true,
+            )
+        }
+    }
+}
+
+@Composable
+private fun OutgoingInvitationItem(
+    invitation: TeamInvitation,
+    onCancel: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column {
+            Text(
+                text = invitation.invitedUserDisplayName.ifBlank { invitation.invitedUserEmail },
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            Text(
+                text = stringResource(R.string.team_invitation_title),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        IconButton(onClick = onCancel) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = stringResource(R.string.cancel_invitation),
+                tint = MaterialTheme.colorScheme.error,
             )
         }
     }

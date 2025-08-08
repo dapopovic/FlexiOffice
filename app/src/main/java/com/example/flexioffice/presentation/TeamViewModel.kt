@@ -1,11 +1,14 @@
 package com.example.flexioffice.presentation
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.data.AuthRepository
+import com.example.flexioffice.data.NotificationRepository
 import com.example.flexioffice.data.TeamRepository
 import com.example.flexioffice.data.UserRepository
 import com.example.flexioffice.data.model.Team
+import com.example.flexioffice.data.model.TeamInvitation
 import com.example.flexioffice.data.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,6 +34,8 @@ data class TeamUiState(
     val currentTeam: Team? = null,
     val teamMembers: List<User> = emptyList(),
     val isInviteDialogVisible: Boolean = false,
+    val pendingInvitations: List<TeamInvitation> = emptyList(),
+    val teamPendingInvitations: List<TeamInvitation> = emptyList(), // outgoing invites for manager
 ) {
     val canCreateTeam: Boolean =
         currentUser?.teamId == User.NO_TEAM &&
@@ -47,6 +52,7 @@ class TeamViewModel
         private val teamRepository: TeamRepository,
         private val userRepository: UserRepository,
         private val authRepository: AuthRepository,
+        private val notificationRepository: NotificationRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(TeamUiState())
         val uiState: StateFlow<TeamUiState> = _uiState.asStateFlow()
@@ -78,14 +84,13 @@ class TeamViewModel
                     teamRepository
                         .updateTeam(updatedTeam)
                         .onSuccess {
-                            // Then reset team ID in user
-                            userRepository
-                                .removeUserFromTeam(userId)
-                                .onSuccess {
-                                    _events.send(TeamEvent.MemberRemoved)
-                                }.onFailure { e ->
-                                    _events.send(TeamEvent.Error("Fehler beim Aktualisieren des Users: ${e.message}"))
-                                }
+                            // Then reset team ID and restore manager role for user
+                            val userUpdateSuccess = userRepository.removeUserFromTeam(userId)
+                            if (userUpdateSuccess) {
+                                _events.send(TeamEvent.MemberRemoved)
+                            } else {
+                                _events.send(TeamEvent.Error("Fehler beim Aktualisieren des Users"))
+                            }
                         }.onFailure { e ->
                             _events.send(TeamEvent.Error("Fehler beim Aktualisieren des Teams: ${e.message}"))
                         }
@@ -99,6 +104,8 @@ class TeamViewModel
 
         init {
             observeUserAndTeamData()
+            observePendingInvitations()
+            observeTeamPendingInvitations()
         }
 
         /** Loads team details if the user is in a team */
@@ -151,8 +158,20 @@ class TeamViewModel
                         // Handle errors from the upstream flows
                         _uiState.update { it.copy(errorMessage = e.message) }
                     }.collect { state ->
-                        // Update the main UI state
-                        _uiState.value = state
+                        // Update the main UI state, but preserve fields managed by other flows
+                        // like pendingInvitations and transient UI flags (e.g., dialogs)
+                        _uiState.update { prev ->
+                            val preservedPendingInvites =
+                                if (state.currentUser == null) emptyList() else prev.pendingInvitations
+                            val preservedTeamPendingInvites =
+                                if (state.currentTeam == null) emptyList() else prev.teamPendingInvitations
+
+                            state.copy(
+                                pendingInvitations = preservedPendingInvites,
+                                teamPendingInvitations = preservedTeamPendingInvites,
+                                isInviteDialogVisible = prev.isInviteDialogVisible,
+                            )
+                        }
                     }
             }
         }
@@ -278,11 +297,15 @@ class TeamViewModel
                     return@launch
                 }
 
-                // Use the atomic repository function which handles all logic
+                // Use the new invitation system
                 teamRepository
-                    .inviteUserToTeamAtomically(teamId, managerId, email)
-                    .onSuccess {
+                    .createTeamInvitation(teamId, managerId, email)
+                    .onSuccess { invitation ->
                         _events.send(TeamEvent.InviteSuccess)
+                        // Fire-and-forget notification to invited user
+                        launch {
+                            notificationRepository.sendTeamInvitationNotification(invitation)
+                        }
                         hideInviteDialog()
                     }.onFailure { e ->
                         _uiState.update {
@@ -293,6 +316,135 @@ class TeamViewModel
                 _uiState.update { it.copy(isLoading = false) }
             }
         }
+
+        /** Loads pending invitations for the current user and observes pending invitations in real-time */
+        private fun observePendingInvitations() {
+            viewModelScope.launch {
+                teamRepository
+                    .getPendingInvitationsFlow()
+                    .collect { result ->
+                        result
+                            .onSuccess { invitations ->
+                                Log.d("TeamViewModel", "Loaded pending invitations: ${invitations.size}")
+                                _uiState.update { it.copy(pendingInvitations = invitations) }
+                            }.onFailure { e ->
+                                _uiState.update {
+                                    it.copy(
+                                        errorMessage = "Fehler beim Laden der Einladungen: ${e.message}",
+                                    )
+                                }
+                            }
+                    }
+            }
+        }
+
+        /** Observes outgoing team invitations for the current team (manager view). */
+        private fun observeTeamPendingInvitations() {
+            viewModelScope.launch {
+                // React to changes of currentTeam id from UI state
+                uiState
+                    .map { it.currentTeam?.id }
+                    .distinctUntilChanged()
+                    .flatMapLatest { teamId ->
+                        if (teamId.isNullOrEmpty()) {
+                            flowOf<Result<List<TeamInvitation>>>(Result.success(emptyList()))
+                        } else {
+                            teamRepository.getTeamPendingInvitationsFlow(teamId)
+                        }
+                    }.collect { result ->
+                        result
+                            .onSuccess { invitations ->
+                                _uiState.update { it.copy(teamPendingInvitations = invitations) }
+                            }.onFailure { e ->
+                                _uiState.update { it.copy(errorMessage = e.message) }
+                            }
+                    }
+            }
+        }
+
+        fun loadPendingInvitations() {
+            viewModelScope.launch {
+                teamRepository
+                    .getPendingInvitations()
+                    .onSuccess { invitations ->
+                        _uiState.update { it.copy(pendingInvitations = invitations) }
+                    }.onFailure { e ->
+                        _uiState.update { it.copy(errorMessage = "Fehler beim Laden der Einladungen: ${e.message}") }
+                    }
+            }
+        }
+
+        /** Accepts a team invitation */
+        fun acceptInvitation(invitationId: String) {
+            viewModelScope.launch {
+                _uiState.update { it.copy(isLoading = true) }
+                teamRepository
+                    .acceptTeamInvitation(invitationId)
+                    .onSuccess { updatedInvitation ->
+                        _events.send(TeamEvent.InvitationAccepted)
+                        // Notify manager of acceptance
+                        launch {
+                            notificationRepository.sendTeamInvitationResponseNotification(updatedInvitation)
+                        }
+                        _uiState.update { it.copy(isLoading = false) }
+                    }.onFailure { e ->
+                        _uiState.update {
+                            it.copy(
+                                errorMessage = "Fehler beim Akzeptieren der Einladung: ${e.message}",
+                                isLoading = false,
+                            )
+                        }
+                    }
+            }
+        }
+
+        /** Declines a team invitation */
+        fun declineInvitation(invitationId: String) {
+            viewModelScope.launch {
+                _uiState.update { it.copy(isLoading = true) }
+                teamRepository
+                    .declineTeamInvitation(invitationId)
+                    .onSuccess { updatedInvitation ->
+                        _events.send(TeamEvent.InvitationDeclined)
+                        // Notify manager of decline
+                        launch {
+                            notificationRepository.sendTeamInvitationResponseNotification(updatedInvitation)
+                        }
+                        _uiState.update { it.copy(isLoading = false) }
+                    }.onFailure { e ->
+                        _uiState.update {
+                            it.copy(
+                                errorMessage = "Fehler beim Ablehnen der Einladung: ${e.message}",
+                                isLoading = false,
+                            )
+                        }
+                    }
+            }
+        }
+
+        /** Cancels an outgoing team invitation (manager only). */
+        fun cancelTeamInvitation(invitationId: String) {
+            viewModelScope.launch {
+                _uiState.update { it.copy(isLoading = true) }
+                teamRepository
+                    .cancelTeamInvitation(invitationId)
+                    .onSuccess { cancelledInvitation ->
+                        _events.send(TeamEvent.InvitationCancelled)
+                        // Notify invitee of cancellation (best-effort)
+                        launch {
+                            notificationRepository.sendTeamInvitationCancelledNotification(cancelledInvitation)
+                        }
+                        _uiState.update { it.copy(isLoading = false) }
+                    }.onFailure { e ->
+                        _uiState.update {
+                            it.copy(
+                                errorMessage = "Fehler beim Stornieren der Einladung: ${e.message}",
+                                isLoading = false,
+                            )
+                        }
+                    }
+            }
+        }
     }
 
 sealed class TeamEvent {
@@ -301,6 +453,12 @@ sealed class TeamEvent {
     object InviteSuccess : TeamEvent()
 
     object MemberRemoved : TeamEvent()
+
+    object InvitationAccepted : TeamEvent()
+
+    object InvitationDeclined : TeamEvent()
+
+    object InvitationCancelled : TeamEvent()
 
     data class Error(
         val message: String,

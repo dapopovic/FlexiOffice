@@ -139,6 +139,7 @@ fun MainAppScreen(
                         when (notificationState.type) {
                             "booking_status_update" -> "booking"
                             "new_booking_request" -> "requests"
+                            "team_invitation", "team_invitation_response", "team_invitation_cancelled" -> "teams"
                             else -> "calendar"
                         }
 

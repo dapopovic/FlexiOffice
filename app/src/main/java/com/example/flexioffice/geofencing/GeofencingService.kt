@@ -126,113 +126,130 @@ class GeofencingService : Service() {
      * Checks if home office is planned for today and sends a notification if so
      */
     suspend fun checkAndSendHomeOfficeNotification() {
-        try {
-            Log.d(TAG, "Checking home office status for today...")
+        Log.d(TAG, "Checking home office status for today...")
 
-            // Check if notification has already been sent today
-            val today = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
-            val lastNotificationDate = sharedPrefs.getString(KEY_LAST_NOTIFICATION_DATE, "")
+        // Check if notification has already been sent today
+        val today = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+        val lastNotificationDate = sharedPrefs.getString(KEY_LAST_NOTIFICATION_DATE, "")
 
-            if (lastNotificationDate == today) {
-                Log.d(TAG, "Home office notification already sent today - skipping")
+        if (lastNotificationDate == today) {
+            Log.d(TAG, "Home office notification already sent today - skipping")
+            return
+        }
+
+        var attempt = 0 // Netzwerk- bzw. allgemeine Retry-Zählung (exponentielles Backoff)
+        var totalAttempts = 0 // Zählt ALLE Fehlversuche (Timeout, IO, Netzwerk etc.)
+        while (true) {
+            if (totalAttempts >= MAX_RETRY_COUNT) {
+                Log.w(TAG, "Abbruch nach $totalAttempts Gesamt-Versuchen (Limit $MAX_RETRY_COUNT)")
+                sharedPrefs.edit { putInt(KEY_RETRY_COUNT, 0) }
                 return
             }
-
-            // Check network connection
-            if (!isNetworkAvailable()) {
-                Log.w(TAG, "No network connection available - postponing check")
-                scheduleRetry()
-                return
-            }
-            Log.d(TAG, "Network connection available - continuing with home office check")
-
-            // With timeout for network operations
-            withTimeout(NETWORK_TIMEOUT_MS) {
-                // Get current user
-                val currentUser = authRepository.currentUser.first()
-                if (currentUser?.uid == null) {
-                    Log.w(TAG, "No logged in user found")
-                    return@withTimeout
+            try {
+                if (!isNetworkAvailable()) {
+                    if (attempt >= MAX_RETRY_COUNT) {
+                        Log.w(TAG, "No network after $attempt retries - giving up")
+                        sharedPrefs.edit { putInt(KEY_RETRY_COUNT, 0) }
+                        return
+                    }
+                    attempt += 1
+                    totalAttempts += 1
+                    sharedPrefs.edit { putInt(KEY_RETRY_COUNT, attempt) }
+                    val delayMs = 30000L * (1 shl (attempt - 1))
+                    Log.d(
+                        TAG,
+                        "No network - retry $attempt/$MAX_RETRY_COUNT (total=$totalAttempts) in ${delayMs / 1000}s",
+                    )
+                    delay(delayMs)
+                    continue
                 }
+                Log.d(
+                    TAG,
+                    "Network connection available - continuing with home office check (totalAttempts=$totalAttempts)",
+                )
 
-                val user = userRepository.getUserStream(currentUser.uid).first().getOrNull()
-                if (user == null) {
-                    Log.w(TAG, "User data could not be loaded")
-                    return@withTimeout
-                }
-
-                // Check if user has home office today
-                val todayBookings =
-                    bookingRepository
-                        .getUserBookingsForDate(
-                            userId = currentUser.uid,
-                            date = LocalDate.now(),
-                        ).getOrNull() ?: emptyList()
-
-                val hasHomeOfficeToday =
-                    todayBookings.any { booking ->
-                        booking.status == BookingStatus.APPROVED
+                // With timeout for network operations
+                withTimeout(NETWORK_TIMEOUT_MS) {
+                    // Get current user
+                    val currentUser = authRepository.currentUser.first()
+                    if (currentUser?.uid == null) {
+                        Log.w(TAG, "No logged in user found")
+                        return@withTimeout
                     }
 
-                if (hasHomeOfficeToday) {
-                    Log.d(TAG, "User has home office planned for today - sending notification")
+                    val user = userRepository.getUserStream(currentUser.uid).first().getOrNull()
+                    if (user == null) {
+                        Log.w(TAG, "User data could not be loaded")
+                        return@withTimeout
+                    }
 
-                    // Send local notification
-                    notificationManager.showHomeOfficeReminderNotification(user.name)
+                    // Check if user has home office today
+                    val todayBookings =
+                        bookingRepository
+                            .getUserBookingsForDate(
+                                userId = currentUser.uid,
+                                date = LocalDate.now(),
+                            ).getOrNull() ?: emptyList()
 
-                    // Save that a notification has already been sent today
-                    sharedPrefs
-                        .edit {
-                            putString(KEY_LAST_NOTIFICATION_DATE, today)
-                                .putInt(KEY_RETRY_COUNT, 0) // Reset retry count on success
+                    val hasHomeOfficeToday =
+                        todayBookings.any { booking ->
+                            booking.status == BookingStatus.APPROVED
                         }
 
-                    Log.d(TAG, "Home office notification sent successfully")
-                } else {
-                    Log.d(TAG, "No home office planned for today - no notification")
-                    // Reset retry count even if no notification needed
-                    sharedPrefs.edit { putInt(KEY_RETRY_COUNT, 0) }
+                    if (hasHomeOfficeToday) {
+                        Log.d(TAG, "User has home office planned for today - sending notification")
+
+                        // Send local notification
+                        notificationManager.showHomeOfficeReminderNotification(user.name)
+
+                        // Save that a notification has already been sent today
+                        sharedPrefs
+                            .edit {
+                                putString(KEY_LAST_NOTIFICATION_DATE, today)
+                                    .putInt(KEY_RETRY_COUNT, 0) // Reset retry count on success
+                            }
+
+                        Log.d(TAG, "Home office notification sent successfully")
+                    } else {
+                        Log.d(TAG, "No home office planned for today - no notification")
+                        // Reset retry count even if no notification needed
+                        sharedPrefs.edit { putInt(KEY_RETRY_COUNT, 0) }
+                    }
                 }
+                return // Erfolg oder keine Notification nötig -> beenden
+            } catch (e: TimeoutCancellationException) {
+                totalAttempts += 1
+                Log.w(
+                    TAG,
+                    "Timeout while checking home office status (attempt=$attempt, total=$totalAttempts): ${e.message}",
+                )
+            } catch (e: UnknownHostException) {
+                totalAttempts += 1
+                Log.w(TAG, "DNS resolution error (attempt=$attempt, total=$totalAttempts): ${e.message}")
+            } catch (e: SocketTimeoutException) {
+                totalAttempts += 1
+                Log.w(TAG, "Socket timeout (attempt=$attempt, total=$totalAttempts): ${e.message}")
+            } catch (e: IOException) {
+                totalAttempts += 1
+                Log.w(TAG, "Network I/O error (attempt=$attempt, total=$totalAttempts): ${e.message}")
+            } catch (e: Exception) {
+                Log.e(TAG, "Unexpected error while checking home office status", e)
+                sharedPrefs.edit { putInt(KEY_RETRY_COUNT, 0) }
+                return
             }
-        } catch (e: TimeoutCancellationException) {
-            Log.w(TAG, "Timeout while checking home office status - will retry later ${e.message}")
-            scheduleRetry()
-        } catch (e: UnknownHostException) {
-            Log.w(TAG, "DNS resolution error - no internet connection: ${e.message}")
-            scheduleRetry()
-        } catch (e: SocketTimeoutException) {
-            Log.w(TAG, "Socket timeout - weak connection: ${e.message}")
-            scheduleRetry()
-        } catch (e: IOException) {
-            Log.w(TAG, "Network I/O error: ${e.message}")
-            scheduleRetry()
-        } catch (e: Exception) {
-            Log.e(TAG, "Unexpected error while checking home office status", e)
-            // Don't schedule retry for unexpected errors to avoid infinite loops
-        }
-    }
 
-    /**
-     * Schedules a retry for later (only for network issues)
-     */
-    private suspend fun scheduleRetry() {
-        val currentRetryCount = sharedPrefs.getInt(KEY_RETRY_COUNT, 0)
-
-        if (currentRetryCount < MAX_RETRY_COUNT) {
-            val newRetryCount = currentRetryCount + 1
-            sharedPrefs.edit { putInt(KEY_RETRY_COUNT, newRetryCount) }
-
-            val delayMs = 30000L * (1 shl (newRetryCount - 1))
-
-            Log.d(TAG, "Scheduling retry $newRetryCount/$MAX_RETRY_COUNT in ${delayMs / 1000}s")
-
-            scope.launch {
-                delay(delayMs)
-                checkAndSendHomeOfficeNotification()
+            if (totalAttempts >= MAX_RETRY_COUNT) {
+                Log.w(TAG, "Maximum total attempts reached ($totalAttempts) - giving up")
+                sharedPrefs.edit { putInt(KEY_RETRY_COUNT, 0) }
+                return
             }
-        } else {
-            Log.w(TAG, "Maximum number of retries reached - giving up")
-            sharedPrefs.edit { putInt(KEY_RETRY_COUNT, 0) }
+
+            // Exponentielles Backoff nur anhand attempt (wird nur bei Netzwerk-Fehler erhöht)
+            attempt += 1
+            sharedPrefs.edit { putInt(KEY_RETRY_COUNT, attempt) }
+            val delayMs = 30000L * (1 shl ((attempt - 1).coerceAtMost(5)))
+            Log.d(TAG, "Retry general failure attempt=$attempt (total=$totalAttempts) in ${delayMs / 1000}s")
+            delay(delayMs)
         }
     }
 

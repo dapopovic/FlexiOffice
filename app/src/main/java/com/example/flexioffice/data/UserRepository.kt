@@ -1,5 +1,6 @@
 package com.example.flexioffice.data
 
+import android.util.Log
 import com.example.flexioffice.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -146,16 +147,25 @@ class UserRepository
             }
 
         /** Removes a member from a team by resetting the teamId */
-        suspend fun removeUserFromTeam(userId: String): Result<Unit> =
+        suspend fun removeUserFromTeam(userId: String): Boolean =
             try {
+                // When removing user from team, restore initial permissions (manager role)
+                // so they can create new teams if needed
+                val updates =
+                    mapOf(
+                        User.TEAM_ID_FIELD to "",
+                        User.ROLE_FIELD to User.ROLE_MANAGER,
+                    )
+
                 firestore
                     .collection(User.COLLECTION_NAME)
                     .document(userId)
-                    .update(User.TEAM_ID_FIELD, "")
+                    .update(updates)
                     .await()
-                Result.success(Unit)
+                true
             } catch (e: Exception) {
-                Result.failure(e)
+                Log.e("UserRepository", "Error removing user from team", e)
+                false
             }
 
         /** Updates user data in Firestore */
