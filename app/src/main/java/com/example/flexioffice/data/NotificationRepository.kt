@@ -71,11 +71,12 @@ class NotificationRepository
                 val title = if (accepted) "Einladung akzeptiert" else "Einladung abgelehnt"
                 // Keine PII (E-Mail) – stattdessen Display Name oder generischer Platzhalter
                 val actorName = invitation.invitedUserDisplayName.ifBlank { "Ein Nutzer" }
-                val body = if (accepted) {
-                    "$actorName ist dem Team \"${invitation.teamName}\" beigetreten."
-                } else {
-                    "$actorName hat die Einladung für \"${invitation.teamName}\" abgelehnt."
-                }
+                val body =
+                    if (accepted) {
+                        "$actorName ist dem Team \"${invitation.teamName}\" beigetreten."
+                    } else {
+                        "$actorName hat die Einladung für \"${invitation.teamName}\" abgelehnt."
+                    }
 
                 val data =
                     mapOf(

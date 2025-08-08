@@ -156,11 +156,17 @@ class GeofencingService : Service() {
                     totalAttempts += 1
                     sharedPrefs.edit { putInt(KEY_RETRY_COUNT, attempt) }
                     val delayMs = 30000L * (1 shl (attempt - 1))
-                    Log.d(TAG, "No network - retry $attempt/$MAX_RETRY_COUNT (total=$totalAttempts) in ${delayMs / 1000}s")
+                    Log.d(
+                        TAG,
+                        "No network - retry $attempt/$MAX_RETRY_COUNT (total=$totalAttempts) in ${delayMs / 1000}s",
+                    )
                     delay(delayMs)
                     continue
                 }
-                Log.d(TAG, "Network connection available - continuing with home office check (totalAttempts=$totalAttempts)")
+                Log.d(
+                    TAG,
+                    "Network connection available - continuing with home office check (totalAttempts=$totalAttempts)",
+                )
 
                 // With timeout for network operations
                 withTimeout(NETWORK_TIMEOUT_MS) {
@@ -213,7 +219,10 @@ class GeofencingService : Service() {
                 return // Erfolg oder keine Notification nötig -> beenden
             } catch (e: TimeoutCancellationException) {
                 totalAttempts += 1
-                Log.w(TAG, "Timeout while checking home office status (attempt=$attempt, total=$totalAttempts): ${e.message}")
+                Log.w(
+                    TAG,
+                    "Timeout while checking home office status (attempt=$attempt, total=$totalAttempts): ${e.message}",
+                )
             } catch (e: UnknownHostException) {
                 totalAttempts += 1
                 Log.w(TAG, "DNS resolution error (attempt=$attempt, total=$totalAttempts): ${e.message}")

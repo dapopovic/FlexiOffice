@@ -138,53 +138,62 @@ class TeamRepository
                     throw Exception("There is already a pending invitation for this user to this team.")
                 }
 
-                val createdInvitation = firestore.runTransaction { transaction ->
-                    val managerRef = firestore.collection(User.COLLECTION_NAME).document(managerId)
-                    val managerSnap = transaction.get(managerRef)
-                    val manager = managerSnap.toObject(User::class.java) ?: throw Exception("Manager user not found.")
+                val createdInvitation =
+                    firestore
+                        .runTransaction { transaction ->
+                            val managerRef = firestore.collection(User.COLLECTION_NAME).document(managerId)
+                            val managerSnap = transaction.get(managerRef)
+                            val manager =
+                                managerSnap.toObject(User::class.java) ?: throw Exception("Manager user not found.")
 
-                    val teamRef = firestore.collection(Team.COLLECTION_NAME).document(teamId)
-                    val teamSnap = transaction.get(teamRef)
-                    val team = teamSnap.toObject(Team::class.java) ?: throw Exception("Team not found.")
+                            val teamRef = firestore.collection(Team.COLLECTION_NAME).document(teamId)
+                            val teamSnap = transaction.get(teamRef)
+                            val team = teamSnap.toObject(Team::class.java) ?: throw Exception("Team not found.")
 
-                    if (team.managerId != managerId) {
-                        throw Exception("Only the team manager can invite new members.")
-                    }
+                            if (team.managerId != managerId) {
+                                throw Exception("Only the team manager can invite new members.")
+                            }
 
-                    val invitedUserRef = firestore.collection(User.COLLECTION_NAME).document(invitedUserId)
-                    val invitedUserSnap = transaction.get(invitedUserRef)
-                    val invitedUser = invitedUserSnap.toObject(User::class.java) ?: throw Exception("Invited user not found.")
+                            val invitedUserRef = firestore.collection(User.COLLECTION_NAME).document(invitedUserId)
+                            val invitedUserSnap = transaction.get(invitedUserRef)
+                            val invitedUser =
+                                invitedUserSnap.toObject(User::class.java) ?: throw Exception("Invited user not found.")
 
-                    if (invitedUser.teamId != User.NO_TEAM) {
-                        throw Exception("This user is already in a team.")
-                    }
+                            if (invitedUser.teamId != User.NO_TEAM) {
+                                throw Exception("This user is already in a team.")
+                            }
 
-                    val invitationId = "${teamId}_${invitedUserId}"
-                    val invitationRef = firestore.collection(TeamInvitation.COLLECTION_NAME).document(invitationId)
-                    val existingSnap = transaction.get(invitationRef)
-                    if (existingSnap.exists()) {
-                        val existing = existingSnap.toObject(TeamInvitation::class.java)
-                        if (existing?.status == TeamInvitation.STATUS_PENDING) {
-                            throw Exception("There is already a pending invitation for this user to this team.")
-                        }
-                    }
+                            val invitationId = "${teamId}_$invitedUserId"
+                            val invitationRef =
+                                firestore
+                                    .collection(
+                                        TeamInvitation.COLLECTION_NAME,
+                                    ).document(invitationId)
+                            val existingSnap = transaction.get(invitationRef)
+                            if (existingSnap.exists()) {
+                                val existing = existingSnap.toObject(TeamInvitation::class.java)
+                                if (existing?.status == TeamInvitation.STATUS_PENDING) {
+                                    throw Exception("There is already a pending invitation for this user to this team.")
+                                }
+                            }
 
-                    val invitation = TeamInvitation(
-                        id = invitationId,
-                        teamId = teamId,
-                        teamName = team.name,
-                        invitedByUserId = managerId,
-                        invitedByUserName = manager.name,
-                        invitedUserEmail = "", // legacy leer
-                        invitedUserId = invitedUserId,
-                        invitedUserDisplayName = invitedUser.name,
-                        status = TeamInvitation.STATUS_PENDING,
-                        createdAt = java.util.Date(),
-                    )
+                            val invitation =
+                                TeamInvitation(
+                                    id = invitationId,
+                                    teamId = teamId,
+                                    teamName = team.name,
+                                    invitedByUserId = managerId,
+                                    invitedByUserName = manager.name,
+                                    invitedUserEmail = "", // legacy leer
+                                    invitedUserId = invitedUserId,
+                                    invitedUserDisplayName = invitedUser.name,
+                                    status = TeamInvitation.STATUS_PENDING,
+                                    createdAt = java.util.Date(),
+                                )
 
-                    transaction.set(invitationRef, invitation)
-                    invitation
-                }.await()
+                            transaction.set(invitationRef, invitation)
+                            invitation
+                        }.await()
 
                 Result.success(createdInvitation)
             } catch (e: Exception) {

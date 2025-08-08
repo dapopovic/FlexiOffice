@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -340,9 +340,10 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                                 Text(
                                     text = stringResource(R.string.team_members_count, uiState.teamMembers.size),
                                     style = MaterialTheme.typography.titleSmall,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = 4.dp, bottom = 8.dp),
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 4.dp, bottom = 8.dp),
                                 )
                             }
                             // Mitgliederliste
@@ -363,9 +364,10 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                                     Text(
                                         text = stringResource(R.string.outgoing_invitations_title),
                                         style = MaterialTheme.typography.titleSmall,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(top = 16.dp, bottom = 8.dp),
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .padding(top = 16.dp, bottom = 8.dp),
                                     )
                                 }
                                 items(uiState.teamPendingInvitations, key = { it.id }) { invitation ->
