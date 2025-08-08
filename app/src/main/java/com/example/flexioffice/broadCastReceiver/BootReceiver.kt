@@ -25,13 +25,7 @@ class BootReceiver : BroadcastReceiver() {
             -> {
                 Log.d(TAG, "Device boot or app update detected - re-registering geofences")
 
-                // check permissions and re-register geofences {
-                if (context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) !=
-                    PERMISSION_GRANTED
-                ) {
-                    Log.w(TAG, "Notification permission not granted, cannot re-register geofences")
-                    return
-                }
+                // Check critical permission and re-register geofences
                 if (context.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) !=
                     PERMISSION_GRANTED
                 ) {

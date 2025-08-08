@@ -53,7 +53,7 @@
         <!-- Boot Receiver for re-registering geofences -->
         <receiver
             android:name=".broadCastReceiver.BootReceiver"
-            android:exported="false"
+            android:exported="true"
             android:enabled="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

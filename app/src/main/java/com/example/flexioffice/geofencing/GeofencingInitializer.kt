@@ -6,6 +6,9 @@ import androidx.annotation.RequiresPermission
 import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.UserRepository
 import com.example.flexioffice.geofencing.permissions.LocationPermissionManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -83,18 +86,20 @@ class GeofencingInitializer
          * Cleans up geofencing on logout
          */
         fun cleanupGeofencingOnLogout() {
-            try {
-                Log.d(TAG, "Cleaning up geofencing on logout...")
-                geofencingManager.removeGeofences().fold(
-                    onSuccess = {
-                        Log.d(TAG, "Geofencing successfully cleaned up")
-                    },
-                    onFailure = { error ->
-                        Log.e(TAG, "Failed to cleanup geofencing", error)
-                    },
-                )
-            } catch (e: Exception) {
-                Log.e(TAG, "Error during geofencing cleanup", e)
+            Log.d(TAG, "Cleaning up geofencing on logout...")
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    geofencingManager.removeGeofences().fold(
+                        onSuccess = {
+                            Log.d(TAG, "Geofencing successfully cleaned up")
+                        },
+                        onFailure = { error ->
+                            Log.e(TAG, "Failed to cleanup geofencing", error)
+                        },
+                    )
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error during geofencing cleanup", e)
+                }
             }
         }
     }
