@@ -69,12 +69,13 @@ class NotificationRepository
 
                 val accepted = invitation.status.equals(TeamInvitation.STATUS_ACCEPTED, ignoreCase = true)
                 val title = if (accepted) "Einladung akzeptiert" else "Einladung abgelehnt"
-                val body =
-                    if (accepted) {
-                        "${invitation.invitedUserEmail} ist dem Team \"${invitation.teamName}\" beigetreten."
-                    } else {
-                        "${invitation.invitedUserEmail} hat die Einladung für \"${invitation.teamName}\" abgelehnt."
-                    }
+                // Keine PII (E-Mail) – stattdessen Display Name oder generischer Platzhalter
+                val actorName = invitation.invitedUserDisplayName.ifBlank { "Ein Nutzer" }
+                val body = if (accepted) {
+                    "$actorName ist dem Team \"${invitation.teamName}\" beigetreten."
+                } else {
+                    "$actorName hat die Einladung für \"${invitation.teamName}\" abgelehnt."
+                }
 
                 val data =
                     mapOf(
@@ -89,7 +90,8 @@ class NotificationRepository
                                 "teamId" to invitation.teamId,
                                 "teamName" to invitation.teamName,
                                 "status" to invitation.status,
-                                "invitedUserEmail" to invitation.invitedUserEmail,
+                                "invitedUserId" to invitation.invitedUserId,
+                                "invitedUserDisplayName" to invitation.invitedUserDisplayName,
                             ),
                         "createdAt" to System.currentTimeMillis(),
                         "processed" to false,

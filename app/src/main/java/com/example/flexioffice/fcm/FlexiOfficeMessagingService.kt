@@ -82,7 +82,8 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
         val date = data["date"]
         val teamName = data["teamName"]
         val invitedByUserName = data["invitedByUserName"]
-        val invitedUserEmail = data["invitedUserEmail"]
+        val invitedUserEmail = data["invitedUserEmail"] // legacy optional
+        val invitedUserDisplayName = data["invitedUserDisplayName"]
 
         when (type) {
             "booking_status_update" -> {
@@ -117,15 +118,12 @@ class FlexiOfficeMessagingService : FirebaseMessagingService() {
             "team_invitation_response" -> {
                 val accepted = status?.equals("accepted", ignoreCase = true) == true
                 val title = if (accepted) "Einladung akzeptiert" else "Einladung abgelehnt"
+                val displayName = invitedUserDisplayName ?: invitedUserEmail ?: "Ein Nutzer"
                 val body =
                     if (accepted) {
-                        "${invitedUserEmail ?: "Ein Nutzer"} ist dem Team ${teamName?.let {
-                            "\"$it\""
-                        } ?: ""} beigetreten."
+                        "$displayName ist dem Team ${teamName?.let { "\"$it\"" } ?: ""} beigetreten."
                     } else {
-                        "${invitedUserEmail ?: "Ein Nutzer"} hat die Einladung für ${teamName?.let {
-                            "\"$it\""
-                        } ?: "das Team"} abgelehnt."
+                        "$displayName hat die Einladung für ${teamName?.let { "\"$it\"" } ?: "das Team"} abgelehnt."
                     }
                 showNotificationWithType(title, body, type)
             }
