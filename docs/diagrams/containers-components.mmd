@@ -1,0 +1,38 @@
+%% Container & Component Diagram
+flowchart LR
+  subgraph App[Android App]
+    direction TB
+    UI["UI (Jetpack Compose)<br>- Screens: Login, Calendar, Booking, Teams, Requests, Profile<br>- Navigation: FlexiOfficeNavigation"]
+    VM["ViewModels<br>Auth, Main, Calendar, Booking, Team, Requests, InAppNotification, GeofencingSettings"]
+    DI["DI: Hilt Modules<br>FirebaseModule"]
+    DATA["Data Layer<br>Repositories: Auth, User, Team, Booking, Notification<br>Models: User, Team, Booking, TeamInvitation, CalendarEvent"]
+    BG["Background<br>FCM Service, Geofencing Service, BroadcastReceivers"]
+  end
+
+  subgraph Firebase[Firebase]
+    Auth[Auth]
+    Firestore[Firestore]
+    FCM[Messaging]
+  end
+
+  subgraph Google[Google Play Services]
+    Location[Location & Geofencing]
+  end
+
+  subgraph Backend[Notification Backend]
+    Node[Node/Express Server]
+  end
+
+  UI --> VM
+  VM --> DATA
+  DI --> VM
+  DI --> DATA
+  DATA <--> Firestore
+  DATA --> Auth
+  BG --> DATA
+  BG --> VM
+  BG --> UI
+  BG <--> Location
+  Node <--> Firestore
+  Node --> FCM
+  FCM --> BG

@@ -1,0 +1,37 @@
+%% Sequence: User Login & Token Registration
+sequenceDiagram
+  autonumber
+  participant UI as Login Screen (Compose)
+  participant VM as AuthViewModel
+  participant Auth as AuthRepository
+  participant FA as FirebaseAuth
+  participant User as UserRepository
+  participant FCM as FCMTokenManager
+  participant FS as Firestore
+  participant Svc as FlexiOfficeMessagingService
+
+  UI->>VM: signIn(email, password)
+  VM->>Auth: signInWithEmailAndPassword(email, password)
+  Auth->>FA: signInWithEmailAndPassword()
+  FA-->>Auth: FirebaseUser
+  Auth-->>VM: Result<FirebaseUser>
+  alt First login or no profile
+    VM->>User: getUser(uid)
+    User-->>VM: Result<User?> (null)
+    VM->>User: createUser(uid, createDefaultUser(email))
+    User-->>VM: Result<Unit>
+  else Existing profile
+    VM->>User: getUser(uid)
+    User-->>VM: Result<User?>
+  end
+
+  Note over UI,FCM: App process creates FlexiOfficeApplication which initializes FCM
+  VM-->>FCM: (via App) initializeFCM()
+  FCM->>FCM: retrieve token
+  FCM->>FS: set users/{uid}.fcmToken
+  FS-->>FCM: OK
+
+  Note over Svc: If token rotates later
+  Svc->>Svc: onNewToken(token)
+  Svc->>FCM: updateToken(token)
+  FCM->>FS: set users/{uid}.fcmToken (merge)

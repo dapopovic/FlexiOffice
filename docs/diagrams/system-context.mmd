@@ -1,0 +1,30 @@
+%% System Context Diagram for FlexiOffice
+flowchart TB
+  user["User\n(Employee / Manager)"]
+  subgraph device[Android Device]
+    app["FlexiOffice App\n(Jetpack Compose)"]
+    subgraph bg[Background Components]
+      fcmSvc["FlexiOfficeMessagingService\n(FCM)"]
+      geoSvc["GeofencingService\n(Foreground)"]
+      brGeofence["GeofencingBroadcastReceiver"]
+      brBoot["BootReceiver"]
+    end
+  end
+  gps["Google Play Services\n(Location / Geofencing)"]
+  fauth["Firebase Auth"]
+  fs["Cloud Firestore"]
+  fcm["Firebase Cloud Messaging"]
+  subgraph backend[Notification Backend]
+    node["Node.js/Express Server\nserver/server.js"]
+  end
+
+  user <--> app
+  app --> fauth
+  app <--> fs
+  app <--> fcm
+  app <--> gps
+  node <--> fs
+  node --> fcm
+  fcm --> fcmSvc
+  brGeofence --> geoSvc
+  brBoot --> geoSvc

@@ -1,0 +1,23 @@
+%% Sequence: Approve/Decline Booking and Notify Requester
+sequenceDiagram
+  autonumber
+  participant UI as Requests Screen (Manager)
+  participant VM as RequestsViewModel
+  participant Book as BookingRepository
+  participant FS as Firestore (Bookings)
+  participant Noti as NotificationRepository
+  participant Node as Node/Express
+  participant FCM as Firebase Cloud Messaging
+  participant Svc as Requester App (MessagingService)
+
+  UI->>VM: approveOrDecline(bookingId, status)
+  VM->>Book: updateBookingStatus(bookingId, status, reviewerId)
+  Book->>FS: update booking.status, booking.reviewerId
+  FS-->>Book: OK
+
+  VM->>Noti: sendBookingStatusNotification(booking, status, reviewerName)
+  Noti->>FS: add notifications { type: booking_status_update, processed: false }
+  Note right of Node: Listener on notifications where processed==false
+  Node->>FCM: send message to requester
+  FCM->>Svc: deliver push
+  Svc->>Svc: show notification or in-app banner
