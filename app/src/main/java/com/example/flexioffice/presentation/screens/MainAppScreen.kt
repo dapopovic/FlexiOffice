@@ -1,5 +1,13 @@
 package com.example.flexioffice.presentation.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,7 +26,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.vectorResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -46,14 +57,33 @@ fun MainAppScreen(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
             val hideBottomBar = currentDestination?.route == com.example.flexioffice.navigation.FlexiOfficeRoutes.GeofencingSettings.route
-            if (uiState.availableNavItems.isNotEmpty() && !hideBottomBar) {
+            val showBottomBar = uiState.availableNavItems.isNotEmpty() && !hideBottomBar
+
+            AnimatedVisibility(
+                visible = showBottomBar,
+                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+            ) {
                 NavigationBar(
-                    modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding(),
                 ) {
                     uiState.availableNavItems.forEach { item ->
                         val isSelected =
-                            currentDestination?.hierarchy?.any { it.route == item.route } ==
-                                true
+                            currentDestination?.hierarchy?.any { it.route == item.route } == true
+
+                        // Animate icon scale and label alpha on selection change
+                        val iconScale by animateFloatAsState(
+                            targetValue = if (isSelected) 1.12f else 1f,
+                            animationSpec = tween(durationMillis = 180),
+                            label = "nav_icon_scale",
+                        )
+                        val labelAlpha by animateFloatAsState(
+                            targetValue = if (isSelected) 1f else 0.85f,
+                            animationSpec = tween(durationMillis = 180),
+                            label = "nav_label_alpha",
+                        )
 
                         NavigationBarItem(
                             icon = {
@@ -63,37 +93,35 @@ fun MainAppScreen(
                                             Badge { Text(item.badgeCount.toString()) }
                                         },
                                     ) {
-                                        Icon(
-                                            imageVector =
-                                                if (isSelected) {
-                                                    ImageVector.vectorResource(
-                                                        item.selectedIconId,
-                                                    )
-                                                } else {
-                                                    ImageVector.vectorResource(
-                                                        item.unselectedIconId,
-                                                    )
-                                                },
-                                            contentDescription = item.title,
-                                        )
+                                        Crossfade(targetState = isSelected, label = "nav_icon_crossfade") { selected ->
+                                            Icon(
+                                                imageVector =
+                                                    if (selected) {
+                                                        ImageVector.vectorResource(item.selectedIconId)
+                                                    } else {
+                                                        ImageVector.vectorResource(item.unselectedIconId)
+                                                    },
+                                                contentDescription = item.title,
+                                                modifier = Modifier.scale(iconScale),
+                                            )
+                                        }
                                     }
                                 } else {
-                                    Icon(
-                                        imageVector =
-                                            if (isSelected) {
-                                                ImageVector.vectorResource(
-                                                    item.selectedIconId,
-                                                )
-                                            } else {
-                                                ImageVector.vectorResource(
-                                                    item.unselectedIconId,
-                                                )
-                                            },
-                                        contentDescription = item.title,
-                                    )
+                                    Crossfade(targetState = isSelected, label = "nav_icon_crossfade") { selected ->
+                                        Icon(
+                                            imageVector =
+                                                if (selected) {
+                                                    ImageVector.vectorResource(item.selectedIconId)
+                                                } else {
+                                                    ImageVector.vectorResource(item.unselectedIconId)
+                                                },
+                                            contentDescription = item.title,
+                                            modifier = Modifier.scale(iconScale),
+                                        )
+                                    }
                                 }
                             },
-                            label = { Text(item.title) },
+                            label = { Text(item.title, modifier = Modifier.graphicsLayer(alpha = labelAlpha)) },
                             selected = isSelected,
                             onClick = {
                                 navController.navigate(item.route) {
