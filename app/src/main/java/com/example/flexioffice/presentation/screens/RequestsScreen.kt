@@ -1,6 +1,8 @@
 package com.example.flexioffice.presentation.screens
 
 import android.util.Log
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -88,7 +90,15 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
         Box(
             modifier = Modifier.fillMaxSize().padding(16.dp),
         ) {
-            Column {
+            val canScroll = uiState.isLoading || uiState.pendingRequests.isEmpty()
+            Column(
+                modifier =
+                    if (canScroll) {
+                        Modifier.verticalScroll(rememberScrollState())
+                    } else {
+                        Modifier
+                    },
+            ) {
                 Header(
                     modifier = Modifier.padding(bottom = 16.dp),
                     title = stringResource(R.string.requests_title),

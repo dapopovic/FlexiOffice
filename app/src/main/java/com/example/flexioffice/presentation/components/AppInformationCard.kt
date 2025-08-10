@@ -18,7 +18,7 @@ fun AppInformationCard(modifier: Modifier = Modifier) {
         modifier =
             modifier
                 .fillMaxWidth()
-                .padding(bottom = 24.dp),
+                .padding(bottom = 16.dp),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),

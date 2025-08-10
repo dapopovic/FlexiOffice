@@ -45,7 +45,8 @@ fun MainAppScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            if (uiState.availableNavItems.isNotEmpty()) {
+            val hideBottomBar = currentDestination?.route == com.example.flexioffice.navigation.FlexiOfficeRoutes.GeofencingSettings.route
+            if (uiState.availableNavItems.isNotEmpty() && !hideBottomBar) {
                 NavigationBar(
                     modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
                 ) {

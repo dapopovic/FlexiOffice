@@ -307,4 +307,18 @@
     <string name="confirm_button">Bestätigen</string>
     <string name="action_cannot_be_undone">Diese Aktion kann nicht rückgängig gemacht werden.</string>
     <string name="processing">Verarbeitung läuft...</string>
+
+    <!-- Notifications Permission Prompt -->
+    <string name="notifications_permission_title">Benachrichtigungen aktivieren</string>
+    <string name="notifications_permission_message">Erhalten Sie Updates zu Anfragen und Buchungen. Möchten Sie Benachrichtigungen aktivieren?</string>
+    <string name="notifications_permission_allow">Aktivieren</string>
+    <string name="notifications_permission_later">Nicht jetzt</string>
+
+    <!-- Profile Notifications Section -->
+    <string name="notifications_title">Benachrichtigungen</string>
+    <string name="notifications_info">Erhalten Sie Updates zu Anfragen und Buchungen.</string>
+    <string name="notifications_status_enabled">✅ Benachrichtigungen sind aktiviert</string>
+    <string name="notifications_status_disabled">❌ Benachrichtigungen sind deaktiviert</string>
+    <string name="notifications_enable_button">Benachrichtigungen aktivieren</string>
+    <string name="notifications_open_settings_button">In App-Einstellungen öffnen</string>
 </resources>

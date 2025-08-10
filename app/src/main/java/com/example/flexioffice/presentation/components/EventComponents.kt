@@ -15,6 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -87,6 +89,9 @@ fun EventsList(
 
 @Composable
 private fun EventItem(event: CalendarEvent) {
+    val context = LocalContext.current
+    val statusColorRes = event.status.statusColor()
+    val statusTint = Color(ContextCompat.getColor(context, statusColorRes))
     Row(
         modifier =
             Modifier
@@ -99,7 +104,7 @@ private fun EventItem(event: CalendarEvent) {
         Icon(
             imageVector = event.status.statusIcon(),
             contentDescription = null,
-            tint = Color(event.status.statusColor()),
+            tint = statusTint,
             modifier = Modifier.size(20.dp),
         )
 
