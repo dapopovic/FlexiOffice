@@ -133,22 +133,7 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
                     )
                 }
 
-                if (uiState.isLoading) {
-                    // Loading state
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                        Text(
-                            text = stringResource(R.string.requests_loading),
-                            modifier = Modifier.padding(start = 8.dp),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                } else if (uiState.pendingRequests.isEmpty()) {
+                if (uiState.pendingRequests.isEmpty()) {
                     // Empty state
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
@@ -197,6 +182,15 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
                             )
                         }
                     }
+                }
+            }
+            // Non-blocking progress overlay to avoid blanking content
+            if (uiState.isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator()
                 }
             }
             // Snackbar Host for error messages

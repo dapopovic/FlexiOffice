@@ -3,6 +3,7 @@ package com.example.flexioffice.presentation
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import com.example.flexioffice.BuildConfig
 import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.BookingRepository
@@ -71,6 +72,8 @@ class CalendarViewModel
             private const val SELECTED_TEAM_MEMBER_KEY = "selected_team_member"
             private const val SELECTED_STATUS_KEY = "selected_status"
         }
+        // Ensure we don't register multiple Firestore listeners for team members
+        private var teamMembersJob: Job? = null
 
         private val _uiState =
             MutableStateFlow(
@@ -189,7 +192,6 @@ class CalendarViewModel
                     status = booking.status,
                 )
             }
-
         fun clearErrorMessage() {
             _uiState.value = _uiState.value.copy(errorMessage = null)
         }
@@ -412,8 +414,9 @@ class CalendarViewModel
             val teamId = _uiState.value.currentUser?.teamId
             if (teamId.isNullOrEmpty() || teamId == User.NO_TEAM) return
 
+            teamMembersJob?.cancel()
             Logger.d(TAG, "loadTeamMembers called for teamId: $teamId")
-            viewModelScope.launch {
+            teamMembersJob = viewModelScope.launch {
                 try {
                     userRepository.getTeamMembersStream(teamId).collect { teamMembersResult ->
                         val teamMembers = teamMembersResult.getOrNull() ?: emptyList()

@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -276,7 +277,8 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                 }
             }
 
-            if (uiState.currentTeam == null && !uiState.isLoading) {
+            // Keep content visible even while loading to avoid blank flicker
+            if (uiState.currentTeam == null) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -311,7 +313,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                         modifier = Modifier.padding(bottom = 32.dp),
                     )
                 }
-            } else if (!uiState.isLoading) {
+            } else {
                 // show Team details
                 Text(
                     text = stringResource(R.string.manage_team_and_invite),
@@ -383,6 +385,15 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                         }
                     }
                 }
+            }
+        }
+        // Lightweight progress overlay (keeps content visible, avoids screen blanking)
+        if (uiState.isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator()
             }
         }
         // Floating Action Button positioned at bottom right

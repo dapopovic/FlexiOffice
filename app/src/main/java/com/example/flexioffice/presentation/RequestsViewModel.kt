@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
 import javax.inject.Inject
 
 data class RequestsUiState(
@@ -64,6 +65,9 @@ class RequestsViewModel
                 ),
             )
         val uiState: StateFlow<RequestsUiState> = _uiState
+
+    // Ensure we don't register multiple Firestore listeners for team members
+    private var teamMembersJob: Job? = null
 
         init {
             observePendingRequests()
@@ -129,7 +133,7 @@ class RequestsViewModel
                         _uiState.value = _uiState.value.copy(error = e.message, isLoading = false)
                     }.collect { state ->
                         _uiState.update { state }
-                        // Load team members if the user is a manager
+                        // Load team members if the user is a manager (single active listener)
                         if (state.currentUser?.role == User.ROLE_MANAGER) {
                             loadTeamMembers()
                         }
@@ -169,7 +173,8 @@ class RequestsViewModel
             val teamId = _uiState.value.currentUser?.teamId
             if (teamId.isNullOrEmpty() || teamId == User.NO_TEAM) return
 
-            viewModelScope.launch {
+            teamMembersJob?.cancel()
+            teamMembersJob = viewModelScope.launch {
                 try {
                     userRepository.getTeamMembersStream(teamId).collect { teamMembersResult ->
                         val teamMembers = teamMembersResult.getOrNull() ?: emptyList()

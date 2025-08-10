@@ -5,6 +5,7 @@ import com.example.flexioffice.data.model.BookingStatus
 import com.example.flexioffice.data.model.BookingType
 import com.example.flexioffice.data.model.Team
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -35,6 +36,7 @@ class BookingRepository
                 .collection(Booking.COLLECTION_NAME)
                 .whereGreaterThanOrEqualTo(Booking.DATE_FIELD, startDateStr)
                 .whereLessThanOrEqualTo(Booking.DATE_FIELD, endDateStr)
+                .orderBy(Booking.DATE_FIELD, Query.Direction.ASCENDING)
                 .get()
                 .await()
                 .toObjects(Booking::class.java)
@@ -104,11 +106,18 @@ class BookingRepository
                     }
 
                 // Check if the team has a manager
-                if (team.managerId.isNullOrEmpty()) {
+                if (team.managerId.isEmpty()) {
                     return Result.failure(
                         IllegalArgumentException("Das Team hat keinen Manager zugewiesen"),
                     )
                 }
+
+                val statusForRequester =
+                    if (team.managerId == userId) {
+                        BookingStatus.APPROVED
+                    } else {
+                        BookingStatus.PENDING
+                    }
 
                 val booking =
                     Booking(
@@ -118,7 +127,7 @@ class BookingRepository
                         teamId = teamId,
                         type = type,
                         comment = comment,
-                        status = BookingStatus.PENDING,
+                        status = statusForRequester,
                         createdAt = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
                         reviewerId = team.managerId,
                     )
@@ -164,6 +173,7 @@ class BookingRepository
                         .whereEqualTo(Booking.TEAM_ID_FIELD, teamId)
                         .whereGreaterThanOrEqualTo(Booking.DATE_FIELD, startDateStr)
                         .whereLessThanOrEqualTo(Booking.DATE_FIELD, endDateStr)
+                        .orderBy(Booking.DATE_FIELD, Query.Direction.ASCENDING)
                         .get()
                         .await()
 
@@ -191,6 +201,7 @@ class BookingRepository
                         .whereEqualTo(Booking.TEAM_ID_FIELD, teamId)
                         .whereGreaterThanOrEqualTo(Booking.DATE_FIELD, startDateStr)
                         .whereLessThanOrEqualTo(Booking.DATE_FIELD, endDateStr)
+                        .orderBy(Booking.DATE_FIELD, Query.Direction.ASCENDING)
                         .addSnapshotListener { snapshot, error ->
                             if (error != null) {
                                 trySend(Result.failure(error))
@@ -212,7 +223,8 @@ class BookingRepository
                         .collection(Booking.COLLECTION_NAME)
                         .whereEqualTo(Booking.TEAM_ID_FIELD, teamId)
                         .whereEqualTo(Booking.STATUS_FIELD, BookingStatus.PENDING)
-                        .orderBy(Booking.DATE_FIELD)
+                        .orderBy(Booking.DATE_FIELD, Query.Direction.ASCENDING)
+                        .limit(200)
                         .addSnapshotListener { snapshot, error ->
                             if (error != null) {
                                 trySend(Result.failure(error))
