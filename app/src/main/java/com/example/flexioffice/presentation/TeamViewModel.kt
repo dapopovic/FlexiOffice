@@ -72,27 +72,19 @@ class TeamViewModel
                         return@launch
                     }
 
-                    if (_uiState.value.currentUser?.id != currentTeam.managerId) {
+                    val managerId = _uiState.value.currentUser?.id
+                    if (managerId != currentTeam.managerId) {
                         _events.send(TeamEvent.Error("Keine Berechtigung zum Entfernen von Mitgliedern"))
                         return@launch
                     }
 
-                    // First remove user from team members
-                    val updatedMembers = currentTeam.members.filter { it != userId }
-                    val updatedTeam = currentTeam.copy(members = updatedMembers)
-
+                    // Atomic transaction: remove from team and reset user's team/role
                     teamRepository
-                        .updateTeam(updatedTeam)
+                        .removeMemberFromTeamAtomically(currentTeam.id, managerId!!, userId)
                         .onSuccess {
-                            // Then reset team ID and restore manager role for user
-                            val userUpdateSuccess = userRepository.removeUserFromTeam(userId)
-                            if (userUpdateSuccess) {
-                                _events.send(TeamEvent.MemberRemoved)
-                            } else {
-                                _events.send(TeamEvent.Error("Fehler beim Aktualisieren des Users"))
-                            }
+                            _events.send(TeamEvent.MemberRemoved)
                         }.onFailure { e ->
-                            _events.send(TeamEvent.Error("Fehler beim Aktualisieren des Teams: ${e.message}"))
+                            _events.send(TeamEvent.Error("Fehler beim Entfernen des Mitglieds: ${e.message}"))
                         }
                 } catch (e: Exception) {
                     _events.send(TeamEvent.Error("Fehler beim Entfernen des Mitglieds: ${e.message}"))
