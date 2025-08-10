@@ -207,10 +207,10 @@ fun CalendarScreen(
                     uiState.currentUser?.teamId != com.example.flexioffice.data.model.User.NO_TEAM
                 ) {
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Filters(
-                            modifier = Modifier.weight(1f),
                             // items where the label is not "Cancelled"
                             items =
                                 BookingStatus.entries
@@ -228,7 +228,6 @@ fun CalendarScreen(
                             defaultItem = stringResource(R.string.filters_all_status),
                         )
                         Filters(
-                            modifier = Modifier.weight(2f),
                             items = uiState.teamMembers.map { it.name },
                             selectedItem =
                                 uiState.selectedTeamMember?.let { userId ->
