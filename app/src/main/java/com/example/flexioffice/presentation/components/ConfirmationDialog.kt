@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -317,6 +318,16 @@ sealed class ConfirmationDialogType(
         defaultMessageRes = R.string.delete_dialog_message,
         confirmButtonTextRes = R.string.delete_button,
         warningMessageRes = R.string.action_cannot_be_undone,
+        isDestructive = true,
+    )
+
+    data object CancelTeamInvitation : ConfirmationDialogType(
+        icon = Icons.Default.Close,
+        defaultTitleRes = R.string.cancel_invitation_dialog_title,
+        defaultSubtitleRes = R.string.cancel_invitation_dialog_subtitle,
+        defaultMessageRes = R.string.cancel_invitation_dialog_message,
+        confirmButtonTextRes = R.string.cancel_invitation_confirm_button,
+        warningMessageRes = R.string.cancel_invitation_warning,
         isDestructive = true,
     )
 

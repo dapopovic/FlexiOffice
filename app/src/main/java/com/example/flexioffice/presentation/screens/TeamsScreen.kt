@@ -48,6 +48,8 @@ import com.example.flexioffice.presentation.TeamEvent
 import com.example.flexioffice.presentation.TeamViewModel
 import com.example.flexioffice.presentation.components.CreateTeamDialog
 import com.example.flexioffice.presentation.components.DeleteTeamMemberDialog
+import com.example.flexioffice.presentation.components.ConfirmationDialog
+import com.example.flexioffice.presentation.components.ConfirmationDialogType
 import com.example.flexioffice.presentation.components.Header
 import com.example.flexioffice.presentation.components.InvitationAction
 import com.example.flexioffice.presentation.components.InvitationConfirmationDialog
@@ -132,6 +134,8 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
     var userToDelete by remember { mutableStateOf<User?>(null) }
     var showInvitationConfirmation by remember { mutableStateOf(false) }
     var pendingInvitationAction by remember { mutableStateOf<InvitationAction?>(null) }
+    var showCancelOutgoingInvitation by remember { mutableStateOf(false) }
+    var outgoingInvitationToCancel by remember { mutableStateOf<TeamInvitation?>(null) }
 
     // Event-Handling
     LaunchedEffect(Unit) {
@@ -147,7 +151,9 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                 }
                 is TeamEvent.MemberRemoved -> {
                     Log.d(TAG, "Member successfully removed")
-                    // The UI will automatically update due to state changes
+                    // Close the dialog after the operation completes
+                    showDeleteConfirmation = false
+                    userToDelete = null
                 }
                 is TeamEvent.InvitationAccepted -> {
                     Log.d(TAG, "Invitation accepted successfully")
@@ -161,7 +167,9 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                 }
                 is TeamEvent.InvitationCancelled -> {
                     Log.d(TAG, "Invitation cancelled successfully")
-                    // The UI will automatically update due to state changes
+                    // Close cancel dialog after completion
+                    showCancelOutgoingInvitation = false
+                    outgoingInvitationToCancel = null
                 }
                 is TeamEvent.Error -> {
                     Log.e(TAG, "Error: ${event.message}")
@@ -187,14 +195,14 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
     DeleteTeamMemberDialog(
         showDialog = showDeleteConfirmation,
         userToDelete = userToDelete,
+        isLoading = uiState.isLoading,
         onDismiss = {
             showDeleteConfirmation = false
             userToDelete = null
         },
         onConfirmDelete = {
+            // Keep dialog open while processing; it will close on MemberRemoved event
             userToDelete?.let { viewModel.removeMember(it.id) }
-            showDeleteConfirmation = false
-            userToDelete = null
         },
     )
 
@@ -228,6 +236,27 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                 null -> { /* Do nothing */ }
             }
         },
+    )
+
+    // Confirmation dialog for canceling outgoing invitations (manager)
+    ConfirmationDialog(
+        showDialog = showCancelOutgoingInvitation,
+        type = ConfirmationDialogType.CancelTeamInvitation,
+        onDismiss = {
+            if (!uiState.isLoading) {
+                showCancelOutgoingInvitation = false
+                outgoingInvitationToCancel = null
+            }
+        },
+        onConfirm = {
+            // Keep dialog open while processing; it will close on InvitationCancelled event
+            outgoingInvitationToCancel?.let { viewModel.cancelTeamInvitation(it.id) }
+        },
+        isLoading = uiState.isLoading,
+        itemName =
+            outgoingInvitationToCancel?.invitedUserDisplayName?.ifBlank {
+                outgoingInvitationToCancel?.invitedUserEmail ?: ""
+            },
     )
 
     Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
@@ -380,7 +409,10 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                                 items(uiState.teamPendingInvitations, key = { it.id }) { invitation ->
                                     OutgoingInvitationItem(
                                         invitation = invitation,
-                                        onCancel = { viewModel.cancelTeamInvitation(invitation.id) },
+                                        onCancel = {
+                                            outgoingInvitationToCancel = invitation
+                                            showCancelOutgoingInvitation = true
+                                        },
                                     )
                                 }
                             }

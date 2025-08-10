@@ -73,6 +73,11 @@
     <string name="team_members_count">Teammitglieder (%1$d)</string>
     <string name="outgoing_invitations_title">Ausstehende Einladungen (vom Team)</string>
     <string name="cancel_invitation">Einladung stornieren</string>
+    <string name="cancel_invitation_dialog_title">Einladung stornieren</string>
+    <string name="cancel_invitation_dialog_subtitle">Bestätigung erforderlich</string>
+    <string name="cancel_invitation_dialog_message">Möchten Sie die Einladung wirklich stornieren?</string>
+    <string name="cancel_invitation_confirm_button">Einladung stornieren</string>
+    <string name="cancel_invitation_warning">Die eingeladene Person kann dem Team nicht mehr beitreten.</string>
     
     <!-- Profile Screen -->
     <string name="profile_title">Profil</string>
