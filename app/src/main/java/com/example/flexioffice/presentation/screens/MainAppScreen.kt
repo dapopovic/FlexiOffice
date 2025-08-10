@@ -2,12 +2,12 @@ package com.example.flexioffice.presentation.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,13 +23,13 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.vectorResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -37,6 +37,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.flexioffice.navigation.FlexiOfficeNavigation
+import com.example.flexioffice.navigation.FlexiOfficeRoutes
 import com.example.flexioffice.presentation.InAppNotificationViewModel
 import com.example.flexioffice.presentation.MainViewModel
 import com.example.flexioffice.presentation.components.InAppNotificationBanner
@@ -56,7 +57,9 @@ fun MainAppScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            val hideBottomBar = currentDestination?.route == com.example.flexioffice.navigation.FlexiOfficeRoutes.GeofencingSettings.route
+            val hideBottomBar =
+                currentDestination?.route ==
+                    com.example.flexioffice.navigation.FlexiOfficeRoutes.GeofencingSettings.route
             val showBottomBar = uiState.availableNavItems.isNotEmpty() && !hideBottomBar
 
             AnimatedVisibility(
@@ -65,9 +68,10 @@ fun MainAppScreen(
                 exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
             ) {
                 NavigationBar(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding(),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding(),
                 ) {
                     uiState.availableNavItems.forEach { item ->
                         val isSelected =
@@ -145,11 +149,28 @@ fun MainAppScreen(
         },
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()) {
+            // Navigate to the resolved default route once loading finishes, without rebuilding NavHost
+            LaunchedEffect(uiState.isLoading, uiState.availableNavItems) {
+                if (!uiState.isLoading) {
+                    val targetRoute = mainViewModel.getDefaultRoute()
+                    val currentRoute = navController.currentBackStackEntry?.destination?.route
+                    if (currentRoute != targetRoute) {
+                        navController.navigate(targetRoute) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                }
+            }
             // Main Navigation Content
             Box(modifier = Modifier.padding(innerPadding)) {
                 FlexiOfficeNavigation(
                     navController = navController,
-                    startDestination = mainViewModel.getDefaultRoute(),
+                    // Keep a stable start destination to avoid re-creating the NavHost on state changes
+                    startDestination = FlexiOfficeRoutes.Loading.route,
                     mainViewModel = mainViewModel,
                 )
             }
