@@ -46,6 +46,7 @@ android {
     kotlin {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_21)
+            freeCompilerArgs.add("-Xannotation-default-target=param-property")
         }
     }
     buildFeatures {
@@ -118,8 +119,8 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
 
     // UI Automator for comprehensive gesture testing
-    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
-    androidTestImplementation("androidx.test:rules:1.5.0")
+    androidTestImplementation(libs.androidx.uiautomator)
+    androidTestImplementation(libs.androidx.rules)
 
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)

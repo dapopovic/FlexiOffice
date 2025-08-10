@@ -80,7 +80,7 @@ class TeamViewModel
 
                     // Atomic transaction: remove from team and reset user's team/role
                     teamRepository
-                        .removeMemberFromTeamAtomically(currentTeam.id, managerId!!, userId)
+                        .removeMemberFromTeamAtomically(currentTeam.id, managerId, userId)
                         .onSuccess {
                             _events.send(TeamEvent.MemberRemoved)
                         }.onFailure { e ->
@@ -331,6 +331,7 @@ class TeamViewModel
         }
 
         /** Observes outgoing team invitations for the current team (manager view). */
+        @OptIn(ExperimentalCoroutinesApi::class)
         private fun observeTeamPendingInvitations() {
             viewModelScope.launch {
                 // React to changes of currentTeam id from UI state
@@ -339,7 +340,7 @@ class TeamViewModel
                     .distinctUntilChanged()
                     .flatMapLatest { teamId ->
                         if (teamId.isNullOrEmpty()) {
-                            flowOf<Result<List<TeamInvitation>>>(Result.success(emptyList()))
+                            flowOf(Result.success(emptyList()))
                         } else {
                             teamRepository.getTeamPendingInvitationsFlow(teamId)
                         }
