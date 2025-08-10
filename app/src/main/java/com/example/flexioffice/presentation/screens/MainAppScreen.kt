@@ -58,8 +58,7 @@ fun MainAppScreen(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
             val hideBottomBar =
-                currentDestination?.route ==
-                    com.example.flexioffice.navigation.FlexiOfficeRoutes.GeofencingSettings.route
+                currentDestination?.route == FlexiOfficeRoutes.GeofencingSettings.route
             val showBottomBar = uiState.availableNavItems.isNotEmpty() && !hideBottomBar
 
             AnimatedVisibility(
@@ -129,20 +128,20 @@ fun MainAppScreen(
                             selected = isSelected,
                             onClick = {
                                 if (!isSelected) {
-                                navController.navigate(item.route) {
-                                    // Pop up to the start destination of the graph to
-                                    // avoid building up a large stack of destinations
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                                    navController.navigate(item.route) {
+                                        // Pop up to the start destination of the graph to
+                                        // avoid building up a large stack of destinations
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        // Avoid multiple copies of the same destination when
+                                        // reselecting the same item
+                                        launchSingleTop = true
+                                        // Restore state when reselecting a prev iously selected
+                                        // item
+                                        restoreState = true
                                     }
-                                    // Avoid multiple copies of the same destination when
-                                    // reselecting the same item
-                                    launchSingleTop = true
-                                    // Restore state when reselecting a previously selected
-                                    // item
-                                    restoreState = true
                                 }
-                            }
                             },
                         )
                     }

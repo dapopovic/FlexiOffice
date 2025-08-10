@@ -19,7 +19,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
@@ -95,28 +94,31 @@ private fun NotificationsPermissionPrompt() {
 
     // Check if permission is needed (Android 13+)
     val needsRuntimePermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-    val hasPermission = if (needsRuntimePermission) {
-        ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.POST_NOTIFICATIONS
-        ) == PackageManager.PERMISSION_GRANTED
-    } else {
-        // On older Android versions, notifications are enabled by default (unless user disabled at OS level)
-        true
-    }
-
-    val shouldShowDialog = remember(alreadyShown.value, hasPermission) {
-        !alreadyShown.value && !hasPermission
-    }
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { _ ->
-            // Regardless of result, don't nag again on next app start
-            prefs.edit().putBoolean(promptShownKey, true).apply()
-            alreadyShown.value = true
+    val hasPermission =
+        if (needsRuntimePermission) {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            // On older Android versions, notifications are enabled by default (unless user disabled at OS level)
+            true
         }
-    )
+
+    val shouldShowDialog =
+        remember(alreadyShown.value, hasPermission) {
+            !alreadyShown.value && !hasPermission
+        }
+
+    val launcher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission(),
+            onResult = { _ ->
+                // Regardless of result, don't nag again on next app start
+                prefs.edit().putBoolean(promptShownKey, true).apply()
+                alreadyShown.value = true
+            },
+        )
 
     if (shouldShowDialog) {
         AlertDialog(
@@ -146,7 +148,7 @@ private fun NotificationsPermissionPrompt() {
                 }) {
                     Text(text = stringResource(id = R.string.notifications_permission_later))
                 }
-            }
+            },
         )
     }
 }

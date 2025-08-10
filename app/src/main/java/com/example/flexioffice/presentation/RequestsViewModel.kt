@@ -14,6 +14,7 @@ import com.example.flexioffice.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -23,7 +24,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.Job
 import javax.inject.Inject
 
 data class RequestsUiState(
@@ -66,8 +66,8 @@ class RequestsViewModel
             )
         val uiState: StateFlow<RequestsUiState> = _uiState
 
-    // Ensure we don't register multiple Firestore listeners for team members
-    private var teamMembersJob: Job? = null
+        // Ensure we don't register multiple Firestore listeners for team members
+        private var teamMembersJob: Job? = null
 
         init {
             observePendingRequests()
@@ -174,16 +174,17 @@ class RequestsViewModel
             if (teamId.isNullOrEmpty() || teamId == User.NO_TEAM) return
 
             teamMembersJob?.cancel()
-            teamMembersJob = viewModelScope.launch {
-                try {
-                    userRepository.getTeamMembersStream(teamId).collect { teamMembersResult ->
-                        val teamMembers = teamMembersResult.getOrNull() ?: emptyList()
-                        _uiState.update { it.copy(teamMembers = teamMembers) }
+            teamMembersJob =
+                viewModelScope.launch {
+                    try {
+                        userRepository.getTeamMembersStream(teamId).collect { teamMembersResult ->
+                            val teamMembers = teamMembersResult.getOrNull() ?: emptyList()
+                            _uiState.update { it.copy(teamMembers = teamMembers) }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("RequestsViewModel", "Error loading team members: ${e.message}", e)
                     }
-                } catch (e: Exception) {
-                    Log.e("RequestsViewModel", "Error loading team members: ${e.message}", e)
                 }
-            }
         }
 
         /** Approves a booking request */

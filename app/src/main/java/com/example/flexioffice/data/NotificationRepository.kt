@@ -21,8 +21,8 @@ class NotificationRepository
             private const val NOTIFICATIONS_COLLECTION = "notifications"
         }
 
-    // Simple in-memory token cache to minimize reads
-    private val tokenCache = mutableMapOf<String, String>()
+        // Simple in-memory token cache to minimize reads
+        private val tokenCache = mutableMapOf<String, String>()
 
         /** Sends a notification to a user that they were invited to a team */
         suspend fun sendTeamInvitationNotification(invitation: TeamInvitation): Result<Unit> {

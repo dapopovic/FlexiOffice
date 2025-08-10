@@ -46,10 +46,10 @@ import com.example.flexioffice.data.model.TeamInvitation
 import com.example.flexioffice.data.model.User
 import com.example.flexioffice.presentation.TeamEvent
 import com.example.flexioffice.presentation.TeamViewModel
-import com.example.flexioffice.presentation.components.CreateTeamDialog
-import com.example.flexioffice.presentation.components.DeleteTeamMemberDialog
 import com.example.flexioffice.presentation.components.ConfirmationDialog
 import com.example.flexioffice.presentation.components.ConfirmationDialogType
+import com.example.flexioffice.presentation.components.CreateTeamDialog
+import com.example.flexioffice.presentation.components.DeleteTeamMemberDialog
 import com.example.flexioffice.presentation.components.Header
 import com.example.flexioffice.presentation.components.InvitationAction
 import com.example.flexioffice.presentation.components.InvitationConfirmationDialog
