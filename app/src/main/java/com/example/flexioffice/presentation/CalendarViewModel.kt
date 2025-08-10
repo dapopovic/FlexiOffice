@@ -3,7 +3,6 @@ package com.example.flexioffice.presentation
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Job
 import com.example.flexioffice.BuildConfig
 import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.BookingRepository
@@ -18,6 +17,7 @@ import com.example.flexioffice.util.Logger
 import com.example.flexioffice.util.ShakeDetector
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -72,6 +72,7 @@ class CalendarViewModel
             private const val SELECTED_TEAM_MEMBER_KEY = "selected_team_member"
             private const val SELECTED_STATUS_KEY = "selected_status"
         }
+
         // Ensure we don't register multiple Firestore listeners for team members
         private var teamMembersJob: Job? = null
 
@@ -192,6 +193,7 @@ class CalendarViewModel
                     status = booking.status,
                 )
             }
+
         fun clearErrorMessage() {
             _uiState.value = _uiState.value.copy(errorMessage = null)
         }
@@ -265,7 +267,7 @@ class CalendarViewModel
             state.selectedStatus?.let { status ->
                 filteredBookings =
                     filteredBookings.filter { booking ->
-                        booking.status == status
+                        booking.status == status && booking.status != BookingStatus.CANCELLED
                     }
             }
 
@@ -390,11 +392,12 @@ class CalendarViewModel
                         .getTeamBookingsStream(teamId, month.year, month.monthValue)
                         .collect { bookingsResult ->
                             val allBookings = bookingsResult.getOrNull() ?: emptyList()
+                            val bookings = allBookings.filter { it.status != BookingStatus.CANCELLED }
 
                             _uiState.value =
                                 _uiState.value.copy(
                                     isLoadingMonthData = false,
-                                    allBookings = allBookings,
+                                    allBookings = bookings,
                                     errorMessage = bookingsResult.exceptionOrNull()?.message,
                                 )
 
@@ -416,26 +419,27 @@ class CalendarViewModel
 
             teamMembersJob?.cancel()
             Logger.d(TAG, "loadTeamMembers called for teamId: $teamId")
-            teamMembersJob = viewModelScope.launch {
-                try {
-                    userRepository.getTeamMembersStream(teamId).collect { teamMembersResult ->
-                        val teamMembers = teamMembersResult.getOrNull() ?: emptyList()
-                        Logger.d(TAG, "Loaded ${teamMembers.size} team members")
+            teamMembersJob =
+                viewModelScope.launch {
+                    try {
+                        userRepository.getTeamMembersStream(teamId).collect { teamMembersResult ->
+                            val teamMembers = teamMembersResult.getOrNull() ?: emptyList()
+                            Logger.d(TAG, "Loaded ${teamMembers.size} team members")
 
-                        // Only log detailed member info in debug builds to avoid verbose output
-                        if (BuildConfig.DEBUG && teamMembers.isNotEmpty()) {
-                            teamMembers.forEach { member ->
-                                Logger.v(TAG, "Team member: ${member.name} (${member.id})")
+                            // Only log detailed member info in debug builds to avoid verbose output
+                            if (BuildConfig.DEBUG && teamMembers.isNotEmpty()) {
+                                teamMembers.forEach { member ->
+                                    Logger.v(TAG, "Team member: ${member.name} (${member.id})")
+                                }
                             }
-                        }
 
-                        _uiState.value = _uiState.value.copy(teamMembers = teamMembers)
+                            _uiState.value = _uiState.value.copy(teamMembers = teamMembers)
+                        }
+                    } catch (e: Exception) {
+                        // Team member loading errors are not critical, but we should log them
+                        Logger.w(TAG, "Error loading team members: ${e.message}", e)
                     }
-                } catch (e: Exception) {
-                    // Team member loading errors are not critical, but we should log them
-                    Logger.w(TAG, "Error loading team members: ${e.message}", e)
                 }
-            }
         }
 
         // Shake-to-cancel functionality

@@ -128,6 +128,7 @@ fun MainAppScreen(
                             label = { Text(item.title, modifier = Modifier.graphicsLayer(alpha = labelAlpha)) },
                             selected = isSelected,
                             onClick = {
+                                if (!isSelected) {
                                 navController.navigate(item.route) {
                                     // Pop up to the start destination of the graph to
                                     // avoid building up a large stack of destinations
@@ -141,6 +142,7 @@ fun MainAppScreen(
                                     // item
                                     restoreState = true
                                 }
+                            }
                             },
                         )
                     }
