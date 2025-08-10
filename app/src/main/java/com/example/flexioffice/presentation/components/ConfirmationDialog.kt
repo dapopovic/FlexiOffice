@@ -49,7 +49,10 @@ fun ConfirmationDialog(
 ) {
     if (showDialog) {
         AlertDialog(
-            onDismissRequest = onDismiss,
+            onDismissRequest = {
+                // Prevent dismiss while processing
+                if (!isLoading) onDismiss()
+            },
             title = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,

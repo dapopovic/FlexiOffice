@@ -154,7 +154,8 @@ fun MainAppScreen(
                 if (!uiState.isLoading) {
                     val targetRoute = mainViewModel.getDefaultRoute()
                     val currentRoute = navController.currentBackStackEntry?.destination?.route
-                    if (currentRoute != targetRoute) {
+                    // Only redirect automatically from the Loading screen to avoid hijacking active screens
+                    if (currentRoute == FlexiOfficeRoutes.Loading.route && currentRoute != targetRoute) {
                         navController.navigate(targetRoute) {
                             popUpTo(navController.graph.findStartDestination().id) {
                                 saveState = true

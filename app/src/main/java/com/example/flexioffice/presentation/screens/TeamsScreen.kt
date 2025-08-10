@@ -148,11 +148,13 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                 }
                 is TeamEvent.InvitationAccepted -> {
                     Log.d(TAG, "Invitation accepted successfully")
-                    // The UI will automatically update due to state changes
+                    showInvitationConfirmation = false
+                    pendingInvitationAction = null
                 }
                 is TeamEvent.InvitationDeclined -> {
                     Log.d(TAG, "Invitation declined")
-                    // The UI will automatically update due to state changes
+                    showInvitationConfirmation = false
+                    pendingInvitationAction = null
                 }
                 is TeamEvent.InvitationCancelled -> {
                     Log.d(TAG, "Invitation cancelled successfully")
@@ -210,17 +212,18 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
         action = pendingInvitationAction,
         isLoading = uiState.isLoading,
         onDismiss = {
-            showInvitationConfirmation = false
-            pendingInvitationAction = null
+            if (!uiState.isLoading) {
+                showInvitationConfirmation = false
+                pendingInvitationAction = null
+            }
         },
         onConfirm = {
+            // Keep dialog open while the request is processing; close on success events
             when (val action = pendingInvitationAction) {
                 is InvitationAction.Accept -> viewModel.acceptInvitation(action.invitation.id)
                 is InvitationAction.Decline -> viewModel.declineInvitation(action.invitation.id)
                 null -> { /* Do nothing */ }
             }
-            showInvitationConfirmation = false
-            pendingInvitationAction = null
         },
     )
 
