@@ -7,6 +7,7 @@ import com.example.flexioffice.data.model.TeamInvitation
 import com.example.flexioffice.data.model.User
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,7 +23,7 @@ class NotificationRepository
         }
 
         // Simple in-memory token cache to minimize reads
-        private val tokenCache = mutableMapOf<String, String>()
+        private val tokenCache = ConcurrentHashMap<String, String>()
 
         /** Sends a notification to a user that they were invited to a team */
         suspend fun sendTeamInvitationNotification(invitation: TeamInvitation): Result<Unit> {

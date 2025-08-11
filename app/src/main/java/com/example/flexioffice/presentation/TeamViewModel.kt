@@ -72,7 +72,11 @@ class TeamViewModel
                         return@launch
                     }
 
-                    val managerId = _uiState.value.currentUser?.id
+                    val managerId =
+                        _uiState.value.currentUser?.id ?: run {
+                            _events.send(TeamEvent.Error("Kein aktueller Benutzer gefunden"))
+                            return@launch
+                        }
                     if (managerId != currentTeam.managerId) {
                         _events.send(TeamEvent.Error("Keine Berechtigung zum Entfernen von Mitgliedern"))
                         return@launch
