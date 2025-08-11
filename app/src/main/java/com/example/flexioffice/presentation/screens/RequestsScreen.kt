@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
@@ -88,7 +90,15 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
         Box(
             modifier = Modifier.fillMaxSize().padding(16.dp),
         ) {
-            Column {
+            val canScroll = uiState.isLoading || uiState.pendingRequests.isEmpty()
+            Column(
+                modifier =
+                    if (canScroll) {
+                        Modifier.verticalScroll(rememberScrollState())
+                    } else {
+                        Modifier
+                    },
+            ) {
                 Header(
                     modifier = Modifier.padding(bottom = 16.dp),
                     title = stringResource(R.string.requests_title),
@@ -123,22 +133,7 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
                     )
                 }
 
-                if (uiState.isLoading) {
-                    // Loading state
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                        Text(
-                            text = stringResource(R.string.requests_loading),
-                            modifier = Modifier.padding(start = 8.dp),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                } else if (uiState.pendingRequests.isEmpty()) {
+                if (uiState.pendingRequests.isEmpty()) {
                     // Empty state
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
@@ -187,6 +182,15 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
                             )
                         }
                     }
+                }
+            }
+            // Non-blocking progress overlay to avoid blanking content
+            if (uiState.isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator()
                 }
             }
             // Snackbar Host for error messages

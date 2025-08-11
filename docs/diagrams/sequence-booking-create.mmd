@@ -1,0 +1,28 @@
+%% Sequence: Create Booking and Notify Manager
+sequenceDiagram
+  autonumber
+  participant UI as Booking Screen
+  participant VM as BookingViewModel
+  participant Book as BookingRepository
+  participant Team as Team (Firestore)
+  participant FS as Firestore (Bookings)
+  participant Noti as NotificationRepository
+  participant Node as Node/Express
+  participant FCM as Firebase Cloud Messaging
+  participant Svc as Manager App (MessagingService)
+
+  UI->>VM: createBooking(date, comment)
+  VM->>Book: createBooking(date, comment, userId, userName, teamId)
+  Book->>Team: get team to ensure managerId
+  Team-->>Book: Team(managerId)
+  Book->>FS: add bookings/{id} (PENDING, reviewerId=managerId)
+  FS-->>Book: doc id
+  Book-->>VM: Result<bookingId>
+
+  VM->>Noti: sendNewBookingRequestNotification(booking)
+  Noti->>FS: add notifications { type: new_booking_request, processed: false }
+  Note right of Node: Listener on notifications where processed==false
+  Node->>FCM: send message to manager
+  Node->>FS: update notifications/{id}.processed = true
+  FCM->>Svc: deliver push
+  Svc->>Svc: show notification or in-app banner

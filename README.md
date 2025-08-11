@@ -20,6 +20,11 @@ Willkommen im FlexiOffice Teamleiter-Handbuch! Hier finden Sie alle Anleitungen 
 **Lesezeit**: 15-20 Minuten  
 **Verwendung**: Einarbeitung, Nachschlagewerk
 
+### 🧭 Architekturüberblick
+**Datei**: [`docs/architecture.md`](docs/architecture.md)
+
+Kurzer Überblick über Systemkontext, Komponenten und Kernabläufe (Mermaid-Diagramme) inkl. Geofencing- und Benachrichtigungs-Flow.
+
 ---
 
 ## 🔧 Firebase-Setup für Entwickler

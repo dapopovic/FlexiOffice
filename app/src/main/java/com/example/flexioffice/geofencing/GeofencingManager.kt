@@ -87,7 +87,7 @@ class GeofencingManager
                 val locationRequest =
                     LocationRequest
                         .Builder(
-                            Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                            Priority.PRIORITY_HIGH_ACCURACY,
                             60_000L,
                         ).build()
                 val settingsRequest =

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -49,7 +50,10 @@ fun ConfirmationDialog(
 ) {
     if (showDialog) {
         AlertDialog(
-            onDismissRequest = onDismiss,
+            onDismissRequest = {
+                // Prevent dismiss while processing
+                if (!isLoading) onDismiss()
+            },
             title = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -314,6 +318,16 @@ sealed class ConfirmationDialogType(
         defaultMessageRes = R.string.delete_dialog_message,
         confirmButtonTextRes = R.string.delete_button,
         warningMessageRes = R.string.action_cannot_be_undone,
+        isDestructive = true,
+    )
+
+    data object CancelTeamInvitation : ConfirmationDialogType(
+        icon = Icons.Default.Close,
+        defaultTitleRes = R.string.cancel_invitation_dialog_title,
+        defaultSubtitleRes = R.string.cancel_invitation_dialog_subtitle,
+        defaultMessageRes = R.string.cancel_invitation_dialog_message,
+        confirmButtonTextRes = R.string.cancel_invitation_confirm_button,
+        warningMessageRes = R.string.cancel_invitation_warning,
         isDestructive = true,
     )
 

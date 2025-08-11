@@ -4,7 +4,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.edit
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -14,6 +18,7 @@ import com.example.flexioffice.presentation.screens.BookingScreen
 import com.example.flexioffice.presentation.screens.CalendarScreen
 import com.example.flexioffice.presentation.screens.GeofencingSettingsScreen
 import com.example.flexioffice.presentation.screens.LoginScreen
+import com.example.flexioffice.presentation.screens.OnboardingScreen
 import com.example.flexioffice.presentation.screens.ProfileScreen
 import com.example.flexioffice.presentation.screens.RequestsScreen
 import com.example.flexioffice.presentation.screens.TeamsScreen
@@ -29,6 +34,28 @@ fun FlexiOfficeNavigation(
         startDestination = startDestination,
         modifier = Modifier.fillMaxSize(),
     ) {
+        // One-time onboarding
+        composable(FlexiOfficeRoutes.Onboarding.route) {
+            val context = LocalContext.current
+            val authViewModel: com.example.flexioffice.presentation.AuthViewModel = hiltViewModel()
+            val authState by authViewModel.uiState.collectAsState()
+            OnboardingScreen(onDone = {
+                val prefs = context.getSharedPreferences("flexioffice_prefs", android.content.Context.MODE_PRIVATE)
+                prefs.edit { putBoolean("onboarding_completed", true) }
+                val target =
+                    if (authState.isLoggedIn) {
+                        FlexiOfficeRoutes.Calendar.route
+                    } else {
+                        FlexiOfficeRoutes.Login.route
+                    }
+                navController.navigate(target) {
+                    popUpTo(FlexiOfficeRoutes.Onboarding.route) { inclusive = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            })
+        }
+
         // Authentication Screen
         composable(FlexiOfficeRoutes.Login.route) {
             LoginScreen(

@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,7 +35,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -43,6 +46,8 @@ import com.example.flexioffice.data.model.TeamInvitation
 import com.example.flexioffice.data.model.User
 import com.example.flexioffice.presentation.TeamEvent
 import com.example.flexioffice.presentation.TeamViewModel
+import com.example.flexioffice.presentation.components.ConfirmationDialog
+import com.example.flexioffice.presentation.components.ConfirmationDialogType
 import com.example.flexioffice.presentation.components.CreateTeamDialog
 import com.example.flexioffice.presentation.components.DeleteTeamMemberDialog
 import com.example.flexioffice.presentation.components.Header
@@ -129,6 +134,8 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
     var userToDelete by remember { mutableStateOf<User?>(null) }
     var showInvitationConfirmation by remember { mutableStateOf(false) }
     var pendingInvitationAction by remember { mutableStateOf<InvitationAction?>(null) }
+    var showCancelOutgoingInvitation by remember { mutableStateOf(false) }
+    var outgoingInvitationToCancel by remember { mutableStateOf<TeamInvitation?>(null) }
 
     // Event-Handling
     LaunchedEffect(Unit) {
@@ -144,19 +151,25 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                 }
                 is TeamEvent.MemberRemoved -> {
                     Log.d(TAG, "Member successfully removed")
-                    // The UI will automatically update due to state changes
+                    // Close the dialog after the operation completes
+                    showDeleteConfirmation = false
+                    userToDelete = null
                 }
                 is TeamEvent.InvitationAccepted -> {
                     Log.d(TAG, "Invitation accepted successfully")
-                    // The UI will automatically update due to state changes
+                    showInvitationConfirmation = false
+                    pendingInvitationAction = null
                 }
                 is TeamEvent.InvitationDeclined -> {
                     Log.d(TAG, "Invitation declined")
-                    // The UI will automatically update due to state changes
+                    showInvitationConfirmation = false
+                    pendingInvitationAction = null
                 }
                 is TeamEvent.InvitationCancelled -> {
                     Log.d(TAG, "Invitation cancelled successfully")
-                    // The UI will automatically update due to state changes
+                    // Close cancel dialog after completion
+                    showCancelOutgoingInvitation = false
+                    outgoingInvitationToCancel = null
                 }
                 is TeamEvent.Error -> {
                     Log.e(TAG, "Error: ${event.message}")
@@ -182,14 +195,14 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
     DeleteTeamMemberDialog(
         showDialog = showDeleteConfirmation,
         userToDelete = userToDelete,
+        isLoading = uiState.isLoading,
         onDismiss = {
             showDeleteConfirmation = false
             userToDelete = null
         },
         onConfirmDelete = {
+            // Keep dialog open while processing; it will close on MemberRemoved event
             userToDelete?.let { viewModel.removeMember(it.id) }
-            showDeleteConfirmation = false
-            userToDelete = null
         },
     )
 
@@ -210,18 +223,40 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
         action = pendingInvitationAction,
         isLoading = uiState.isLoading,
         onDismiss = {
-            showInvitationConfirmation = false
-            pendingInvitationAction = null
+            if (!uiState.isLoading) {
+                showInvitationConfirmation = false
+                pendingInvitationAction = null
+            }
         },
         onConfirm = {
+            // Keep dialog open while the request is processing; close on success events
             when (val action = pendingInvitationAction) {
                 is InvitationAction.Accept -> viewModel.acceptInvitation(action.invitation.id)
                 is InvitationAction.Decline -> viewModel.declineInvitation(action.invitation.id)
                 null -> { /* Do nothing */ }
             }
-            showInvitationConfirmation = false
-            pendingInvitationAction = null
         },
+    )
+
+    // Confirmation dialog for canceling outgoing invitations (manager)
+    ConfirmationDialog(
+        showDialog = showCancelOutgoingInvitation,
+        type = ConfirmationDialogType.CancelTeamInvitation,
+        onDismiss = {
+            if (!uiState.isLoading) {
+                showCancelOutgoingInvitation = false
+                outgoingInvitationToCancel = null
+            }
+        },
+        onConfirm = {
+            // Keep dialog open while processing; it will close on InvitationCancelled event
+            outgoingInvitationToCancel?.let { viewModel.cancelTeamInvitation(it.id) }
+        },
+        isLoading = uiState.isLoading,
+        itemName =
+            outgoingInvitationToCancel?.invitedUserDisplayName?.ifBlank {
+                outgoingInvitationToCancel?.invitedUserEmail ?: ""
+            },
     )
 
     Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
@@ -231,7 +266,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
             // Header
             Header(
                 title = stringResource(R.string.teams_title),
-                iconVector = Icons.Default.Person,
+                iconVector = ImageVector.vectorResource(R.drawable.group_24px_filled),
                 hasBackButton = false,
                 modifier = Modifier.padding(bottom = 16.dp),
             )
@@ -273,7 +308,8 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                 }
             }
 
-            if (uiState.currentTeam == null && !uiState.isLoading) {
+            // Keep content visible even while loading to avoid blank flicker
+            if (uiState.currentTeam == null) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -308,7 +344,7 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                         modifier = Modifier.padding(bottom = 32.dp),
                     )
                 }
-            } else if (!uiState.isLoading) {
+            } else {
                 // show Team details
                 Text(
                     text = stringResource(R.string.manage_team_and_invite),
@@ -373,13 +409,25 @@ fun TeamsScreen(viewModel: TeamViewModel = hiltViewModel()) {
                                 items(uiState.teamPendingInvitations, key = { it.id }) { invitation ->
                                     OutgoingInvitationItem(
                                         invitation = invitation,
-                                        onCancel = { viewModel.cancelTeamInvitation(invitation.id) },
+                                        onCancel = {
+                                            outgoingInvitationToCancel = invitation
+                                            showCancelOutgoingInvitation = true
+                                        },
                                     )
                                 }
                             }
                         }
                     }
                 }
+            }
+        }
+        // Lightweight progress overlay (keeps content visible, avoids screen blanking)
+        if (uiState.isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator()
             }
         }
         // Floating Action Button positioned at bottom right

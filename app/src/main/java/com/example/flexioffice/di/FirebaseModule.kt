@@ -2,6 +2,8 @@ package com.example.flexioffice.di
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreSettings
+import com.google.firebase.firestore.PersistentCacheSettings
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.Module
 import dagger.Provides
@@ -17,7 +19,21 @@ object FirebaseModule {
 
     @Provides
     @Singleton
-    fun provideFirebaseFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+    fun provideFirebaseFirestore(): FirebaseFirestore {
+        val instance = FirebaseFirestore.getInstance()
+        // Explicitly enable persistence and increase cache size to reduce network reads
+        val settings =
+            FirebaseFirestoreSettings
+                .Builder()
+                .setLocalCacheSettings(
+                    PersistentCacheSettings
+                        .newBuilder()
+                        .setSizeBytes(100L * 1024 * 1024) // 100 MB persistent cache
+                        .build(),
+                ).build()
+        instance.firestoreSettings = settings
+        return instance
+    }
 
     @Provides
     @Singleton

@@ -24,6 +24,9 @@ sealed class FlexiOfficeRoutes(
 
     object GeofencingSettings : FlexiOfficeRoutes("geofencing_settings")
 
+    // One-time onboarding flow
+    object Onboarding : FlexiOfficeRoutes("onboarding")
+
     companion object {
         /** Standard-Route for new users */
         const val DEFAULT_ROUTE = "calendar"

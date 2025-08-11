@@ -73,6 +73,11 @@
     <string name="team_members_count">Teammitglieder (%1$d)</string>
     <string name="outgoing_invitations_title">Ausstehende Einladungen (vom Team)</string>
     <string name="cancel_invitation">Einladung stornieren</string>
+    <string name="cancel_invitation_dialog_title">Einladung stornieren</string>
+    <string name="cancel_invitation_dialog_subtitle">Bestätigung erforderlich</string>
+    <string name="cancel_invitation_dialog_message">Möchten Sie die Einladung wirklich stornieren?</string>
+    <string name="cancel_invitation_confirm_button">Einladung stornieren</string>
+    <string name="cancel_invitation_warning">Die eingeladene Person kann dem Team nicht mehr beitreten.</string>
     
     <!-- Profile Screen -->
     <string name="profile_title">Profil</string>
@@ -307,4 +312,29 @@
     <string name="confirm_button">Bestätigen</string>
     <string name="action_cannot_be_undone">Diese Aktion kann nicht rückgängig gemacht werden.</string>
     <string name="processing">Verarbeitung läuft...</string>
+
+    <!-- Notifications Permission Prompt -->
+    <string name="notifications_permission_title">Benachrichtigungen aktivieren</string>
+    <string name="notifications_permission_message">Erhalten Sie Updates zu Anfragen und Buchungen. Möchten Sie Benachrichtigungen aktivieren?</string>
+    <string name="notifications_permission_allow">Aktivieren</string>
+    <string name="notifications_permission_later">Nicht jetzt</string>
+
+    <!-- Profile Notifications Section -->
+    <string name="notifications_title">Benachrichtigungen</string>
+    <string name="notifications_info">Erhalten Sie Updates zu Anfragen und Buchungen.</string>
+    <string name="notifications_status_enabled">✅ Benachrichtigungen sind aktiviert</string>
+    <string name="notifications_status_disabled">❌ Benachrichtigungen sind deaktiviert</string>
+    <string name="notifications_enable_button">Benachrichtigungen aktivieren</string>
+    <string name="notifications_open_settings_button">In App-Einstellungen öffnen</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title_welcome">Willkommen bei FlexiOffice</string>
+    <string name="onboarding_desc_welcome">Planen Sie Büro- und Home-Office-Tage mühelos und bleiben Sie mit Ihrem Team synchron.</string>
+    <string name="onboarding_title_geofencing">Smartes Geofencing</string>
+    <string name="onboarding_desc_geofencing">Erhalten Sie automatische Erinnerungen beim Betreten oder Verlassen des Zuhause-Bereichs.</string>
+    <string name="onboarding_title_notifications">Immer informiert</string>
+    <string name="onboarding_desc_notifications">Aktivieren Sie Benachrichtigungen für Buchungs-Updates und Team-Einladungen.</string>
+    <string name="onboarding_skip">Überspringen</string>
+    <string name="onboarding_next">Weiter</string>
+    <string name="onboarding_get_started">Los geht\'s</string>
 </resources>

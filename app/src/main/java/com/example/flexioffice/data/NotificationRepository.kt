@@ -7,6 +7,7 @@ import com.example.flexioffice.data.model.TeamInvitation
 import com.example.flexioffice.data.model.User
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,6 +21,9 @@ class NotificationRepository
             private const val TAG = "NotificationRepository"
             private const val NOTIFICATIONS_COLLECTION = "notifications"
         }
+
+        // Simple in-memory token cache to minimize reads
+        private val tokenCache = ConcurrentHashMap<String, String>()
 
         /** Sends a notification to a user that they were invited to a team */
         suspend fun sendTeamInvitationNotification(invitation: TeamInvitation): Result<Unit> {
@@ -210,6 +214,8 @@ class NotificationRepository
         /** Retrieves the FCM token for a user */
         private suspend fun getUserFCMToken(userId: String): String? =
             try {
+                tokenCache[userId]?.let { return it }
+
                 val userDoc =
                     firestore
                         .collection(User.COLLECTION_NAME)
@@ -217,7 +223,9 @@ class NotificationRepository
                         .get()
                         .await()
 
-                userDoc.getString(User.FCM_TOKEN_FIELD)
+                val token = userDoc.getString(User.FCM_TOKEN_FIELD)
+                if (!token.isNullOrEmpty()) tokenCache[userId] = token
+                token
             } catch (e: Exception) {
                 Log.e(TAG, "Error retrieving FCM token for User $userId", e)
                 null

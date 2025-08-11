@@ -91,6 +91,7 @@ class BookingRepositoryTest {
 
             every { bookingsCollection.whereGreaterThanOrEqualTo(Booking.DATE_FIELD, startDate) } returns query
             every { query.whereLessThanOrEqualTo(Booking.DATE_FIELD, endDate) } returns query
+            every { query.orderBy(Booking.DATE_FIELD, Query.Direction.ASCENDING) } returns query
             every { query.get() } returns Tasks.forResult(querySnapshot)
             every { querySnapshot.toObjects(Booking::class.java) } returns expectedBookings
 
@@ -374,6 +375,7 @@ class BookingRepositoryTest {
             every { bookingsCollection.whereEqualTo(Booking.TEAM_ID_FIELD, teamId) } returns query
             every { query.whereGreaterThanOrEqualTo(Booking.DATE_FIELD, startDateStr) } returns query
             every { query.whereLessThanOrEqualTo(Booking.DATE_FIELD, endDateStr) } returns query
+            every { query.orderBy(Booking.DATE_FIELD, Query.Direction.ASCENDING) } returns query
             every { query.get() } returns Tasks.forResult(querySnapshot)
             every { querySnapshot.toObjects(Booking::class.java) } returns expectedBookings
 
@@ -397,6 +399,7 @@ class BookingRepositoryTest {
             every { bookingsCollection.whereEqualTo(Booking.TEAM_ID_FIELD, teamId) } returns query
             every { query.whereGreaterThanOrEqualTo(any<String>(), any<String>()) } returns query
             every { query.whereLessThanOrEqualTo(any<String>(), any<String>()) } returns query
+            every { query.orderBy(any<String>(), Query.Direction.ASCENDING) } returns query
             every { query.get() } returns Tasks.forException(exception)
 
             // When
@@ -427,6 +430,7 @@ class BookingRepositoryTest {
             every { bookingsCollection.whereEqualTo(Booking.TEAM_ID_FIELD, teamId) } returns query
             every { query.whereGreaterThanOrEqualTo(Booking.DATE_FIELD, startDateStr) } returns query
             every { query.whereLessThanOrEqualTo(Booking.DATE_FIELD, endDateStr) } returns query
+            every { query.orderBy(Booking.DATE_FIELD, Query.Direction.ASCENDING) } returns query
             every { query.addSnapshotListener(capture(listenerSlot)) } returns listenerRegistration
             every { querySnapshot.toObjects(Booking::class.java) } returns expectedBookings
 
@@ -459,6 +463,7 @@ class BookingRepositoryTest {
             every { bookingsCollection.whereEqualTo(Booking.TEAM_ID_FIELD, teamId) } returns query
             every { query.whereGreaterThanOrEqualTo(any<String>(), any<String>()) } returns query
             every { query.whereLessThanOrEqualTo(any<String>(), any<String>()) } returns query
+            every { query.orderBy(any<String>(), Query.Direction.ASCENDING) } returns query
             every { query.addSnapshotListener(capture(listenerSlot)) } returns listenerRegistration
 
             // When & Then
@@ -491,7 +496,8 @@ class BookingRepositoryTest {
 
             every { bookingsCollection.whereEqualTo(Booking.TEAM_ID_FIELD, teamId) } returns query
             every { query.whereEqualTo(Booking.STATUS_FIELD, BookingStatus.PENDING) } returns query
-            every { query.orderBy(Booking.DATE_FIELD) } returns query
+            every { query.orderBy(Booking.DATE_FIELD, Query.Direction.ASCENDING) } returns query
+            every { query.limit(200) } returns query
             every { query.addSnapshotListener(capture(listenerSlot)) } returns listenerRegistration
             every { querySnapshot.toObjects(Booking::class.java) } returns expectedBookings
 

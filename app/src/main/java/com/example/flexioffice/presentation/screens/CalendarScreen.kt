@@ -1,6 +1,9 @@
 package com.example.flexioffice.presentation.screens
 
 import android.util.Log
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -72,7 +76,17 @@ private fun CalendarViewWithLoading(
     onDateDoubleClick: (java.time.LocalDate) -> Unit,
     onMonthChanged: (YearMonth) -> Unit,
 ) {
-    Box {
+    Box(
+        modifier =
+            Modifier
+                .animateContentSize(
+                    animationSpec =
+                        spring(
+                            dampingRatio = Spring.DampingRatioNoBouncy,
+                            stiffness = Spring.StiffnessMedium,
+                        ),
+                ).wrapContentHeight(),
+    ) {
         // Calendar View
         if (uiState.isWeekView) {
             WeekCalendar(
@@ -95,8 +109,7 @@ private fun CalendarViewWithLoading(
         // Loading overlay for month data
         if (uiState.isLoadingMonthData) {
             Box(
-                modifier = Modifier.fillMaxSize().height(300.dp),
-                // Approximate calendar height
+                modifier = Modifier.matchParentSize(),
                 contentAlignment = Alignment.Center,
             ) {
                 Card(
@@ -135,6 +148,11 @@ fun CalendarScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = androidx.compose.ui.platform.LocalContext.current
+
+    // Determine whether the user has a team
+    val hasTeam =
+        !uiState.currentUser?.teamId.isNullOrEmpty() &&
+            uiState.currentUser?.teamId != com.example.flexioffice.data.model.User.NO_TEAM
 
     // Shake-Erkennung registrieren
     DisposableEffect(Unit) {
@@ -203,14 +221,12 @@ fun CalendarScreen(
                 )
 
                 // Filters for team members and status
-                if (!uiState.currentUser?.teamId.isNullOrEmpty() &&
-                    uiState.currentUser?.teamId != com.example.flexioffice.data.model.User.NO_TEAM
-                ) {
+                if (hasTeam) {
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Filters(
-                            modifier = Modifier.weight(1f),
                             // items where the label is not "Cancelled"
                             items =
                                 BookingStatus.entries
@@ -228,7 +244,6 @@ fun CalendarScreen(
                             defaultItem = stringResource(R.string.filters_all_status),
                         )
                         Filters(
-                            modifier = Modifier.weight(2f),
                             items = uiState.teamMembers.map { it.name },
                             selectedItem =
                                 uiState.selectedTeamMember?.let { userId ->
@@ -253,12 +268,16 @@ fun CalendarScreen(
                     uiState = uiState,
                     onDateSelected = viewModel::selectDate,
                     onDateLongPress = { date ->
-                        // Show booking dialog on long press
-                        viewModel.showBookingDialog(date)
+                        if (hasTeam) {
+                            // Show booking dialog on long press
+                            viewModel.showBookingDialog(date)
+                        }
                     },
                     onDateDoubleClick = { date ->
-                        // Book a direct booking on double click
-                        viewModel.createDirectBooking(date)
+                        if (hasTeam) {
+                            // Book a direct booking on double click
+                            viewModel.createDirectBooking(date)
+                        }
                     },
                     onMonthChanged = { month ->
                         if (month != uiState.currentMonth) {
@@ -282,17 +301,15 @@ fun CalendarScreen(
                     events = uiState.events,
                 )
 
-                // Legend (only show if no team available)
-                if (!uiState.currentUser?.teamId.isNullOrEmpty() &&
-                    uiState.currentUser?.teamId != com.example.flexioffice.data.model.User.NO_TEAM
-                ) {
+                // Legend (only show if a team is available)
+                if (hasTeam) {
                     BookingLegend()
                 }
 
                 if (uiState.events.isEmpty()) {
                     // Show empty state if no events but has team
                     EmptyStateOrDemoButton(
-                        hasTeam = !uiState.currentUser?.teamId.isNullOrEmpty(),
+                        hasTeam = hasTeam,
                         navigationController,
                     )
                 }

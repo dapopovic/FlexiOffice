@@ -1,0 +1,32 @@
+%% Sequence: Team Invitation Acceptance
+sequenceDiagram
+  autonumber
+  participant Manager as Manager (App)
+  participant FS as Firestore
+  participant App as Invitee (App)
+  participant Repo as TeamRepository
+  participant NotiRepo as NotificationRepository
+  participant Node as Node/Express
+  participant FCM as Firebase Cloud Messaging
+  participant Svc as FlexiOfficeMessagingService
+
+  Manager->>Repo: createTeamInvitation(teamId, inviteeEmail)
+  Repo->>FS: Transaction: create TeamInvitation (PENDING)
+  Repo-->>Manager: Invitation created
+  Repo->>NotiRepo: sendTeamInvitationNotification(invitation)
+  NotiRepo->>FS: Write notifications doc {type: team_invitation, processed: false}
+  Note right of Node: Listener on FS 'notifications' where processed==false
+  Node->>FS: onSnapshot: new notification
+  Node->>FCM: send message (data+notification)
+  FCM->>Svc: deliver push (background)
+  Svc->>App: show notification / in-app banner
+
+  App->>Repo: acceptTeamInvitation(invitationId)
+  Repo->>FS: Transaction: set invitation.status=ACCEPTED, add user to team, set user.role=USER
+  Repo-->>App: Invitation updated
+  Repo->>NotiRepo: sendTeamInvitationResponseNotification(invitation)
+  NotiRepo->>FS: Write notifications doc {type: team_invitation_response, processed: false}
+  Node->>FCM: send message to manager
+  Node->>FS: update notifications/{id}.processed = true
+  FCM->>Svc: deliver push
+  Svc->>App: show notification

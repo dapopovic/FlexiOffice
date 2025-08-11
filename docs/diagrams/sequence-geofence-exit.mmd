@@ -1,0 +1,37 @@
+%% Sequence: Geofence Exit -> Reminder
+sequenceDiagram
+  autonumber
+  participant GPS as Google Play Services (Geofencing)
+  participant BR as GeofencingBroadcastReceiver
+  participant Svc as GeofencingService (Foreground)
+  participant Auth as AuthRepository
+  participant User as UserRepository
+  participant Book as BookingRepository
+  participant Noti as HomeOfficeNotificationManager
+
+  GPS-->>BR: EXIT event (home_geofence)
+  BR->>Svc: startForegroundService()
+  activate Svc
+  Svc->>Svc: startForeground(notification)
+  Svc->>Svc: isNetworkAvailable()
+  alt Network OK
+    Svc->>Auth: currentUser.first()
+    alt Authenticated
+      Auth-->>Svc: Result<User>
+    else No User
+      Svc->>Svc: stopSelf()
+    end
+    Svc->>User: getUserStream(uid).first()
+    User-->>Svc: Result<User>
+    Svc->>Book: getUserBookingsForDate(uid, today)
+    Book-->>Svc: Result<List<Booking>>
+    alt Has APPROVED booking today
+      Svc->>Noti: showHomeOfficeReminderNotification(user.name)
+      Noti-->>Svc: notify()
+    else No approved booking
+      Svc->>Svc: no-op
+    end
+  else Network issues
+    Svc->>Svc: retry with exponential backoff (max 3)
+  end
+  deactivate Svc

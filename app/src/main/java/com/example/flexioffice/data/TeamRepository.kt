@@ -6,13 +6,13 @@ import com.example.flexioffice.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.util.Date
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -23,6 +23,57 @@ class TeamRepository
         private val firestore: FirebaseFirestore,
         private val auth: FirebaseAuth,
     ) {
+        /** Removes a member from a team atomically (manager only). */
+        suspend fun removeMemberFromTeamAtomically(
+            teamId: String,
+            managerId: String,
+            userIdToRemove: String,
+        ): Result<Unit> =
+            try {
+                firestore
+                    .runTransaction { transaction ->
+                        val teamRef = firestore.collection(Team.COLLECTION_NAME).document(teamId)
+                        val teamSnap = transaction.get(teamRef)
+                        val team = teamSnap.toObject(Team::class.java) ?: throw Exception("Team not found.")
+
+                        // Only the manager of this team may remove members
+                        if (team.managerId != managerId) {
+                            throw Exception("Keine Berechtigung zum Entfernen von Mitgliedern")
+                        }
+
+                        // Manager cannot be removed by this operation
+                        if (userIdToRemove == team.managerId) {
+                            throw Exception("Team-Manager kann nicht entfernt werden")
+                        }
+
+                        // If user is not a member, nothing to do
+                        if (!team.members.contains(userIdToRemove)) {
+                            // No-op: but keep it successful for idempotency
+                            return@runTransaction true
+                        }
+
+                        val userRef = firestore.collection(User.COLLECTION_NAME).document(userIdToRemove)
+
+                        // Reset the user's team and restore manager role
+                        transaction.update(
+                            userRef,
+                            mapOf(
+                                User.TEAM_ID_FIELD to User.NO_TEAM,
+                                User.ROLE_FIELD to User.ROLE_MANAGER,
+                            ),
+                        )
+
+                        // Remove the user from the team's members array
+                        transaction.update(teamRef, Team.MEMBERS_FIELD, FieldValue.arrayRemove(userIdToRemove))
+
+                        true
+                    }.await()
+
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+
         /** Loads the current user's team */
         suspend fun getCurrentUserTeam(): Team? {
             val uid = auth.currentUser?.uid ?: return null
@@ -125,18 +176,6 @@ class TeamRepository
                 }
                 val invitedUserDoc = userQuerySnapshot.documents.first()
                 val invitedUserId = invitedUserDoc.id
-
-                val existingInvitations =
-                    firestore
-                        .collection(TeamInvitation.COLLECTION_NAME)
-                        .whereEqualTo(TeamInvitation.TEAM_ID_FIELD, teamId)
-                        .whereEqualTo(TeamInvitation.INVITED_USER_ID_FIELD, invitedUserId)
-                        .whereEqualTo(TeamInvitation.STATUS_FIELD, TeamInvitation.STATUS_PENDING)
-                        .get()
-                        .await()
-                if (!existingInvitations.isEmpty) {
-                    throw Exception("There is already a pending invitation for this user to this team.")
-                }
 
                 val createdInvitation =
                     firestore
@@ -272,6 +311,8 @@ class TeamRepository
                         .collection(TeamInvitation.COLLECTION_NAME)
                         .whereEqualTo(TeamInvitation.INVITED_USER_ID_FIELD, uid)
                         .whereEqualTo(TeamInvitation.STATUS_FIELD, TeamInvitation.STATUS_PENDING)
+                        .orderBy(TeamInvitation.CREATED_AT_FIELD, Query.Direction.DESCENDING)
+                        .limit(50)
                         .addSnapshotListener { snapshot, error ->
                             if (error != null) {
                                 trySend(Result.failure(error))
@@ -297,6 +338,8 @@ class TeamRepository
                         .collection(TeamInvitation.COLLECTION_NAME)
                         .whereEqualTo(TeamInvitation.TEAM_ID_FIELD, teamId)
                         .whereEqualTo(TeamInvitation.STATUS_FIELD, TeamInvitation.STATUS_PENDING)
+                        .orderBy(TeamInvitation.CREATED_AT_FIELD, Query.Direction.DESCENDING)
+                        .limit(50)
                         .addSnapshotListener { snapshot, error ->
                             if (error != null) {
                                 trySend(Result.failure(error))
