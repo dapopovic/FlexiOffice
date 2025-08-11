@@ -25,7 +25,8 @@ sequenceDiagram
   Repo->>FS: Transaction: set invitation.status=ACCEPTED, add user to team, set user.role=USER
   Repo-->>App: Invitation updated
   Repo->>NotiRepo: sendTeamInvitationResponseNotification(invitation)
-  NotiRepo->>FS: Write notifications doc {type: team_invitation_response}
+  NotiRepo->>FS: Write notifications doc {type: team_invitation_response, processed: false}
   Node->>FCM: send message to manager
+  Node->>FS: update notifications/{id}.processed = true
   FCM->>Svc: deliver push
   Svc->>App: show notification

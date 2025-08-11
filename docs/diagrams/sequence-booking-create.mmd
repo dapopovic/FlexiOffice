@@ -23,5 +23,6 @@ sequenceDiagram
   Noti->>FS: add notifications { type: new_booking_request, processed: false }
   Note right of Node: Listener on notifications where processed==false
   Node->>FCM: send message to manager
+  Node->>FS: update notifications/{id}.processed = true
   FCM->>Svc: deliver push
   Svc->>Svc: show notification or in-app banner

@@ -16,7 +16,11 @@ sequenceDiagram
   Svc->>Svc: isNetworkAvailable()
   alt Network OK
     Svc->>Auth: currentUser.first()
-    Auth-->>Svc: FirebaseUser
+    alt Authenticated
+      Auth-->>Svc: Result<User>
+    else No User
+      Svc->>Svc: stopSelf()
+    end
     Svc->>User: getUserStream(uid).first()
     User-->>Svc: Result<User>
     Svc->>Book: getUserBookingsForDate(uid, today)

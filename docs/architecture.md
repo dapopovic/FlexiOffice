@@ -85,6 +85,8 @@ flowchart LR
 
 ```mermaid
 sequenceDiagram
+%% Sequence: Team Invitation Acceptance
+sequenceDiagram
   autonumber
   participant Manager as Manager (App)
   participant FS as Firestore
@@ -110,8 +112,9 @@ sequenceDiagram
   Repo->>FS: Transaction: set invitation.status=ACCEPTED, add user to team, set user.role=USER
   Repo-->>App: Invitation updated
   Repo->>NotiRepo: sendTeamInvitationResponseNotification(invitation)
-  NotiRepo->>FS: Write notifications doc {type: team_invitation_response}
+  NotiRepo->>FS: Write notifications doc {type: team_invitation_response, processed: false}
   Node->>FCM: send message to manager
+  Node->>FS: update notifications/{id}.processed = true
   FCM->>Svc: deliver push
   Svc->>App: show notification
 ```
@@ -119,6 +122,7 @@ sequenceDiagram
 ### 2) Geofence exit -> home-office reminder
 
 ```mermaid
+%% Sequence: Geofence Exit -> Reminder
 sequenceDiagram
   autonumber
   participant GPS as Google Play Services (Geofencing)
@@ -136,7 +140,11 @@ sequenceDiagram
   Svc->>Svc: isNetworkAvailable()
   alt Network OK
     Svc->>Auth: currentUser.first()
-    Auth-->>Svc: FirebaseUser
+    alt Authenticated
+      Auth-->>Svc: Result<User>
+    else No User
+      Svc->>Svc: stopSelf()
+    end
     Svc->>User: getUserStream(uid).first()
     User-->>Svc: Result<User>
     Svc->>Book: getUserBookingsForDate(uid, today)
@@ -167,6 +175,7 @@ sequenceDiagram
   participant FCM as FCMTokenManager
   participant FS as Firestore
   participant Svc as FlexiOfficeMessagingService
+  participant App as Application (FlexiOfficeApplication)
 
   UI->>VM: signIn(email, password)
   VM->>Auth: signInWithEmailAndPassword(email, password)
@@ -184,7 +193,7 @@ sequenceDiagram
   end
 
   Note over UI,FCM: App process creates FlexiOfficeApplication which initializes FCM
-  VM-->>FCM: (via App) initializeFCM()
+  App-->>FCM: initializeFCM()
   FCM->>FCM: retrieve token
   FCM->>FS: set users/{uid}.fcmToken
   FS-->>FCM: OK
@@ -223,6 +232,7 @@ sequenceDiagram
   Noti->>FS: add notifications { type: new_booking_request, processed: false }
   Note right of Node: Listener on notifications where processed==false
   Node->>FCM: send message to manager
+  Node->>FS: update notifications/{id}.processed = true
   FCM->>Svc: deliver push
   Svc->>Svc: show notification or in-app banner
 ```
@@ -231,6 +241,7 @@ sequenceDiagram
 
 ```mermaid
 %% Refer to docs/diagrams/sequence-booking-approve.mmd for standalone file
+%% Sequence: Approve/Decline Booking and Notify Requester
 sequenceDiagram
   autonumber
   participant UI as Requests Screen (Manager)
@@ -251,6 +262,7 @@ sequenceDiagram
   Noti->>FS: add notifications { type: booking_status_update, processed: false }
   Note right of Node: Listener on notifications where processed==false
   Node->>FCM: send message to requester
+  Node->>FS: update notifications/{id}.processed = true
   FCM->>Svc: deliver push
   Svc->>Svc: show notification or in-app banner
 ```
