@@ -41,6 +41,7 @@ object BottomNavigationItems {
             selectedIconId = R.drawable.assignment_24px_filled,
             unselectedIconId = R.drawable.assignment_24px,
             requiredRole = User.ROLE_MANAGER, // Only for managers/leads
+            requiresTeamMembership = true, // Requires team membership
         )
 
     val teams =

@@ -21,9 +21,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.flexioffice.navigation.FlexiOfficeRoutes
 import com.example.flexioffice.presentation.AuthViewModel
@@ -45,10 +47,25 @@ class MainActivity : ComponentActivity() {
 fun MainFlexiOfficeApp(authViewModel: AuthViewModel = hiltViewModel()) {
     val uiState by authViewModel.uiState.collectAsState()
     val navController = rememberNavController()
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    // First-launch: Onboarding check
+    LaunchedEffect(Unit) {
+        val prefs = context.getSharedPreferences("flexioffice_prefs", Context.MODE_PRIVATE)
+        val seen = prefs.getBoolean("onboarding_completed", false)
+        if (!seen) {
+            navController.navigate(FlexiOfficeRoutes.Onboarding.route) {
+                popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+            }
+        }
+    }
 
     // Show first-launch notifications prompt only if the user is logged in
     // (Android 13+ will request permission). This avoids prompting on the login screen.
-    if (uiState.isLoggedIn) {
+    val currentBackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackEntry?.destination?.route
+
+    if (uiState.isLoggedIn && currentRoute != FlexiOfficeRoutes.Onboarding.route) {
         NotificationsPermissionPrompt()
     }
 
@@ -56,8 +73,11 @@ fun MainFlexiOfficeApp(authViewModel: AuthViewModel = hiltViewModel()) {
         when {
             uiState.isLoading -> {
                 // Show loading screen while checking auth state
-                navController.navigate(FlexiOfficeRoutes.Loading.route) {
-                    popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+                val currentRoute = navController.currentDestination?.route
+                if (currentRoute != FlexiOfficeRoutes.Onboarding.route) {
+                    navController.navigate(FlexiOfficeRoutes.Loading.route) {
+                        popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+                    }
                 }
             }
             uiState.isLoggedIn -> {
@@ -74,8 +94,12 @@ fun MainFlexiOfficeApp(authViewModel: AuthViewModel = hiltViewModel()) {
             }
             else -> {
                 // If the user is not logged in, navigate to the login screen
-                navController.navigate(FlexiOfficeRoutes.Login.route) {
-                    popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+                val currentRoute = navController.currentDestination?.route
+                // Don't override onboarding if it's being shown
+                if (currentRoute != FlexiOfficeRoutes.Onboarding.route) {
+                    navController.navigate(FlexiOfficeRoutes.Login.route) {
+                        popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+                    }
                 }
             }
         }
@@ -115,7 +139,7 @@ private fun NotificationsPermissionPrompt() {
             contract = ActivityResultContracts.RequestPermission(),
             onResult = { _ ->
                 // Regardless of result, don't nag again on next app start
-                prefs.edit().putBoolean(promptShownKey, true).apply()
+                prefs.edit { putBoolean(promptShownKey, true) }
                 alreadyShown.value = true
             },
         )
@@ -123,7 +147,7 @@ private fun NotificationsPermissionPrompt() {
     if (shouldShowDialog) {
         AlertDialog(
             onDismissRequest = {
-                prefs.edit().putBoolean(promptShownKey, true).apply()
+                prefs.edit { putBoolean(promptShownKey, true) }
                 alreadyShown.value = true
             },
             title = { Text(text = stringResource(id = R.string.notifications_permission_title)) },
@@ -134,7 +158,7 @@ private fun NotificationsPermissionPrompt() {
                         launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
                     } else {
                         // Nothing to request on < 33, just mark as shown
-                        prefs.edit().putBoolean(promptShownKey, true).apply()
+                        prefs.edit { putBoolean(promptShownKey, true) }
                         alreadyShown.value = true
                     }
                 }) {
@@ -143,7 +167,7 @@ private fun NotificationsPermissionPrompt() {
             },
             dismissButton = {
                 TextButton(onClick = {
-                    prefs.edit().putBoolean(promptShownKey, true).apply()
+                    prefs.edit { putBoolean(promptShownKey, true) }
                     alreadyShown.value = true
                 }) {
                     Text(text = stringResource(id = R.string.notifications_permission_later))

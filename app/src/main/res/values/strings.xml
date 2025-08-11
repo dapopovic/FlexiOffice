@@ -326,4 +326,15 @@
     <string name="notifications_status_disabled">❌ Benachrichtigungen sind deaktiviert</string>
     <string name="notifications_enable_button">Benachrichtigungen aktivieren</string>
     <string name="notifications_open_settings_button">In App-Einstellungen öffnen</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title_welcome">Willkommen bei FlexiOffice</string>
+    <string name="onboarding_desc_welcome">Planen Sie Büro- und Home-Office-Tage mühelos und bleiben Sie mit Ihrem Team synchron.</string>
+    <string name="onboarding_title_geofencing">Smartes Geofencing</string>
+    <string name="onboarding_desc_geofencing">Erhalten Sie automatische Erinnerungen beim Betreten oder Verlassen des Zuhause-Bereichs.</string>
+    <string name="onboarding_title_notifications">Immer informiert</string>
+    <string name="onboarding_desc_notifications">Aktivieren Sie Benachrichtigungen für Buchungs-Updates und Team-Einladungen.</string>
+    <string name="onboarding_skip">Überspringen</string>
+    <string name="onboarding_next">Weiter</string>
+    <string name="onboarding_get_started">Los geht\'s</string>
 </resources>

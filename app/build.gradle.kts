@@ -80,6 +80,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    // Compose Foundation (for pager)
+    implementation(libs.androidx.foundation)
 
     // Firebase
     implementation(platform(libs.firebase.bom))
