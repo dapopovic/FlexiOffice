@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -111,7 +112,7 @@ private fun NotificationsCard() {
 
     fun hasNotificationsPermission(ctx: Context): Boolean =
         if (needsRuntimePermission) {
-            androidx.core.content.ContextCompat.checkSelfPermission(
+            checkSelfPermission(
                 ctx,
                 Manifest.permission.POST_NOTIFICATIONS,
             ) == PackageManager.PERMISSION_GRANTED

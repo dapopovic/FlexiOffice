@@ -14,12 +14,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import com.example.flexioffice.R
 import com.example.flexioffice.data.model.CalendarEvent
 import com.example.flexioffice.data.model.EventType
@@ -89,9 +87,8 @@ fun EventsList(
 
 @Composable
 private fun EventItem(event: CalendarEvent) {
-    val context = LocalContext.current
     val statusColorRes = event.status.statusColor()
-    val statusTint = Color(ContextCompat.getColor(context, statusColorRes))
+    val statusTint = colorResource(statusColorRes)
     Row(
         modifier =
             Modifier
