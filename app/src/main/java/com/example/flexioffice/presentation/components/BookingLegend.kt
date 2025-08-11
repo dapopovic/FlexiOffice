@@ -66,11 +66,6 @@ fun BookingLegend(modifier: Modifier = Modifier) {
                     color = colorResource(R.color.status_declined), // Red
                     text = stringResource(R.string.booking_item_status_declined),
                 )
-                LegendItem(
-                    icon = Icons.Default.Close,
-                    color = colorResource(R.color.status_cancelled), // Grey
-                    text = stringResource(R.string.booking_item_status_cancelled),
-                )
             }
         }
     }
