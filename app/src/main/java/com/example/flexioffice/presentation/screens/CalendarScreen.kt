@@ -301,7 +301,7 @@ fun CalendarScreen(
                     events = uiState.events,
                 )
 
-                // Legend (only show if no team available)
+                // Legend (only show if a team is available)
                 if (hasTeam) {
                     BookingLegend()
                 }
