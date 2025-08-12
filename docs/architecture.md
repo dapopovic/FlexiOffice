@@ -84,8 +84,7 @@ flowchart LR
 ### 1) Team invitation acceptance
 
 ```mermaid
-sequenceDiagram
-%% Sequence: Team Invitation Acceptance
+%% Refer to docs/diagrams/sequence-invite-acceptance.mmd for standalone file
 sequenceDiagram
   autonumber
   participant Manager as Manager (App)
@@ -122,7 +121,7 @@ sequenceDiagram
 ### 2) Geofence exit -> home-office reminder
 
 ```mermaid
-%% Sequence: Geofence Exit -> Reminder
+%% Refer to docs/diagrams/sequence-geofence-exit.mmd for standalone file
 sequenceDiagram
   autonumber
   participant GPS as Google Play Services (Geofencing)
@@ -241,7 +240,6 @@ sequenceDiagram
 
 ```mermaid
 %% Refer to docs/diagrams/sequence-booking-approve.mmd for standalone file
-%% Sequence: Approve/Decline Booking and Notify Requester
 sequenceDiagram
   autonumber
   participant UI as Requests Screen (Manager)
