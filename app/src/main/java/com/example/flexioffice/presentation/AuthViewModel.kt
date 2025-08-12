@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.UserRepository
+import com.example.flexioffice.fcm.FCMTokenManager
 import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +26,7 @@ class AuthViewModel
     constructor(
         private val authRepository: AuthRepository,
         private val userRepository: UserRepository,
+        private val fmcTokenManager: FCMTokenManager,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(AuthUiState())
         val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
@@ -67,6 +69,8 @@ class AuthViewModel
                                 isLoggedIn = true,
                                 errorMessage = null,
                             )
+                        // Initialize FCM token for this user (non-blocking)
+                        viewModelScope.launch { fmcTokenManager.initializeFCMSuspend() }
                     }.onFailure { exception ->
                         _uiState.value =
                             _uiState.value.copy(
@@ -148,6 +152,8 @@ class AuthViewModel
                             isLoggedIn = true,
                             errorMessage = null,
                         )
+                    // Initialize FCM token for the newly registered user (non-blocking)
+                    viewModelScope.launch { fmcTokenManager.initializeFCMSuspend() }
                 }.onFailure { exception ->
                     // Firestore document creation failed
                     // User is created in Firebase Auth but not in Firestore
