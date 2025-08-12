@@ -137,6 +137,24 @@ class BookingRepository
             }
         }
 
+        suspend fun getBookingById(id: String): Result<Booking> =
+            try {
+                val docSnapshot =
+                    firestore
+                        .collection(Booking.COLLECTION_NAME)
+                        .document(id)
+                        .get()
+                        .await()
+
+                if (docSnapshot.exists()) {
+                    Result.success(docSnapshot.toObject(Booking::class.java) ?: Booking())
+                } else {
+                    Result.failure(NoSuchElementException("Booking with ID $id not found"))
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+
         /** Loads user bookings for a specific date */
         suspend fun getUserBookingsForDate(
             userId: String,

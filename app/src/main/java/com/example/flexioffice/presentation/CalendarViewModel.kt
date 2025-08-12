@@ -1,11 +1,13 @@
 package com.example.flexioffice.presentation
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flexioffice.BuildConfig
 import com.example.flexioffice.data.AuthRepository
 import com.example.flexioffice.data.BookingRepository
+import com.example.flexioffice.data.NotificationRepository
 import com.example.flexioffice.data.UserRepository
 import com.example.flexioffice.data.model.Booking
 import com.example.flexioffice.data.model.BookingStatus
@@ -63,6 +65,7 @@ class CalendarViewModel
         private val userRepository: UserRepository,
         private val bookingRepository: BookingRepository,
         private val savedStateHandle: SavedStateHandle,
+        private val notificationRepository: NotificationRepository,
     ) : ViewModel() {
         companion object {
             private const val TAG = "CalendarViewModel"
@@ -165,7 +168,7 @@ class CalendarViewModel
                     }.collect { state ->
                         _uiState.value = state
                         // Load team members if user has a team
-                        if (!state.currentUser?.teamId.isNullOrEmpty() && state.currentUser?.teamId != User.NO_TEAM) {
+                        if (!state.currentUser?.teamId.isNullOrEmpty() && state.currentUser.teamId != User.NO_TEAM) {
                             Logger.d(TAG, "Loading team members for teamId: ${state.currentUser?.teamId}")
                             try {
                                 loadTeamMembers()
@@ -253,7 +256,7 @@ class CalendarViewModel
 
         private fun applyFilters() {
             val state = _uiState.value
-            var filteredBookings = state.allBookings
+            var filteredBookings = state.allBookings.filter { it.status != BookingStatus.CANCELLED }
 
             // Filter by team member
             state.selectedTeamMember?.let { userId ->
@@ -267,7 +270,7 @@ class CalendarViewModel
             state.selectedStatus?.let { status ->
                 filteredBookings =
                     filteredBookings.filter { booking ->
-                        booking.status == status && booking.status != BookingStatus.CANCELLED
+                        booking.status == status
                     }
             }
 
@@ -325,6 +328,11 @@ class CalendarViewModel
                             _uiState.value.copy(
                                 errorMessage = result.exceptionOrNull()?.message ?: "Fehler beim Erstellen der Buchung",
                             )
+                    } else {
+                        // Fire-and-forget: notify manager if this is a pending request
+                        result.getOrNull()?.let { bookingId ->
+                            notifyManagerIfPendingById(bookingId)
+                        }
                     }
                 } catch (e: Exception) {
                     _uiState.value =
@@ -340,7 +348,6 @@ class CalendarViewModel
             val date = currentState.bookingDialogDate ?: return
             val comment = currentState.bookingComment
             val currentUser = currentState.currentUser ?: return
-
             viewModelScope.launch {
                 _uiState.value = currentState.copy(isCreatingBooking = true)
                 try {
@@ -352,6 +359,7 @@ class CalendarViewModel
                             userName = currentUser.name,
                             teamId = currentUser.teamId,
                         )
+                    // Fire-and-forget: notify manager if this is a pending request
 
                     if (result.isSuccess) {
                         _uiState.value =
@@ -362,6 +370,10 @@ class CalendarViewModel
                                 isCreatingBooking = false,
                             )
                         loadBookingsForMonth(currentState.currentMonth)
+                        // Fire-and-forget: notify manager if this is a pending request
+                        result.getOrNull()?.let { bookingId ->
+                            notifyManagerIfPendingById(bookingId)
+                        }
                     } else {
                         _uiState.value =
                             currentState.copy(
@@ -375,6 +387,33 @@ class CalendarViewModel
                             errorMessage = e.message ?: "Fehler beim Erstellen der Buchung",
                             isCreatingBooking = false,
                         )
+                }
+            }
+        }
+
+        /**
+         * Loads the newly created booking by ID and sends a notification to the manager
+         * if the booking is in PENDING state.
+         */
+        private fun notifyManagerIfPendingById(bookingId: String) {
+            viewModelScope.launch {
+                try {
+                    val booking = bookingRepository.getBookingById(bookingId).getOrNull()
+                    if (booking != null && booking.status == BookingStatus.PENDING) {
+                        val managerId = booking.reviewerId
+                        if (managerId.isNotEmpty()) {
+                            try {
+                                notificationRepository.sendNewBookingRequestNotification(
+                                    booking,
+                                    managerId,
+                                )
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Error sending booking creation notification", e)
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error preparing booking creation notification by ID", e)
                 }
             }
         }
