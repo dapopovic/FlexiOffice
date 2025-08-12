@@ -26,7 +26,7 @@ class AuthViewModel
     constructor(
         private val authRepository: AuthRepository,
         private val userRepository: UserRepository,
-        private val fmcTokenManager: FCMTokenManager,
+        private val fcmTokenManager: FCMTokenManager,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(AuthUiState())
         val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
@@ -70,7 +70,7 @@ class AuthViewModel
                                 errorMessage = null,
                             )
                         // Initialize FCM token for this user (non-blocking)
-                        viewModelScope.launch { fmcTokenManager.initializeFCMSuspend() }
+                        viewModelScope.launch { fcmTokenManager.initializeFCMSuspend() }
                     }.onFailure { exception ->
                         _uiState.value =
                             _uiState.value.copy(
@@ -153,7 +153,7 @@ class AuthViewModel
                             errorMessage = null,
                         )
                     // Initialize FCM token for the newly registered user (non-blocking)
-                    viewModelScope.launch { fmcTokenManager.initializeFCMSuspend() }
+                    viewModelScope.launch { fcmTokenManager.initializeFCMSuspend() }
                 }.onFailure { exception ->
                     // Firestore document creation failed
                     // User is created in Firebase Auth but not in Firestore
