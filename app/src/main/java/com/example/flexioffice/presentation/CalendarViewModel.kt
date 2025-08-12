@@ -257,7 +257,7 @@ class CalendarViewModel
 
         private fun applyFilters() {
             val state = _uiState.value
-            var filteredBookings = state.allBookings
+            var filteredBookings = state.allBookings.filter { it.status != BookingStatus.CANCELLED }
 
             // Filter by team member
             state.selectedTeamMember?.let { userId ->
@@ -271,7 +271,7 @@ class CalendarViewModel
             state.selectedStatus?.let { status ->
                 filteredBookings =
                     filteredBookings.filter { booking ->
-                        booking.status == status && booking.status != BookingStatus.CANCELLED
+                        booking.status == status
                     }
             }
 
